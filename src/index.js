@@ -5,6 +5,8 @@ import cheerio from 'cheerio';
 import { get } from './http';
 import { getDuration } from './timeutil';
 
+process.env.UV_THREADPOOL_SIZE = 128;
+
 let total = -1;
 
 // const getPoster = (url) => new Promise((resolve, reject) => {
@@ -25,7 +27,7 @@ const getInfo = url => new Promise((resolve, reject) => {
       posterURL = ele2.attribs.src;
     }
     resolve({ name, posterURL });
-  }).catch(reject);
+  }).catch(e => reject(new Error(`获取影片信息失败(${url})：${e.message}`)));
 });
 
 const getInfos = urlsPromise => new Promise((resolve, reject) => {
@@ -56,7 +58,7 @@ const getURLs = (id, offset) => new Promise((resolve, reject) => {
       ret.push(element.attribs.href);
     });
     resolve(ret);
-  }).catch(reject);
+  }).catch(e => reject(new Error(`获取影片列表失败：${e.message}`)));
 });
 
 const main = (startTime) => {
@@ -87,7 +89,7 @@ const main = (startTime) => {
     fs.writeFileSync(path.join(outputPath, 'output.json'), JSON.stringify(infos), 'utf8');
     console.log(`爬取成功，耗时：${getDuration(startTime)}`);
   }).catch((e) => {
-    console.error(`爬取失败：${e.message}，耗时：${getDuration(startTime)}`);
+    console.error(`爬取失败：\n${e.message}\n耗时：${getDuration(startTime)}`);
   });
 };
 
