@@ -14,12 +14,13 @@ let total = -1;
 // });
 
 const getInfo = url => new Promise((resolve, reject) => {
+  let name = '';
+  let posterURL = '';
+  if (!url) resolve({ name, posterURL });
   get(url).then((res) => {
     const $ = cheerio.load(res);
     const ele1 = $('#wrapper #content h1 span')[0];
     const ele2 = $('#wrapper #content .article #mainpic a img')[0];
-    let name = '';
-    let posterURL = '';
     if (ele1) {
       name = ele1.children[0].data;
     }
