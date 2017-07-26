@@ -89,13 +89,16 @@ const main = (startTime) => {
     }, Promise.resolve([]));
     return getInfos(resPromise);
   }).then((infos) => {
-    infos = infos.filter(v => v.name !== '' && v.posterURL !== ''); // eslint-disable-line no-param-reassign
+    let _infos = infos.filter(v => v.name !== '' && v.posterURL !== '');
+    if (config.shuffle) {
+      _infos = _infos.sort(() => (Math.random() > 0.5 ? -1 : 1));
+    }
     const outputPath = path.join(__dirname, '..', 'output');
     const outputFilePath = path.join(outputPath, 'output.json');
     if (!fs.existsSync(outputPath)) {
       fs.mkdirSync(outputPath);
     }
-    fs.writeFileSync(outputFilePath, JSON.stringify(infos), 'utf8');
+    fs.writeFileSync(outputFilePath, JSON.stringify(_infos), 'utf8');
 
     return scp(outputFilePath);
   }).then((flag) => {
