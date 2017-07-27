@@ -42,7 +42,7 @@ const getInfos = urlsPromise => new Promise((resolve, reject) => {
     let ret = [];
     return promise.then((infos) => {
       ret = infos;
-      return getInfo(url.replace('https://movie.douban.com', ''));
+      return getInfo(url.split('\n').join('').replace('https://movie.douban.com', ''));
     }).then((info) => {
       ret.push(info);
       return ret;
