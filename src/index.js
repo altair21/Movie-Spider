@@ -116,7 +116,11 @@ const main = (startTime) => {
     if (!fs.existsSync(outputPath)) {
       fs.mkdirSync(outputPath);
     }
-    fs.writeFileSync(outputFilePath, JSON.stringify(_infos), 'utf8');
+    if (config.outputAsJS) {
+      fs.writeFileSync(outputFilePath, `let data = '${JSON.stringify(_infos).split('\'').join('\\\'')}'`, 'utf8');
+    } else {
+      fs.writeFileSync(outputFilePath, JSON.stringify(_infos), 'utf8');
+    }
 
     return scp(outputFilePath);
   }).then((flag) => {
