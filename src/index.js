@@ -13,7 +13,7 @@ process.env.UV_THREADPOOL_SIZE = 128;
 const outputPath = path.join(__dirname, '..', 'output');
 
 let total = -1;
-let actualTotal = -1;
+let actualTotal = 0;
 
 const getPosterInfo = url => new Promise((resolve, reject) => {
   if (url === '') {
@@ -24,6 +24,7 @@ const getPosterInfo = url => new Promise((resolve, reject) => {
     const imgInfo = sizeOf(buffer);
     // TODO: set MIME according to `imgInfo`
     getColors(buffer, 'image/jpeg').then((colors) => {
+      actualTotal++;
       resolve({ width: imgInfo.width, height: imgInfo.height, color: colors[0].hex() });
     }).on('error', e => reject(new Error(`海报颜色解析失败(${url}): ${e.message}`)));
   }).catch(e => reject(new Error(`获取海报信息失败(${url})：${e.message}`)));
@@ -33,7 +34,6 @@ const getInfo = url => new Promise((resolve, reject) => {
   let name = '';
   let posterURL = '';
   if (!url) {
-    actualTotal--;
     resolve({ name, posterURL });
     return;
   }
@@ -58,7 +58,7 @@ const getInfos = urlsPromise => new Promise((resolve, reject) => {
     let ret = [];
     return promise.then((infos) => {
       ret = infos;
-      return getInfo(url.split('\n').join('').replace('https://movie.douban.com', ''));
+      return getInfo(url ? url.split('\n').join('').replace('https://movie.douban.com', '') : undefined);
     }).then((info) => {
       ret.push(info);
       return ret;
@@ -89,7 +89,6 @@ const main = (startTime) => {
   getText(`/people/${config.id}/`).then((content) => {
     const $ = cheerio.load(content);
     total = Number.parseInt($('#wrapper #content #db-movie-mine h2 a')[0].children[0].data, 10);
-    actualTotal = total;
     let offset = 0;
     const offsets = [];
     while (offset < total) {
