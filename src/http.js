@@ -1,8 +1,9 @@
 import https from 'https';
+import URL from 'url';
 
 const hostname = 'movie.douban.com';
 
-const get = (url, param = {}) => new Promise((resolve, reject) => {
+const getText = (url, param = {}) => new Promise((resolve, reject) => {
   const paramStr = Object.keys(param).map(key => `${key}=${param[key]}`).join('&');
   const seprator = paramStr.length > 0 ? '?' : '';
   const reqStr = `${url}${seprator}${paramStr}`;
@@ -24,4 +25,14 @@ const get = (url, param = {}) => new Promise((resolve, reject) => {
   }).on('error', e => reject(new Error(`url ${url}\n${e.message}`)));
 });
 
-export { get };
+const getBuffer = url => new Promise((resolve, reject) => {
+  https.get(URL.parse(url), (response) => {
+    const chunks = [];
+    response.on('data', (chunk) => {
+      chunks.push(chunk);
+    }).on('end', () => resolve(Buffer.concat(chunks)))
+      .on('error', e => reject(new Error(`url: ${url}\n${e.message}`)));
+  }).on('error', e => reject(new Error(`url ${url}\n${e.message}`)));
+});
+
+export { getText, getBuffer };

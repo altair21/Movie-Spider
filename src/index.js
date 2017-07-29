@@ -1,12 +1,10 @@
 import fs from 'fs';
 import path from 'path';
-import URL from 'url';
-import https from 'https';
 import cheerio from 'cheerio';
 import sizeOf from 'image-size';
 import getColors from 'get-image-colors';
 
-import { get } from './http';
+import { getText, getBuffer } from './http';
 import { getDuration } from './timeutil';
 import { scp } from './scp';
 
@@ -18,18 +16,17 @@ let total = -1;
 let actualTotal = -1;
 
 const getPosterInfo = url => new Promise((resolve, reject) => {
-  https.get(URL.parse(url), (response) => {
-    const chunks = [];
-    response.on('data', (chunk) => {
-      chunks.push(chunk);
-    }).on('end', () => {
-      const buffer = Buffer.concat(chunks);
-      const imgInfo = sizeOf(buffer);
-      getColors(buffer, 'image/jpeg').then((colors) => {
-        resolve({ width: imgInfo.width, height: imgInfo.height, color: colors[0].hex() });
-      }).catch(e => reject(new Error(`海报颜色解析失败(${url}): ${e.message}`)));
-    }).on('error', e => reject(new Error(`获取海报信息失败(${url}): ${e.message}`)));
-  });
+  if (url === '') {
+    resolve({});
+    return;
+  }
+  getBuffer(url).then((buffer) => {
+    const imgInfo = sizeOf(buffer);
+    // TODO: set MIME according to `imgInfo`
+    getColors(buffer, 'image/jpeg').then((colors) => {
+      resolve({ width: imgInfo.width, height: imgInfo.height, color: colors[0].hex() });
+    }).on('error', e => reject(new Error(`海报颜色解析失败(${url}): ${e.message}`)));
+  }).catch(e => reject(new Error(`获取海报信息失败(${url})：${e.message}`)));
 });
 
 const getInfo = url => new Promise((resolve, reject) => {
@@ -40,7 +37,7 @@ const getInfo = url => new Promise((resolve, reject) => {
     resolve({ name, posterURL });
     return;
   }
-  get(url).then((res) => {
+  getText(url).then((res) => {
     const $ = cheerio.load(res);
     const ele1 = $('#wrapper #content h1 span')[0];
     const ele2 = $('#wrapper #content .article #mainpic a img')[0];
@@ -71,7 +68,7 @@ const getInfos = urlsPromise => new Promise((resolve, reject) => {
 });
 
 const getURLs = (id, offset) => new Promise((resolve, reject) => {
-  get(`/people/${id}/collect`, {
+  getText(`/people/${id}/collect`, {
     start: offset,
     sort: 'time',
     rating: 'all',
@@ -89,7 +86,7 @@ const getURLs = (id, offset) => new Promise((resolve, reject) => {
 
 const main = (startTime) => {
   const config = JSON.parse(fs.readFileSync(path.join(__dirname, '..', 'config.json'), 'utf8'));
-  get(`/people/${config.id}/`).then((content) => {
+  getText(`/people/${config.id}/`).then((content) => {
     const $ = cheerio.load(content);
     total = Number.parseInt($('#wrapper #content #db-movie-mine h2 a')[0].children[0].data, 10);
     actualTotal = total;
