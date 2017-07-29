@@ -1,6 +1,10 @@
 import fs from 'fs';
 import path from 'path';
+import URL from 'url';
+import https from 'https';
 import cheerio from 'cheerio';
+import sizeOf from 'image-size';
+import getColors from 'get-image-colors';
 
 import { get } from './http';
 import { getDuration } from './timeutil';
@@ -8,12 +12,25 @@ import { scp } from './scp';
 
 process.env.UV_THREADPOOL_SIZE = 128;
 
+const outputPath = path.join(__dirname, '..', 'output');
+
 let total = -1;
 let actualTotal = -1;
 
-// const getPoster = (url) => new Promise((resolve, reject) => {
-
-// });
+const getPosterInfo = url => new Promise((resolve, reject) => {
+  https.get(URL.parse(url), (response) => {
+    const chunks = [];
+    response.on('data', (chunk) => {
+      chunks.push(chunk);
+    }).on('end', () => {
+      const buffer = Buffer.concat(chunks);
+      const imgInfo = sizeOf(buffer);
+      getColors(buffer, 'image/jpeg').then((colors) => {
+        resolve({ width: imgInfo.width, height: imgInfo.height, color: colors[0].hex() });
+      }).catch(e => reject(new Error(`海报颜色解析失败(${url}): ${e.message}`)));
+    }).on('error', e => reject(new Error(`获取海报信息失败(${url}): ${e.message}`)));
+  });
+});
 
 const getInfo = url => new Promise((resolve, reject) => {
   let name = '';
@@ -33,7 +50,9 @@ const getInfo = url => new Promise((resolve, reject) => {
     if (ele2) {
       posterURL = ele2.attribs.src;
     }
-    resolve({ name, posterURL });
+    return getPosterInfo(posterURL);
+  }).then((info) => {
+    resolve({ name, posterURL, w: info.width, h: info.height, color: info.color });
   }).catch(e => reject(new Error(`获取影片信息失败(${url})：${e.message}`)));
 });
 
@@ -93,7 +112,6 @@ const main = (startTime) => {
     if (config.shuffle) {
       _infos = _infos.sort(() => (Math.random() > 0.5 ? -1 : 1));
     }
-    const outputPath = path.join(__dirname, '..', 'output');
     const outputFilePath = path.join(outputPath, 'output.json');
     if (!fs.existsSync(outputPath)) {
       fs.mkdirSync(outputPath);
