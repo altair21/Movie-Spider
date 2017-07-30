@@ -123,9 +123,11 @@ const main = (startTime) => {
     const scpStr = flag ? '\n结果文件已通过scp发送到目标服务器' : '';
     const str = `爬取成功：\n数量：${actualTotal}/${total}\n耗时：${getDuration(startTime)}${scpStr}`;
     console.log(str);
+    actualTotal = 0;
   })
   .catch((e) => {
     console.error(`爬取失败：\n${e.message}\n耗时：${getDuration(startTime)}`);
+    actualTotal = 0;
   });
 };
 
