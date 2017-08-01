@@ -11,6 +11,7 @@ import { scp } from './scp';
 process.env.UV_THREADPOOL_SIZE = 128;
 
 const outputPath = path.join(__dirname, '..', 'output');
+const config = JSON.parse(fs.readFileSync(path.join(__dirname, '..', 'config.json'), 'utf8'));
 
 let total = -1;
 let actualTotal = 0;
@@ -53,6 +54,36 @@ const getInfo = url => new Promise((resolve, reject) => {
   }).catch(e => reject(new Error(`获取影片信息失败(${url})：${e.message}`)));
 });
 
+const filterKeywords = (content) => {
+  const $ = cheerio.load(content);
+  const resHref = [];
+  const avaiIndex = [];
+  $('#content .article .grid-view .item .info .title a').each((index, element) => {
+    resHref.push(element.attribs.href);
+  });
+  $('#content .article .grid-view .item .info span.tags').each((index, element) => {
+    const text = $(element).text();
+    if (config.keywords && config.keywords.length > 0) {
+      let flag = false;
+      for (let i = 0, l = config.keywords.length; i < l; i++) {
+        if (text.indexOf(config.keywords[i]) !== -1) {
+          flag = true;
+          break;
+        }
+      }
+      if (flag) avaiIndex.push(index);
+    } else {
+      avaiIndex.push(index);
+    }
+  });
+
+  const ret = [];
+  for (let i = 0, l = avaiIndex.length; i < l; i++) {
+    ret.push(resHref[avaiIndex[i]]);
+  }
+  return ret;
+};
+
 const getInfos = urlsPromise => new Promise((resolve, reject) => {
   const res = urlsPromise.then(urls => urls.reduce((promise, url) => {
     let ret = [];
@@ -75,21 +106,16 @@ const getURLs = (id, offset) => new Promise((resolve, reject) => {
     filter: 'all',
     mode: 'grid',
   }).then((res) => {
-    const $ = cheerio.load(res);
-    const ret = [];
-    $('#content .article .grid-view .item .info .title a').each((index, element) => {
-      ret.push(element.attribs.href);
-    });
+    const ret = filterKeywords(res);
     resolve(ret);
   }).catch(e => reject(new Error(`获取影片列表失败：${e.message}`)));
 });
 
 const main = (startTime) => {
-  const config = JSON.parse(fs.readFileSync(path.join(__dirname, '..', 'config.json'), 'utf8'));
   getText(`/people/${config.id}/`).then((content) => {
     const $ = cheerio.load(content);
     total = Number.parseInt($('#wrapper #content #db-movie-mine h2 a')[0].children[0].data, 10);
-    let offset = 0;
+    let offset = 960;
     const offsets = [];
     while (offset < total) {
       offsets.push(offset);
