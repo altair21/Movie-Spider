@@ -4,7 +4,7 @@ import cheerio from 'cheerio';
 import sizeOf from 'image-size';
 import getColors from 'get-image-colors';
 
-import { getText, getBuffer } from './http';
+import { getText, getBuffer, login } from './http';
 import { getDuration } from './timeutil';
 import { scp } from './scp';
 
@@ -111,11 +111,11 @@ const getURLs = (id, offset) => new Promise((resolve, reject) => {
   }).catch(e => reject(new Error(`获取影片列表失败：${e.message}`)));
 });
 
-const main = (startTime) => {
-  getText(`/people/${config.id}/`).then((content) => {
+const gao = (startTime) => { // eslint-disable-line arrow-body-style
+  return getText(`/people/${config.id}/`).then((content) => {
     const $ = cheerio.load(content);
     total = Number.parseInt($('#wrapper #content #db-movie-mine h2 a')[0].children[0].data, 10);
-    let offset = 960;
+    let offset = 0;
     const offsets = [];
     while (offset < total) {
       offsets.push(offset);
@@ -157,4 +157,15 @@ const main = (startTime) => {
   });
 };
 
-main(new Date());
+const main = () => {
+  login(config.username, config.password).then(() => gao(new Date()))
+    .catch((err) => {
+      console.log(err);
+      gao(new Date());
+    });
+};
+
+setInterval(() => {
+  main();
+}, 24 * 60 * 60 * 1000);
+main();
