@@ -34,23 +34,29 @@ const getPosterInfo = url => new Promise((resolve, reject) => {
 const getInfo = url => new Promise((resolve, reject) => {
   let name = '';
   let posterURL = '';
+  let year = '';
   if (!url) {
-    resolve({ name, posterURL });
+    resolve({ name, posterURL, year });
     return;
   }
   getText(url).then((res) => {
     const $ = cheerio.load(res);
     const ele1 = $('#wrapper #content h1 span')[0];
     const ele2 = $('#wrapper #content .article #mainpic a img')[0];
+    const ele3 = $('#wrapper #content h1 span.year')[0];
     if (ele1) {
       name = ele1.children[0].data;
     }
     if (ele2) {
       posterURL = ele2.attribs.src;
     }
+    if (ele3 && ele3.children[0] && ele3.children[0].data) {
+      const len = ele3.children[0].data.length || 0;
+      year = ele3.children[0].data.slice(1, len - 1);
+    }
     return getPosterInfo(posterURL);
   }).then((info) => {
-    resolve({ name, posterURL, w: info.width, h: info.height, color: info.color });
+    resolve({ name, posterURL, year, w: info.width, h: info.height, color: info.color });
   }).catch(e => reject(new Error(`获取影片信息失败(${url})：${e.message}`)));
 });
 
