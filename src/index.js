@@ -7,6 +7,7 @@ import getColors from 'get-image-colors';
 import { getText, getBuffer, login } from './http';
 import { getDuration } from './timeutil';
 import { scp } from './scp';
+import { textToObject, objectToText } from './text';
 
 process.env.UV_THREADPOOL_SIZE = 128;
 
@@ -15,6 +16,8 @@ const config = JSON.parse(fs.readFileSync(path.join(__dirname, '..', 'config.jso
 
 let total = -1;
 let actualTotal = 0;
+let appendedItem = [];
+let errorItem = [];
 
 const getPosterInfo = url => new Promise((resolve, reject) => {
   if (url === '') {
@@ -56,7 +59,7 @@ const getInfo = url => new Promise((resolve, reject) => {
     }
     return getPosterInfo(posterURL);
   }).then((info) => {
-    resolve({ name, posterURL, year, w: info.width, h: info.height, color: info.color });
+    resolve({ url, name, posterURL, year, w: info.width, h: info.height, color: info.color });
   }).catch(e => reject(new Error(`获取影片信息失败(${url})：${e.message}`)));
 });
 
@@ -123,7 +126,32 @@ const getURLs = (id, offset) => new Promise((resolve, reject) => {
   }).catch(e => reject(new Error(`获取影片列表失败：${e.message}`)));
 });
 
+const mergeResult = (appended = []) => {
+  const outputFilePath = path.join(outputPath, 'output.json');
+  let origin = [];
+  if (fs.existsSync(outputFilePath)) {
+    const text = fs.readFileSync(outputFilePath, 'utf8');
+    origin = textToObject(text);
+  }
+  const res = origin.slice();
+  for (let i = 0, l = appended.length; i < l; i++) {
+    if (!res.find(item => item.url === appended[i].url || item.name === appended[i].name)) {
+      appendedItem.push(appended[i].name);
+      res.push(appended[i]);
+    }
+  }
+  return res;
+};
+
+const initialize = () => {
+  total = -1;
+  actualTotal = 0;
+  appendedItem = [];
+  errorItem = [];
+};
+
 const gao = (startTime) => { // eslint-disable-line arrow-body-style
+  initialize();
   return getText(`/people/${config.id}/`).then((content) => {
     const $ = cheerio.load(content);
     total = Number.parseInt($('#wrapper #content #db-movie-mine h2 a')[0].children[0].data, 10);
@@ -142,30 +170,36 @@ const gao = (startTime) => { // eslint-disable-line arrow-body-style
     }, Promise.resolve([]));
     return getInfos(resPromise);
   }).then((infos) => {
-    let _infos = infos.filter(v => v.name !== '' && v.posterURL !== '');
+    const _infos = infos.filter(v => {
+      if (v.url && (!v.name || !v.posterURL)) {
+        errorItem.push({ url: v.url, name: v.name, posterURL: v.posterURL });
+      }
+      return v.name !== '' && v.posterURL !== '';
+    });
+    let res = mergeResult(_infos);
     if (config.shuffle) {
-      _infos = _infos.sort(() => (Math.random() > 0.5 ? -1 : 1));
+      res = res.sort(() => (Math.random() > 0.5 ? -1 : 1));
     }
     const outputFilePath = path.join(outputPath, 'output.json');
     if (!fs.existsSync(outputPath)) {
       fs.mkdirSync(outputPath);
     }
     if (config.outputAsJS) {
-      fs.writeFileSync(outputFilePath, `let data = '${JSON.stringify(_infos).split('\'').join('\\\'')}'`, 'utf8');
+      fs.writeFileSync(outputFilePath, objectToText(res), 'utf8');
     } else {
-      fs.writeFileSync(outputFilePath, JSON.stringify(_infos), 'utf8');
+      fs.writeFileSync(outputFilePath, JSON.stringify(res), 'utf8');
     }
 
     return scp(outputFilePath);
   }).then((flag) => {
     const scpStr = flag ? '\n结果文件已通过scp发送到目标服务器' : '';
-    const str = `爬取成功：\n数量：${actualTotal}/${total}\n耗时：${getDuration(startTime)}${scpStr}`;
+    const appendedStr = appendedItem.length > 0 ? `新增 ${appendedItem.length} 部影片：\n${JSON.stringify(appendedItem)}` : '无新增影片';
+    const errorStr = errorItem.length > 0 ? `有 ${errorItem.length} 部影片出错：\n${JSON.stringify(errorItem)}` : '';
+    const str = `爬取成功：\n数量：${actualTotal}/${total}\n耗时：${getDuration(startTime)}${scpStr}\n${errorStr}\n${appendedStr}\n`;
     console.log(str);
-    actualTotal = 0;
   })
   .catch((e) => {
     console.error(`爬取失败：\n${e.message}\n耗时：${getDuration(startTime)}`);
-    actualTotal = 0;
   });
 };
 

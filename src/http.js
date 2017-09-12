@@ -4,6 +4,11 @@ import URL from 'url';
 const hostname = 'movie.douban.com';
 
 const login = (username, password) => new Promise((resolve, reject) => {
+  if (!username || !password) {
+    resolve();
+    return;
+  }
+
   const postBody = JSON.stringify({
     form_email: username,
     form_password: password,
