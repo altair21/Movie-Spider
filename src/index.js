@@ -28,7 +28,6 @@ const getPosterInfo = url => new Promise((resolve, reject) => {
     const imgInfo = sizeOf(buffer);
     // TODO: set MIME according to `imgInfo`
     getColors(buffer, 'image/jpeg').then((colors) => {
-      actualTotal++;
       resolve({ width: imgInfo.width, height: imgInfo.height, color: colors[0].hex() });
     }).on('error', e => reject(new Error(`海报颜色解析失败(${url}): ${e.message}`)));
   }).catch(e => reject(new Error(`获取海报信息失败(${url})：${e.message}`)));
@@ -177,6 +176,7 @@ const gao = (startTime) => { // eslint-disable-line arrow-body-style
       return v.name !== '' && v.posterURL !== '';
     });
     let res = mergeResult(_infos);
+    actualTotal = res.length;
     if (config.shuffle) {
       res = res.sort(() => (Math.random() > 0.5 ? -1 : 1));
     }
