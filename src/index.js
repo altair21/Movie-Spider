@@ -195,7 +195,7 @@ const gao = (startTime) => { // eslint-disable-line arrow-body-style
     const scpStr = flag ? '\n结果文件已通过scp发送到目标服务器' : '';
     const appendedStr = appendedItem.length > 0 ? `新增 ${appendedItem.length} 部影片：\n${JSON.stringify(appendedItem)}` : '无新增影片';
     const errorStr = errorItem.length > 0 ? `有 ${errorItem.length} 部影片出错：\n${JSON.stringify(errorItem)}` : '';
-    const str = `爬取成功：\n数量：${actualTotal}/${total}\n耗时：${getDuration(startTime)}${scpStr}\n${errorStr}\n${appendedStr}\n`;
+    const str = `爬取成功：\n数量：${actualTotal}/${total}\n耗时：${getDuration(startTime)}${scpStr}\n\n${appendedStr}\n\n${errorStr}\n`;
     console.log(str);
   })
   .catch((e) => {
