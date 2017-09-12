@@ -67,7 +67,9 @@ const filterKeywords = (content) => {
   $('#content .article .grid-view .item .info .title a').each((index, element) => {
     resHref.push(element.attribs.href);
   });
-  $('#content .article .grid-view .item .info span.tags').each((index, element) => {
+
+  const tags = $('#content .article .grid-view .item .info span.tags');
+  tags.each((index, element) => {
     const text = $(element).text();
     if (config.keywords && config.keywords.length > 0) {
       let flag = false;
@@ -82,6 +84,10 @@ const filterKeywords = (content) => {
       avaiIndex.push(index);
     }
   });
+
+  if (!config.keywords || config.keywords.length < 1 || tags.length === 0) {
+    return resHref;
+  }
 
   const ret = [];
   for (let i = 0, l = avaiIndex.length; i < l; i++) {
