@@ -134,9 +134,18 @@ const mergeResult = (appended = []) => {
   }
   const res = origin.slice();
   for (let i = 0, l = appended.length; i < l; i++) {
-    if (!res.find(item => item.url === appended[i].url || item.name === appended[i].name)) {
+    const findObj = res.find(item => item.url === appended[i].url || item.name === appended[i].name);
+    if (!findObj) {
       appendedItem.push(appended[i].name);
       res.push(appended[i]);
+    } else {
+      findObj.url = appended[i].url || findObj.url;
+      findObj.name = appended[i].name || findObj.name;
+      findObj.posterURL = appended[i].posterURL || findObj.posterURL;
+      findObj.year = appended[i].year || findObj.year;
+      findObj.w = appended[i].w || findObj.w;
+      findObj.h = appended[i].h || findObj.h;
+      findObj.color = appended[i].color || findObj.color;
     }
   }
   return res;
