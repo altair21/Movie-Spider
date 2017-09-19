@@ -38,7 +38,7 @@ const getInfo = obj => new Promise((resolve, reject) => {
   let name;
   let posterURL;
   let year;
-  if (!obj.url) {
+  if (!obj || !obj.url) {
     resolve({ name, posterURL, year });
     return;
   }
@@ -57,7 +57,7 @@ const getInfo = obj => new Promise((resolve, reject) => {
       const len = ele3.children[0].data.length || 0;
       year = ele3.children[0].data.slice(1, len - 1);
     }
-    return getPosterInfo(posterURL);
+    return getPosterInfo(posterURL || obj.posterURL || '');
   }).then((info) => {
     resolve({
       url: obj.url,
@@ -134,7 +134,7 @@ const getInfos = objsPromise => new Promise((resolve, reject) => {
     let ret = [];
     return promise.then((infos) => {
       ret = infos;
-      if (obj.url) {
+      if (obj && obj.url) {
         obj.url = obj.url.split('\n').join('').replace('https://movie.douban.com', ''); // eslint-disable-line no-param-reassign
       }
       return getInfo(obj);
@@ -239,8 +239,7 @@ const gao = (startTime) => { // eslint-disable-line arrow-body-style
       fs.writeFileSync(outputFilePath, JSON.stringify(res), 'utf8');
     }
 
-    // return scp(outputFilePath);
-    return true;
+    return scp(outputFilePath);
   }).then((flag) => {
     const scpStr = flag ? '\n结果文件已通过scp发送到目标服务器' : '';
     const appendedStr = appendedItem.length > 0 ? `新增 ${appendedItem.length} 部影片：\n${JSON.stringify(appendedItem)}` : '无新增影片';
