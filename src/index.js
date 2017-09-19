@@ -198,7 +198,7 @@ const gao = (startTime) => { // eslint-disable-line arrow-body-style
   return getText(`/people/${config.id}/`).then((content) => {
     const $ = cheerio.load(content);
     total = Number.parseInt($('#wrapper #content #db-movie-mine h2 a')[0].children[0].data, 10);
-    let offset = 1060;
+    let offset = 0;
     const offsets = [];
     while (offset < total) {
       offsets.push(offset);
