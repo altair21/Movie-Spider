@@ -17,7 +17,8 @@ const config = JSON.parse(fs.readFileSync(path.join(__dirname, '..', 'config.jso
 let total = -1;
 let actualTotal = 0;
 let appendedItem = [];
-let errorItem = [];
+let posterErrorItem = [];
+let yearErrorItem = [];
 
 const getPosterInfo = url => new Promise((resolve, reject) => {
   if (url === '') {
@@ -33,15 +34,15 @@ const getPosterInfo = url => new Promise((resolve, reject) => {
   }).catch(e => reject(new Error(`获取海报信息失败(${url})：${e.message}`)));
 });
 
-const getInfo = url => new Promise((resolve, reject) => {
-  let name = '';
-  let posterURL = '';
-  let year = '';
-  if (!url) {
+const getInfo = obj => new Promise((resolve, reject) => {
+  let name;
+  let posterURL;
+  let year;
+  if (!obj.url) {
     resolve({ name, posterURL, year });
     return;
   }
-  getText(url).then((res) => {
+  getText(obj.url).then((res) => {
     const $ = cheerio.load(res);
     const ele1 = $('#wrapper #content h1 span')[0];
     const ele2 = $('#wrapper #content .article #mainpic a img')[0];
@@ -58,17 +59,47 @@ const getInfo = url => new Promise((resolve, reject) => {
     }
     return getPosterInfo(posterURL);
   }).then((info) => {
-    resolve({ url, name, posterURL, year, w: info.width, h: info.height, color: info.color });
-  }).catch(e => reject(new Error(`获取影片信息失败(${url})：${e.message}`)));
+    resolve({
+      url: obj.url,
+      name: name || obj.name || '',
+      posterURL: posterURL || obj.posterURL || '',
+      year: year || obj.year || '',
+      w: info.width || 0,
+      h: info.height || 0,
+      color: info.color || 'white',
+      posterError: !posterURL,
+      yearError: !year,
+    });
+  }).catch(e => reject(new Error(`获取影片信息失败(${obj.url})：${e.message}`)));
 });
 
 const filterKeywords = (content) => {
   const $ = cheerio.load(content);
   const resHref = [];
+  const resName = [];
+  const resPosterURL = [];
   const avaiIndex = [];
+  const resObj = [];
   $('#content .article .grid-view .item .info .title a').each((index, element) => {
     resHref.push(element.attribs.href);
   });
+
+  $('#content .article .grid-view .item .pic a img').each((index, element) => {
+    resPosterURL.push(element.attribs.src);
+  });
+
+  $('#content .article .grid-view .item .info .title em').each((index, element) => {
+    resName.push(element.children[0].data.replace(' /', ''));
+  });
+
+  for (let i = 0, l = resHref.length; i < l; i++) {
+    resObj.push({
+      url: resHref[i],
+      name: resName[i],
+      posterURL: resPosterURL[i],
+      year: '',
+    });
+  }
 
   const tags = $('#content .article .grid-view .item .info span.tags');
   tags.each((index, element) => {
@@ -88,22 +119,25 @@ const filterKeywords = (content) => {
   });
 
   if (!config.keywords || config.keywords.length < 1 || tags.length === 0) {
-    return resHref;
+    return resObj;
   }
 
   const ret = [];
   for (let i = 0, l = avaiIndex.length; i < l; i++) {
-    ret.push(resHref[avaiIndex[i]]);
+    ret.push(resObj[avaiIndex[i]]);
   }
   return ret;
 };
 
-const getInfos = urlsPromise => new Promise((resolve, reject) => {
-  const res = urlsPromise.then(urls => urls.reduce((promise, url) => {
+const getInfos = objsPromise => new Promise((resolve, reject) => {
+  const res = objsPromise.then(objs => objs.reduce((promise, obj) => {
     let ret = [];
     return promise.then((infos) => {
       ret = infos;
-      return getInfo(url ? url.split('\n').join('').replace('https://movie.douban.com', '') : undefined);
+      if (obj.url) {
+        obj.url = obj.url.split('\n').join('').replace('https://movie.douban.com', ''); // eslint-disable-line no-param-reassign
+      }
+      return getInfo(obj);
     }).then((info) => {
       ret.push(info);
       return ret;
@@ -155,7 +189,8 @@ const initialize = () => {
   total = -1;
   actualTotal = 0;
   appendedItem = [];
-  errorItem = [];
+  posterErrorItem = [];
+  yearErrorItem = [];
 };
 
 const gao = (startTime) => { // eslint-disable-line arrow-body-style
@@ -163,7 +198,7 @@ const gao = (startTime) => { // eslint-disable-line arrow-body-style
   return getText(`/people/${config.id}/`).then((content) => {
     const $ = cheerio.load(content);
     total = Number.parseInt($('#wrapper #content #db-movie-mine h2 a')[0].children[0].data, 10);
-    let offset = 0;
+    let offset = 1060;
     const offsets = [];
     while (offset < total) {
       offsets.push(offset);
@@ -179,8 +214,13 @@ const gao = (startTime) => { // eslint-disable-line arrow-body-style
     return getInfos(resPromise);
   }).then((infos) => {
     const _infos = infos.filter(v => {
-      if (v.url && (!v.name || !v.posterURL)) {
-        errorItem.push({ url: v.url, name: v.name, posterURL: v.posterURL });
+      if (v.url) {
+        if (v.posterError) {
+          posterErrorItem.push({ url: v.url, name: v.name });
+        }
+        if (v.yearError) {
+          yearErrorItem.push({ url: v.url, name: v.name });
+        }
       }
       return v.name !== '' && v.posterURL !== '';
     });
@@ -199,12 +239,14 @@ const gao = (startTime) => { // eslint-disable-line arrow-body-style
       fs.writeFileSync(outputFilePath, JSON.stringify(res), 'utf8');
     }
 
-    return scp(outputFilePath);
+    // return scp(outputFilePath);
+    return true;
   }).then((flag) => {
     const scpStr = flag ? '\n结果文件已通过scp发送到目标服务器' : '';
     const appendedStr = appendedItem.length > 0 ? `新增 ${appendedItem.length} 部影片：\n${JSON.stringify(appendedItem)}` : '无新增影片';
-    const errorStr = errorItem.length > 0 ? `有 ${errorItem.length} 部影片出错：\n${JSON.stringify(errorItem)}` : '';
-    const str = `爬取成功：\n数量：${actualTotal}/${total}\n耗时：${getDuration(startTime)}${scpStr}\n\n${appendedStr}\n\n${errorStr}\n`;
+    const posterErrorStr = posterErrorItem.length > 0 ? `\n有 ${posterErrorItem.length} 部影片未获取到正确的海报：\n${JSON.stringify(posterErrorItem)}\n` : '';
+    const yearErrorStr = yearErrorItem.length > 0 ? `\n有 ${yearErrorItem.length} 部影片未获取到正确年份：\n${JSON.stringify(yearErrorItem)}\n` : '';
+    const str = `爬取成功：\n数量：${actualTotal}/${total}\n耗时：${getDuration(startTime)}${scpStr}\n\n${appendedStr}\n${posterErrorStr}${yearErrorStr}`;
     console.log(str);
   })
   .catch((e) => {
