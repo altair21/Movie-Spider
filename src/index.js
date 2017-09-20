@@ -51,7 +51,7 @@ const getInfo = obj => new Promise((resolve, reject) => {
     const nameEle = $('#wrapper #content h1 span')[0];
     const posterEle = $('#wrapper #content .article #mainpic a img')[0];
     const yearEle = $('#wrapper #content h1 span.year')[0];
-    const directorEle = $('#wrapper #content #info span .attrs')[0].children;
+    const directorEle = $('#wrapper #content #info span .attrs')[0];
     if (nameEle) {
       name = nameEle.children[0].data;
     }
@@ -63,9 +63,10 @@ const getInfo = obj => new Promise((resolve, reject) => {
       year = yearEle.children[0].data.slice(1, len - 1);
     }
     if (directorEle) {
-      for (let i = 0, l = directorEle.length; i < l; i++) {
-        if (directorEle[i].type === 'tag') {
-          director.push(directorEle[i].children[0].data);
+      const children = directorEle.children;
+      for (let i = 0, l = children.length; i < l; i++) {
+        if (children[i].type === 'tag') {
+          director.push(children[i].children[0].data);
         }
       }
     }
