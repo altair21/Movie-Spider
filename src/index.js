@@ -90,7 +90,8 @@ const getInfo = obj => new Promise((resolve, reject) => {
 });
 
 const hdThumbPoster = (url) => {
-  if (url.match(/https:\/\/img[1-9].doubanio.com\/view\/movie_poster_cover\/ipst\/public/)) {
+  if (typeof url === 'string' &&
+    url.match(/https:\/\/img[1-9].doubanio.com\/view\/movie_poster_cover\/ipst\/public/)) {
     return url.replace('ipst', 'lpst');
   }
   return url;
