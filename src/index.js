@@ -12,6 +12,8 @@ import { textToObject, objectToText } from './text';
 process.env.UV_THREADPOOL_SIZE = 128;
 
 const outputPath = path.join(__dirname, '..', 'output');
+const fullOutputFilePath = path.join(outputPath, 'full_output.json');
+const outputFilePath = path.join(outputPath, 'output.json');
 const config = JSON.parse(fs.readFileSync(path.join(__dirname, '..', 'config.json'), 'utf8'));
 
 let total = -1;
@@ -160,10 +162,9 @@ const getURLs = (id, offset) => new Promise((resolve, reject) => {
 });
 
 const mergeResult = (appended = []) => {
-  const outputFilePath = path.join(outputPath, 'output.json');
   let origin = [];
-  if (fs.existsSync(outputFilePath)) {
-    const text = fs.readFileSync(outputFilePath, 'utf8');
+  if (fs.existsSync(fullOutputFilePath)) {
+    const text = fs.readFileSync(fullOutputFilePath, 'utf8');
     origin = textToObject(text);
   }
   const res = origin.slice();
@@ -176,10 +177,12 @@ const mergeResult = (appended = []) => {
       findObj.url = appended[i].url || findObj.url;
       findObj.name = appended[i].name || findObj.name;
       findObj.posterURL = appended[i].posterURL || findObj.posterURL;
-      findObj.year = appended[i].year || findObj.year;
       findObj.w = appended[i].w || findObj.w;
       findObj.h = appended[i].h || findObj.h;
       findObj.color = appended[i].color || findObj.color;
+      findObj.year = appended[i].year || findObj.year;
+      findObj.posterError = appended[i].posterError && findObj.posterError;
+      findObj.yearError = appended[i].yearError && findObj.yearError;
     }
   }
   return res;
@@ -229,13 +232,27 @@ const gao = (startTime) => { // eslint-disable-line arrow-body-style
     if (config.shuffle) {
       res = res.sort(() => (Math.random() > 0.5 ? -1 : 1));
     }
-    const outputFilePath = path.join(outputPath, 'output.json');
     if (!fs.existsSync(outputPath)) {
       fs.mkdirSync(outputPath);
     }
+    const transToUsage = () => {
+      res.forEach((val) => {
+        const _val = val;
+        delete _val.posterError;
+        delete _val.yearError;
+        delete _val.url;
+      });
+    };
+
     if (config.outputAsJS) {
+      fs.writeFileSync(fullOutputFilePath, objectToText(res), 'utf8');
+
+      transToUsage();
       fs.writeFileSync(outputFilePath, objectToText(res), 'utf8');
     } else {
+      fs.writeFileSync(fullOutputFilePath, JSON.stringify(res), 'utf8');
+
+      transToUsage();
       fs.writeFileSync(outputFilePath, JSON.stringify(res), 'utf8');
     }
 
