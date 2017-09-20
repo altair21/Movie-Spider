@@ -198,17 +198,26 @@ const mergeResult = (appended = []) => {
   }
   const res = origin.slice();
   for (let i = 0, l = appended.length; i < l; i++) {
-    const findObj = res.find(item => item.url === appended[i].url || item.name === appended[i].name);
+    if (_.isEmpty(appended[i]) || appended[i] == null) continue;  // eslint-disable-line no-continue
+    let findObj = res.find(item => item.url === appended[i].url || item.name === appended[i].name);
     if (!findObj) {
       appendedItem.push(appended[i].name);
       res.push(appended[i]);
     } else {
-      findObj.id = appended[i].id || findObj.id;
-      findObj.url = appended[i].url || findObj.url;
-      findObj.name = appended[i].name || findObj.name;
-      findObj.posterError = appended[i].posterError && findObj.posterError;
-      findObj.yearError = appended[i].yearError && findObj.yearError;
-      findObj.directorError = appended[i].directorError && findObj.directorError;
+      findObj = {
+        id: appended[i].id || findObj.id,
+        url: appended[i].url || findObj.url,
+        name: appended[i].name || findObj.name,
+        year: findObj.year,
+        posterURL: findObj.posterURL,
+        color: findObj.color,
+        w: findObj.w,
+        h: findObj.h,
+        director: findObj.director,
+        yearError: appended[i].yearError && findObj.yearError,
+        posterError: appended[i].posterError && findObj.posterError,
+        directorError: appended[i].directorError && findObj.directorError,
+      };
       if (!appended[i].posterError) {
         findObj.posterURL = appended[i].posterURL || findObj.posterURL;
         findObj.w = appended[i].w || findObj.w;
@@ -219,7 +228,7 @@ const mergeResult = (appended = []) => {
         findObj.year = appended[i].year || findObj.year;
       }
       if (!appended[i].directorError) {
-        findObj.director = appended[i].director;
+        findObj.director = appended[i].director || findObj.director;
       }
     }
   }
@@ -256,7 +265,8 @@ const gao = (startTime) => {
     }, Promise.resolve([]));
     return getInfos(resPromise);
   }).then((infos) => {
-    const _infos = infos.filter(v => {
+    let res = mergeResult(infos);
+    res = res.filter(v => {
       if (v.url) {
         if (v.posterError) {
           posterErrorItem.push({ id: v.id, name: v.name });
@@ -268,9 +278,8 @@ const gao = (startTime) => {
           directorErrorItem.push({ id: v.id, name: v.name });
         }
       }
-      return !_.isEmpty(v);
+      return !_.isEmpty(v) && v != null;
     });
-    let res = mergeResult(_infos);
     actualTotal = res.length;
     if (config.shuffle) {
       res = res.sort(() => (Math.random() > 0.5 ? -1 : 1));
@@ -293,7 +302,7 @@ const gao = (startTime) => {
     const posterErrorStr = posterErrorItem.length > 0 ? `\n有 ${posterErrorItem.length} 部影片未获取到正确的海报：\n${JSON.stringify(posterErrorItem)}\n` : '';
     const yearErrorStr = yearErrorItem.length > 0 ? `\n有 ${yearErrorItem.length} 部影片未获取到正确年份：\n${JSON.stringify(yearErrorItem)}\n` : '';
     const directorErrorStr = directorErrorItem.length > 0 ? `\n有 ${directorErrorItem.length} 部影片未获取到正确导演：\n${JSON.stringify(directorErrorItem)}\n` : '';
-    const fullGenStr = `\n生成最终结果时：\n${genOutputStr}\n`;
+    const fullGenStr = `\n自检模块：\n${genOutputStr}\n`;
     const str = `爬取成功：\n数量：${actualTotal}/${total}\n耗时：${getDuration(startTime)}${scpStr}\n\n${appendedStr}\n${posterErrorStr}${yearErrorStr}${directorErrorStr}${fullGenStr}`;
     console.log(str);
   })
