@@ -212,7 +212,7 @@ const mergeResult = (appended = []) => {
         findObj.year = appended[i].year || findObj.year;
       }
       if (!appended[i].directorError) {
-        findObj.director = appended[i].directorError;
+        findObj.director = appended[i].director;
       }
     }
   }
