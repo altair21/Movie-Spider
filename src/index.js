@@ -278,7 +278,7 @@ const gao = (startTime) => {
           directorErrorItem.push({ id: v.id, name: v.name });
         }
       }
-      return !_.isEmpty(v) && v != null;
+      return !_.isEmpty(v) && v != null && v.name && v.url;
     });
     actualTotal = res.length;
     if (config.shuffle) {
