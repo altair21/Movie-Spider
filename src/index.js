@@ -21,6 +21,7 @@ let actualTotal = 0;
 let appendedItem = [];
 let posterErrorItem = [];
 let yearErrorItem = [];
+let directorErrorItem = [];
 
 const getPosterInfo = url => new Promise((resolve, reject) => {
   if (url === '') {
@@ -40,37 +41,49 @@ const getInfo = obj => new Promise((resolve, reject) => {
   let name;
   let posterURL;
   let year;
+  const director = [];
   if (!obj || !obj.url) {
     resolve({ name, posterURL, year });
     return;
   }
   getText(obj.url).then((res) => {
     const $ = cheerio.load(res);
-    const ele1 = $('#wrapper #content h1 span')[0];
-    const ele2 = $('#wrapper #content .article #mainpic a img')[0];
-    const ele3 = $('#wrapper #content h1 span.year')[0];
-    if (ele1) {
-      name = ele1.children[0].data;
+    const nameEle = $('#wrapper #content h1 span')[0];
+    const posterEle = $('#wrapper #content .article #mainpic a img')[0];
+    const yearEle = $('#wrapper #content h1 span.year')[0];
+    const directorEle = $('#wrapper #content #info span .attrs')[0].children;
+    if (nameEle) {
+      name = nameEle.children[0].data;
     }
-    if (ele2) {
-      posterURL = ele2.attribs.src;
+    if (posterEle) {
+      posterURL = posterEle.attribs.src;
     }
-    if (ele3 && ele3.children[0] && ele3.children[0].data) {
-      const len = ele3.children[0].data.length || 0;
-      year = ele3.children[0].data.slice(1, len - 1);
+    if (yearEle && yearEle.children[0] && yearEle.children[0].data) {
+      const len = yearEle.children[0].data.length || 0;
+      year = yearEle.children[0].data.slice(1, len - 1);
+    }
+    if (directorEle) {
+      for (let i = 0, l = directorEle.length; i < l; i++) {
+        if (directorEle[i].type === 'tag') {
+          director.push(directorEle[i].children[0].data);
+        }
+      }
     }
     return getPosterInfo(posterURL || obj.posterURL || '');
   }).then((info) => {
     resolve({
+      id: obj.url.match(/\d+/)[0],
       url: obj.url,
       name: name || obj.name || '',
-      posterURL: posterURL || obj.posterURL || '',
       year: year || obj.year || '',
+      director,
+      posterURL: posterURL || obj.posterURL || '',
       w: info.width || 0,
       h: info.height || 0,
       color: info.color || 'white',
       posterError: !posterURL,
       yearError: !year,
+      directorError: director.length === 0,
     });
   }).catch(e => reject(new Error(`获取影片信息失败(${obj.url})：${e.message}`)));
 });
@@ -174,15 +187,24 @@ const mergeResult = (appended = []) => {
       appendedItem.push(appended[i].name);
       res.push(appended[i]);
     } else {
+      findObj.id = appended[i].id || findObj.id;
       findObj.url = appended[i].url || findObj.url;
       findObj.name = appended[i].name || findObj.name;
-      findObj.posterURL = appended[i].posterURL || findObj.posterURL;
-      findObj.w = appended[i].w || findObj.w;
-      findObj.h = appended[i].h || findObj.h;
-      findObj.color = appended[i].color || findObj.color;
-      findObj.year = appended[i].year || findObj.year;
       findObj.posterError = appended[i].posterError && findObj.posterError;
       findObj.yearError = appended[i].yearError && findObj.yearError;
+      findObj.directorError = appended[i].directorError && findObj.directorError;
+      if (!appended[i].posterError) {
+        findObj.posterURL = appended[i].posterURL || findObj.posterURL;
+        findObj.w = appended[i].w || findObj.w;
+        findObj.h = appended[i].h || findObj.h;
+        findObj.color = appended[i].color || findObj.color;
+      }
+      if (!appended[i].yearError) {
+        findObj.year = appended[i].year || findObj.year;
+      }
+      if (!appended[i].directorError) {
+        findObj.director = appended[i].directorError;
+      }
     }
   }
   return res;
@@ -194,6 +216,7 @@ const initialize = () => {
   appendedItem = [];
   posterErrorItem = [];
   yearErrorItem = [];
+  directorErrorItem = [];
 };
 
 const gao = (startTime) => { // eslint-disable-line arrow-body-style
@@ -219,10 +242,13 @@ const gao = (startTime) => { // eslint-disable-line arrow-body-style
     const _infos = infos.filter(v => {
       if (v.url) {
         if (v.posterError) {
-          posterErrorItem.push({ url: v.url, name: v.name });
+          posterErrorItem.push({ id: v.id, name: v.name });
         }
         if (v.yearError) {
-          yearErrorItem.push({ url: v.url, name: v.name });
+          yearErrorItem.push({ id: v.id, name: v.name });
+        }
+        if (v.directorError) {
+          directorErrorItem.push({ id: v.id, name: v.name });
         }
       }
       return v.name !== '' && v.posterURL !== '';
@@ -238,9 +264,12 @@ const gao = (startTime) => { // eslint-disable-line arrow-body-style
     const transToUsage = () => {
       res.forEach((val) => {
         const _val = val;
+        delete _val.id;
         delete _val.posterError;
         delete _val.yearError;
+        delete _val.directorError;
         delete _val.url;
+        delete _val.director;
       });
     };
 
@@ -262,7 +291,8 @@ const gao = (startTime) => { // eslint-disable-line arrow-body-style
     const appendedStr = appendedItem.length > 0 ? `新增 ${appendedItem.length} 部影片：\n${JSON.stringify(appendedItem)}` : '无新增影片';
     const posterErrorStr = posterErrorItem.length > 0 ? `\n有 ${posterErrorItem.length} 部影片未获取到正确的海报：\n${JSON.stringify(posterErrorItem)}\n` : '';
     const yearErrorStr = yearErrorItem.length > 0 ? `\n有 ${yearErrorItem.length} 部影片未获取到正确年份：\n${JSON.stringify(yearErrorItem)}\n` : '';
-    const str = `爬取成功：\n数量：${actualTotal}/${total}\n耗时：${getDuration(startTime)}${scpStr}\n\n${appendedStr}\n${posterErrorStr}${yearErrorStr}`;
+    const directorErrorStr = directorErrorItem.length > 0 ? `\n有 ${directorErrorItem.length} 部影片未获取到正确导演：\n${JSON.stringify(directorErrorItem)}\n` : '';
+    const str = `爬取成功：\n数量：${actualTotal}/${total}\n耗时：${getDuration(startTime)}${scpStr}\n\n${appendedStr}\n${posterErrorStr}${yearErrorStr}${directorErrorStr}`;
     console.log(str);
   })
   .catch((e) => {
