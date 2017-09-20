@@ -82,12 +82,19 @@ const getInfo = obj => new Promise((resolve, reject) => {
       w: info.width || 0,
       h: info.height || 0,
       color: info.color || 'white',
-      posterError: !posterURL,
+      posterError: !posterURL && info.width === 65, // thumbnail width is 65
       yearError: !year,
       directorError: director.length === 0,
     });
   }).catch(e => reject(new Error(`获取影片信息失败(${obj.url})：${e.message}`)));
 });
+
+const hdThumbPoster = (url) => {
+  if (url.match(/https:\/\/img[1-9].doubanio.com\/view\/movie_poster_cover\/ipst\/public/)) {
+    return url.replace('ipst', 'lpst');
+  }
+  return url;
+};
 
 const filterKeywords = (content) => {
   const $ = cheerio.load(content);
@@ -112,7 +119,7 @@ const filterKeywords = (content) => {
     resObj.push({
       url: resHref[i],
       name: resName[i],
-      posterURL: resPosterURL[i],
+      posterURL: hdThumbPoster(resPosterURL[i]),
       year: '',
     });
   }
