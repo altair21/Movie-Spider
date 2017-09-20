@@ -25,6 +25,7 @@
     "cheerio": "^1.0.0-rc.2",
     "get-image-colors": "^1.8.1",
     "image-size": "^0.6.1",
+    "lodash": "^4.17.4",
     "webp-converter": "^2.1.6"
   }
 }

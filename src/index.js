@@ -3,18 +3,25 @@ import path from 'path';
 import cheerio from 'cheerio';
 import sizeOf from 'image-size';
 import getColors from 'get-image-colors';
+import _ from 'lodash';
 
 import { getText, getBuffer, login } from './http';
 import { getDuration } from './timeutil';
 import { scp } from './scp';
-import { textToObject, objectToText } from './text';
+import { textToObject, objectToText, genOutput } from './text';
 
 process.env.UV_THREADPOOL_SIZE = 128;
 
+const configPath = path.join(__dirname, '..', 'config.json');
 const outputPath = path.join(__dirname, '..', 'output');
 const fullOutputFilePath = path.join(outputPath, 'full_output.json');
 const outputFilePath = path.join(outputPath, 'output.json');
-const config = JSON.parse(fs.readFileSync(path.join(__dirname, '..', 'config.json'), 'utf8'));
+
+if (!fs.existsSync(configPath)) {
+  console.log('没有找到配置文件');
+  process.exit(1);
+}
+const config = JSON.parse(fs.readFileSync(configPath, 'utf8'));
 
 let total = -1;
 let actualTotal = 0;
@@ -43,7 +50,7 @@ const getInfo = obj => new Promise((resolve, reject) => {
   let year;
   const director = [];
   if (!obj || !obj.url) {
-    resolve({ name, posterURL, year });
+    resolve({ name, posterURL, year, director });
     return;
   }
   getText(obj.url).then((res) => {
@@ -77,7 +84,7 @@ const getInfo = obj => new Promise((resolve, reject) => {
       url: obj.url,
       name: name || obj.name || '',
       year: year || obj.year || '',
-      director,
+      director: _.cloneDeep(director),
       posterURL: posterURL || obj.posterURL || '',
       w: info.width || 0,
       h: info.height || 0,
@@ -228,8 +235,9 @@ const initialize = () => {
   directorErrorItem = [];
 };
 
-const gao = (startTime) => { // eslint-disable-line arrow-body-style
+const gao = (startTime) => {
   initialize();
+  let genOutputStr;
   return getText(`/people/${config.id}/`).then((content) => {
     const $ = cheerio.load(content);
     total = Number.parseInt($('#wrapper #content #db-movie-mine h2 a')[0].children[0].data, 10);
@@ -260,7 +268,7 @@ const gao = (startTime) => { // eslint-disable-line arrow-body-style
           directorErrorItem.push({ id: v.id, name: v.name });
         }
       }
-      return v.name !== '' && v.posterURL !== '';
+      return !_.isEmpty(v);
     });
     let res = mergeResult(_infos);
     actualTotal = res.length;
@@ -270,29 +278,13 @@ const gao = (startTime) => { // eslint-disable-line arrow-body-style
     if (!fs.existsSync(outputPath)) {
       fs.mkdirSync(outputPath);
     }
-    const transToUsage = () => {
-      res.forEach((val) => {
-        const _val = val;
-        delete _val.id;
-        delete _val.posterError;
-        delete _val.yearError;
-        delete _val.directorError;
-        delete _val.url;
-        delete _val.director;
-      });
-    };
 
     if (config.outputAsJS) {
       fs.writeFileSync(fullOutputFilePath, objectToText(res), 'utf8');
-
-      transToUsage();
-      fs.writeFileSync(outputFilePath, objectToText(res), 'utf8');
     } else {
       fs.writeFileSync(fullOutputFilePath, JSON.stringify(res), 'utf8');
-
-      transToUsage();
-      fs.writeFileSync(outputFilePath, JSON.stringify(res), 'utf8');
     }
+    genOutputStr = genOutput();
 
     return scp(outputFilePath);
   }).then((flag) => {
@@ -301,7 +293,8 @@ const gao = (startTime) => { // eslint-disable-line arrow-body-style
     const posterErrorStr = posterErrorItem.length > 0 ? `\n有 ${posterErrorItem.length} 部影片未获取到正确的海报：\n${JSON.stringify(posterErrorItem)}\n` : '';
     const yearErrorStr = yearErrorItem.length > 0 ? `\n有 ${yearErrorItem.length} 部影片未获取到正确年份：\n${JSON.stringify(yearErrorItem)}\n` : '';
     const directorErrorStr = directorErrorItem.length > 0 ? `\n有 ${directorErrorItem.length} 部影片未获取到正确导演：\n${JSON.stringify(directorErrorItem)}\n` : '';
-    const str = `爬取成功：\n数量：${actualTotal}/${total}\n耗时：${getDuration(startTime)}${scpStr}\n\n${appendedStr}\n${posterErrorStr}${yearErrorStr}${directorErrorStr}`;
+    const fullGenStr = `\n生成最终结果时：\n${genOutputStr}\n`;
+    const str = `爬取成功：\n数量：${actualTotal}/${total}\n耗时：${getDuration(startTime)}${scpStr}\n\n${appendedStr}\n${posterErrorStr}${yearErrorStr}${directorErrorStr}${fullGenStr}`;
     console.log(str);
   })
   .catch((e) => {
