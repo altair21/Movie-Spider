@@ -1,4 +1,6 @@
 node_modules
 config.json
+nightmare-config.json
 output/
 dist/
+package-lock.json

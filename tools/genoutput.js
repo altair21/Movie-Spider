@@ -1,3 +1,3 @@
-import { genOutput } from '../src/text';
+import { genOutput } from '../src/util';
 
 console.log(genOutput());

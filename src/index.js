@@ -1,14 +1,15 @@
 import fs from 'fs';
 import path from 'path';
 import cheerio from 'cheerio';
-import sizeOf from 'image-size';
-import getColors from 'get-image-colors';
 import _ from 'lodash';
 
-import { getText, getBuffer, login } from './http';
-import { getDuration } from './timeutil';
-import { scp } from './scp';
-import { textToObject, objectToText, genOutput } from './text';
+import {
+  getDuration,
+  getText, login,
+  scp,
+  getPosterInfo, hdThumbPoster,
+  textToObject, objectToText, genOutput,
+} from './util/';
 
 process.env.UV_THREADPOOL_SIZE = 128;
 
@@ -29,20 +30,6 @@ let appendedItem = [];
 let posterErrorItem = [];
 let yearErrorItem = [];
 let directorErrorItem = [];
-
-const getPosterInfo = url => new Promise((resolve, reject) => {
-  if (url === '') {
-    resolve({});
-    return;
-  }
-  getBuffer(url).then((buffer) => {
-    const imgInfo = sizeOf(buffer);
-    // TODO: set MIME according to `imgInfo`
-    getColors(buffer, 'image/jpeg').then((colors) => {
-      resolve({ width: imgInfo.width, height: imgInfo.height, color: colors[0].hex() });
-    }).on('error', e => reject(new Error(`海报颜色解析失败(${url}): ${e.message}`)));
-  }).catch(e => reject(new Error(`获取海报信息失败(${url})：${e.message}`)));
-});
 
 const getInfo = obj => new Promise((resolve, reject) => {
   let name;
@@ -95,14 +82,6 @@ const getInfo = obj => new Promise((resolve, reject) => {
     });
   }).catch(e => reject(new Error(`获取影片信息失败(${obj.url})：${e.message}`)));
 });
-
-const hdThumbPoster = (url) => {
-  if (typeof url === 'string' &&
-    url.match(/https:\/\/img[1-9].doubanio.com\/view\/movie_poster_cover\/ipst\/public/)) {
-    return url.replace('ipst', 'lpst');
-  }
-  return url;
-};
 
 const filterKeywords = (content) => {
   const $ = cheerio.load(content);

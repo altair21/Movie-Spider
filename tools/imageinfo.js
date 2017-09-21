@@ -2,7 +2,7 @@ import fs from 'fs';
 import getColors from 'get-image-colors';
 import webp from 'webp-converter';
 import sizeOf from 'image-size';
-import { getBuffer } from '../src/http';
+import { getBuffer } from '../src/util';
 
 const ImageInfo = () => {
   getBuffer(process.argv[2]).then((buffer) => {

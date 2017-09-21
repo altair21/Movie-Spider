@@ -1,7 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 import _ from 'lodash';
-import { textToObject } from '../src/text';
+import { textToObject } from '../src/util/';
 
 const filmPrototype = {
   name: '',

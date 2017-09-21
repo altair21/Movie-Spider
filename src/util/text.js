@@ -49,10 +49,10 @@ const checkProperty = (obj) => {
 const genOutput = () => {
   let flag = true;
   let emptyObjFlag = false;
-  const config = JSON.parse(fs.readFileSync(path.join(__dirname, '..', 'config.json'), 'utf8'));
+  const config = JSON.parse(fs.readFileSync(path.join(__dirname, '..', '..', 'config.json'), 'utf8'));
 
-  const fullOutputPath = path.join(__dirname, '..', 'output', 'full_output.json');
-  const outputPath = path.join(__dirname, '..', 'output', 'output.json');
+  const fullOutputPath = path.join(__dirname, '..', '..', 'output', 'full_output.json');
+  const outputPath = path.join(__dirname, '..', '..', 'output', 'output.json');
   if (!fs.existsSync(fullOutputPath)) return '';
   const res = [];
 
