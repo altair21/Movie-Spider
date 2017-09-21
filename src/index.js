@@ -199,11 +199,12 @@ const mergeResult = (appended = []) => {
   const res = origin.slice();
   for (let i = 0, l = appended.length; i < l; i++) {
     if (_.isEmpty(appended[i]) || appended[i] == null) continue;  // eslint-disable-line no-continue
-    let findObj = res.find(item => item.url === appended[i].url || item.name === appended[i].name);
-    if (!findObj) {
+    const findIndex = res.find(item => item.url === appended[i].url || item.name === appended[i].name);
+    if (findIndex === -1) {
       appendedItem.push(appended[i].name);
       res.push(appended[i]);
     } else {
+      let findObj = res[findIndex];
       findObj = {
         id: appended[i].id || findObj.id,
         url: appended[i].url || findObj.url,
@@ -230,6 +231,7 @@ const mergeResult = (appended = []) => {
       if (!appended[i].directorError) {
         findObj.director = appended[i].director || findObj.director;
       }
+      res[findIndex] = findObj;
     }
   }
   return res;
