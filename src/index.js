@@ -199,7 +199,7 @@ const mergeResult = (appended = []) => {
   const res = origin.slice();
   for (let i = 0, l = appended.length; i < l; i++) {
     if (_.isEmpty(appended[i]) || appended[i] == null) continue;  // eslint-disable-line no-continue
-    const findIndex = res.find(item => item.url === appended[i].url || item.name === appended[i].name);
+    const findIndex = _.findIndex(res, (item) => item.id === appended[i].id || item.url === appended[i].url || item.name === appended[i].name);
     if (findIndex === -1) {
       appendedItem.push(appended[i].name);
       res.push(appended[i]);

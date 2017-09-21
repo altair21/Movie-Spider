@@ -10,6 +10,42 @@ const textToObject = (text = '') => {
 const objectToText = (object) =>
   `let data = '${JSON.stringify(object).split('\'').join('\\\'')}'`;
 
+const propertyPreset = {
+  id: 'string',
+  url: 'string',
+  name: 'string',
+  year: 'string',
+  posterURL: 'string',
+  color: 'string',
+  w: 'number',
+  h: 'number',
+  director: 'object',
+  yearError: 'boolean',
+  posterError: 'boolean',
+  directorError: 'boolean',
+};
+
+const checkProperty = (obj) => {
+  const arr = Object.keys(propertyPreset);
+  let flag = true;
+  for (let i = 0, l = arr.length; i < l; i++) {
+    if (arr[i] === 'director') {
+      if (!_.isArray(obj[arr[i]])) {
+        console.log(`${obj.name} 属性 ${arr[i]} 类型不正确`);
+        flag = false;
+      }
+    }
+    if (!Object.prototype.hasOwnProperty.call(obj, arr[i])) {
+      console.log(`${obj.name} 缺少属性 ${arr[i]}`);
+      flag = false;
+    } else if (typeof obj[arr[i]] !== propertyPreset[arr[i]]) { // eslint-disable-line
+      console.log(`${obj.name} 属性 ${arr[i]} 类型不正确`);
+      flag = false;
+    }
+  }
+  return flag;
+};
+
 const genOutput = () => {
   let flag = true;
   let emptyObjFlag = false;
@@ -37,6 +73,8 @@ const genOutput = () => {
       flag = false;
     }
 
+    flag = flag && checkProperty(_val);
+
     delete _val.id;
     delete _val.posterError;
     delete _val.yearError;
@@ -52,6 +90,7 @@ const genOutput = () => {
   }
 
   if (emptyObjFlag) {
+    res.push('');
     res.push('存在空的条目');
   }
   if (flag) {
