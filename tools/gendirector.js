@@ -50,6 +50,7 @@ const getResult = () => {
       }
 
       const item = {
+        ...filmPrototype,
         name: obj.name,
         year: +obj.year,
         collaborators: collas,
@@ -59,6 +60,7 @@ const getResult = () => {
         findObj.films.push(item);
       } else {
         res.push({
+          ...objPrototype,
           name: director,
           films: [item],
         });

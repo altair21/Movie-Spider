@@ -7,6 +7,9 @@
     "start": "babel-node src/index.js",
     "build": "babel src -d dist",
     "nightmare": "babel-node src/nightmare.js",
+    "director": "babel-node tools/gendirector.js",
+    "year": "babel-node tools/genyear.js",
+    "stat": "npm run director && npm run year",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
@@ -15,6 +18,7 @@
   "devDependencies": {
     "babel-cli": "^6.24.1",
     "babel-eslint": "^7.2.3",
+    "babel-plugin-transform-object-rest-spread": "^6.26.0",
     "babel-preset-latest": "^6.24.1",
     "eslint": "^3.19.0",
     "eslint-config-airbnb": "^14.1.0",
