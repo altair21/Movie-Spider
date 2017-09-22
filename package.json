@@ -6,6 +6,7 @@
   "scripts": {
     "start": "babel-node src/index.js",
     "build": "babel src -d dist",
+    "nightmare": "babel-node src/nightmare.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
@@ -26,6 +27,7 @@
     "get-image-colors": "^1.8.1",
     "image-size": "^0.6.1",
     "lodash": "^4.17.4",
+    "nightmare": "^2.10.0",
     "webp-converter": "^2.1.6"
   }
 }
