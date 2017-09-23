@@ -4,7 +4,7 @@ import getColors from 'get-image-colors';
 import { getBuffer } from './httputil';
 
 const getPosterInfo = (url) => new Promise((resolve, reject) => {
-  if (url === '') {
+  if (!url || url === '') {
     resolve({});
     return;
   }
