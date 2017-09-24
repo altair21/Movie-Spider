@@ -4,3 +4,4 @@ nightmare-config.json
 output/
 dist/
 package-lock.json
+npm-debug.log
