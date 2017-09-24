@@ -1,7 +1,6 @@
 {
   "presets": ["latest"],
   "plugins": [
-    "transform-object-rest-spread",
-    "syntax-async-functions"
+    "transform-object-rest-spread"
   ]
 }
