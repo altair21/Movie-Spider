@@ -1,5 +1,8 @@
 import fs from 'fs';
 import path from 'path';
+import 'babel-core/register';
+import 'babel-polyfill';
+
 
 import {
   getTotal, genRoughInfos, filterKeywords, genDetailInfos, mergeResult,
