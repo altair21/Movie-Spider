@@ -86,7 +86,7 @@ const getDetailInfo = async (info) => {
     w: imgInfo.width || 0,
     h: imgInfo.height || 0,
     color: imgInfo.color || 'white',
-    tags: info.tags,
+    tags: _.cloneDeep(info.tags),
     multiName: info.multiName,
     posterError: !checkStringLegal(posterURL) && !checkStringLegal(info.posterURL),
     yearError: !checkStringLegal(year),
@@ -98,6 +98,8 @@ const mergeObject = (oldObj, newObj) => {
   const res = {
     ...oldObj,
     name: newObj.name || oldObj.name,
+    tags: _.cloneDeep(newObj.tags) || _.cloneDeep(oldObj.tags),
+    multiName: newObj.multiName || oldObj.multiName,
     yearError: oldObj.yearError && newObj.yearError,
     posterError: oldObj.posterError && newObj.posterError,
     directorError: oldObj.directorError && newObj.directorError,
