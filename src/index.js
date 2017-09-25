@@ -1,8 +1,7 @@
 import fs from 'fs';
 import path from 'path';
-import 'babel-core/register';
-import 'babel-polyfill';
-
+import 'babel-core/register'; // eslint-disable-line
+import 'babel-polyfill';  // eslint-disable-line
 
 import {
   getTotal, genRoughInfos, filterKeywords, genDetailInfos, mergeResult,
@@ -39,7 +38,6 @@ const main = () => {
   };
 
   getTotal(initialState)
-    .then(getTotal)
     .then(genRoughInfos)
     .then(filterKeywords)
     .then(genDetailInfos)
@@ -54,8 +52,7 @@ const main = () => {
       console.log(finalState.logs.join('\n'));
     })
     .catch(e => {
-      console.log('爬取失败：');
-      console.log(e);
+      console.log('爬取失败：\n', e);
     });
 };
 

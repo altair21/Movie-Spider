@@ -5,7 +5,9 @@ import {
   checkProperty, objectToTextPath, scp, getDuration,
 } from './util/';
 import { extractTotal } from './xpath';
-import { genOffsetStep15, getURLs, getDetailInfo, mergeObject } from './basehelper';
+import {
+  genOffsetStep15, getURLs, getDetailInfo, mergeObject,
+} from './basehelper';
 
 const getTotal = async (state) => {
   const content = await getText(`/people/${state.config.id}/`);
@@ -20,8 +22,8 @@ const genRoughInfos = async (state) => {
   const offsets = genOffsetStep15(state.total);
 
   const res = await offsets.reduce((promise, curOffset) =>
-    (promise.then(async arr =>
-      arr.concat(await getURLs(state.config.id, curOffset)))),
+    promise.then(async arr =>
+      arr.concat(await getURLs(state.config.id, curOffset))),
     Promise.resolve([]));
   return {
     ...state,
@@ -32,19 +34,18 @@ const genRoughInfos = async (state) => {
 const filterKeywords = (state) => ({
   ...state,
   infos: state.config.keywords ? state.infos.filter(info =>
-    (() =>
-      info.tags.reduce((flag, tag) =>
-        state.config.keywords.indexOf(tag) !== -1 || flag
-      , false))(),
+    (() => info.tags.reduce((flag, tag) =>
+      state.config.keywords.indexOf(tag) !== -1 || flag
+    , false))(),
   ) : state.infos,
 });
 
 const genDetailInfos = async (state) => ({
   ...state,
-  infos: await Promise.all(state.infos.map(async (info) => {
-    const ret = await getDetailInfo(info);
-    return ret;
-  })),
+  infos: await state.infos.reduce((promise, info) =>
+    promise.then(async arr =>
+      arr.concat(await getDetailInfo(info))),
+    Promise.resolve([])),
 });
 
 const mergeResult = (state) => {
@@ -58,12 +59,9 @@ const mergeResult = (state) => {
     const findIndex = _.findIndex(res, isItemEqual);
     if (findIndex === -1) {
       appendedItem.push(info.name);
-      console.log('add')
       res.push(info);
     } else {
-      console.log('merge')
       res[findIndex] = mergeObject(res[findIndex], info);
-      console.log(res[findIndex]);
     }
   });
 
@@ -181,14 +179,15 @@ const checkResult = (state) => {
       emptyObjFlag = true;
       flag = false;
     }
-    if (!info.year || info.yearError || info.year === '') {
-      logs.push(`${info.name} 年份信息出错  ${info.url}`);
-      flag = false;
-    }
-    if (!info.director || info.directorError || info.director.length === 0) {
-      logs.push(`${info.name} 导演信息出错  ${info.url}`);
-      flag = false;
-    }
+    // `checkProperty 函数也做了这些事`
+    // if (!info.year || info.yearError || info.year === '') {
+    //   logs.push(`${info.name} 年份信息出错  ${info.url}`);
+    //   flag = false;
+    // }
+    // if (!info.director || info.directorError || info.director.length === 0) {
+    //   logs.push(`${info.name} 导演信息出错  ${info.url}`);
+    //   flag = false;
+    // }
 
     const checked = checkProperty(info);
     logs = logs.concat(checked.errorMessages);

@@ -8,29 +8,29 @@ const extractDetailURL = (content) => {
   const $ = cheerio.load(content);
   const urlEle = $('.info .title a')[0];
   if (urlEle) return urlEle.attribs.href;
-  throw new Error(ErrorMessage.detailURL);
+  return '';
 };
 
 const extractRoughPoster = (content) => {
   const $ = cheerio.load(content);
   const posterEle = $('.pic a img')[0];
   if (posterEle) return posterEle.attribs.src;
-  throw new Error(ErrorMessage.roughPoster);
+  return '';
 };
 
 // FIXME: 更完整的名字，如港译、台译在 em 标签之外
 const extractRoughName = (content) => {
   const $ = cheerio.load(content);
   const nameEle = $('.info .title em')[0];
-  if (nameEle) return nameEle.children[0].data;
-  throw new Error(ErrorMessage.roughName);
+  if (nameEle && nameEle.children[0]) return nameEle.children[0].data;
+  return '';
 };
 
 const extractTags = (content) => {
   const $ = cheerio.load(content);
   const tagEle = $('.info span.tags')[0];
   if (tagEle) return $(tagEle).text().split(' ');
-  throw new Error(ErrorMessage.tags);
+  return [];
 };
 
 const extractTotal = (content) => {
@@ -40,7 +40,7 @@ const extractTotal = (content) => {
   throw new Error(ErrorMessage.total);
 };
 
-const extractRoughInfo = (content) => {
+const extractRoughInfos = (content) => {
   const $ = cheerio.load(content);
   const element = $('#content .article .grid-view .item');
   if (element) return element.toArray();
@@ -50,15 +50,15 @@ const extractRoughInfo = (content) => {
 const extractDetailName = (content) => {
   const $ = cheerio.load(content);
   const nameEle = $('#wrapper #content h1 span')[0];
-  if (nameEle) return nameEle.children[0].data;
-  throw new Error(ErrorMessage.detailName);
+  if (nameEle && nameEle.children[0]) return nameEle.children[0].data;
+  return '';
 };
 
 const extractDetailPoster = (content) => {
   const $ = cheerio.load(content);
   const posterEle = $('#wrapper #content .article #mainpic a img')[0];
   if (posterEle) return posterEle.attribs.src;
-  throw new Error(ErrorMessage.detailPoster);
+  return '';
 };
 
 const extractDetailYear = (content) => {
@@ -68,7 +68,7 @@ const extractDetailYear = (content) => {
     const len = yearEle.children[0].data.length || 0;
     return yearEle.children[0].data.slice(1, len - 1);
   }
-  throw new Error(ErrorMessage.detailYear);
+  return '';
 };
 
 const extractDetailDirector = (content) => {
@@ -84,11 +84,11 @@ const extractDetailDirector = (content) => {
     }
     return director;
   }
-  throw new Error(ErrorMessage.detailDirector);
+  return [];
 };
 
 export {
   extractTotal, extractDetailURL, extractRoughName, extractRoughPoster,
-  extractTags, extractRoughInfo, extractDetailName, extractDetailPoster,
+  extractTags, extractRoughInfos, extractDetailName, extractDetailPoster,
   extractDetailYear, extractDetailDirector,
 };
