@@ -7,13 +7,12 @@
 import fs from 'fs';
 import path from 'path';
 import _ from 'lodash';
-import { textToObject } from '../src/util/';
 
 const allPath = path.join(__dirname, '..', 'output', 'all.json');
 const fullPath = path.join(__dirname, '..', 'output', 'full_output.json');
 const filterPath = path.join(__dirname, '..', 'output', 'filter.json');
 const all = JSON.parse(fs.readFileSync(allPath, 'utf8'));
-const full = textToObject(fs.readFileSync(fullPath, 'utf8'));
+const full = JSON.parse(fs.readFileSync(fullPath, 'utf8'));
 const filter = fs.existsSync(filterPath) ? JSON.parse(fs.readFileSync(filterPath, 'utf8')) : [];
 
 const checkIntegrity = () => {

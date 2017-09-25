@@ -8,7 +8,7 @@ import {
   getText, login,
   scp,
   getPosterInfo, hdThumbPoster,
-  objectToText, genOutput,
+  genOutput,
 } from './util/';
 
 process.env.UV_THREADPOOL_SIZE = 128;
@@ -269,11 +269,7 @@ const gao = (startTime) => {
       fs.mkdirSync(outputPath);
     }
 
-    if (config.outputAsJS) {
-      fs.writeFileSync(fullOutputFilePath, objectToText(res), 'utf8');
-    } else {
-      fs.writeFileSync(fullOutputFilePath, JSON.stringify(res), 'utf8');
-    }
+    fs.writeFileSync(fullOutputFilePath, JSON.stringify(res), 'utf8');
     genOutputStr = genOutput();
 
     return scp(outputFilePath);

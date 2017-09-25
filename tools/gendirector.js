@@ -1,7 +1,6 @@
 import fs from 'fs';
 import path from 'path';
 import _ from 'lodash';
-import { textToObject } from '../src/util/';
 
 const filmPrototype = {
   name: '',
@@ -34,8 +33,8 @@ const processResult = (res) => {
 };
 
 const getResult = () => {
-  const outputPath = path.join(__dirname, '..', 'output', 'full_output.json');
-  const origin = textToObject(fs.readFileSync(outputPath, 'utf8'));
+  const fullOutputPath = path.join(__dirname, '..', 'output', 'full_output.json');
+  const origin = JSON.parse(fs.readFileSync(fullOutputPath, 'utf8'));
   const res = [];
 
   origin.forEach((obj) => {
