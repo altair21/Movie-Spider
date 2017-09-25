@@ -98,7 +98,7 @@ const mergeObject = (oldObj, newObj) => {
   const res = {
     ...oldObj,
     name: newObj.name || oldObj.name,
-    tags: _.cloneDeep(newObj.tags) || _.cloneDeep(oldObj.tags),
+    tags: (newObj.tags && newObj.tags.length > 0) ? _.cloneDeep(newObj.tags) : _.cloneDeep(oldObj.tags),
     multiName: newObj.multiName || oldObj.multiName,
     yearError: oldObj.yearError && newObj.yearError,
     posterError: oldObj.posterError && newObj.posterError,
@@ -115,7 +115,7 @@ const mergeObject = (oldObj, newObj) => {
     res.year = newObj.year || oldObj.year;
   }
   if (!newObj.directorError) {
-    res.director = _.cloneDeep(newObj.director) || _.cloneDeep(oldObj.director);
+    res.director = (newObj.director && newObj.director.length) ? _.cloneDeep(newObj.director) : _.cloneDeep(oldObj.director);
   }
 
   return res;
