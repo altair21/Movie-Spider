@@ -8,7 +8,7 @@ import {
   getText, login,
   scp,
   getPosterInfo, hdThumbPoster,
-  textToObject, objectToText, genOutput,
+  objectToText, genOutput,
 } from './util/';
 
 process.env.UV_THREADPOOL_SIZE = 128;
@@ -173,7 +173,7 @@ const mergeResult = (appended = []) => {
   let origin = [];
   if (fs.existsSync(fullOutputFilePath)) {
     const text = fs.readFileSync(fullOutputFilePath, 'utf8');
-    origin = textToObject(text);
+    origin = JSON.parse(text);
   }
   const res = origin.slice();
   for (let i = 0, l = appended.length; i < l; i++) {

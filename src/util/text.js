@@ -56,7 +56,7 @@ const genOutput = () => {
   if (!fs.existsSync(fullOutputPath)) return '';
   const res = [];
 
-  const origin = textToObject(fs.readFileSync(fullOutputPath, 'utf8'));
+  const origin = JSON.parse(fs.readFileSync(fullOutputPath, 'utf8'));
   origin.forEach(val => {
     const _val = val;
 
