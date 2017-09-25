@@ -7,14 +7,14 @@ import ErrorMessage from './preset/errormessage';
 const extractDetailURL = (content) => {
   const $ = cheerio.load(content);
   const urlEle = $('.info .title a')[0];
-  if (urlEle) return urlEle.attribs.href;
+  if (urlEle) return urlEle.attribs.href || '';
   return '';
 };
 
 const extractRoughPoster = (content) => {
   const $ = cheerio.load(content);
   const posterEle = $('.pic a img')[0];
-  if (posterEle) return posterEle.attribs.src;
+  if (posterEle) return posterEle.attribs.src || '';
   return '';
 };
 
@@ -22,14 +22,14 @@ const extractRoughPoster = (content) => {
 const extractRoughName = (content) => {
   const $ = cheerio.load(content);
   const nameEle = $('.info .title em')[0];
-  if (nameEle && nameEle.children[0]) return nameEle.children[0].data;
+  if (nameEle && nameEle.children[0]) return nameEle.children[0].data || '';
   return '';
 };
 
 const extractTags = (content) => {
   const $ = cheerio.load(content);
   const tagEle = $('.info span.tags')[0];
-  if (tagEle) return $(tagEle).text().split(' ');
+  if (tagEle) return $(tagEle).text().split(' ') || [];
   return [];
 };
 
@@ -50,14 +50,14 @@ const extractRoughInfos = (content) => {
 const extractDetailName = (content) => {
   const $ = cheerio.load(content);
   const nameEle = $('#wrapper #content h1 span')[0];
-  if (nameEle && nameEle.children[0]) return nameEle.children[0].data;
+  if (nameEle && nameEle.children[0]) return nameEle.children[0].data || '';
   return '';
 };
 
 const extractDetailPoster = (content) => {
   const $ = cheerio.load(content);
   const posterEle = $('#wrapper #content .article #mainpic a img')[0];
-  if (posterEle) return posterEle.attribs.src;
+  if (posterEle) return posterEle.attribs.src || '';
   return '';
 };
 
@@ -66,7 +66,7 @@ const extractDetailYear = (content) => {
   const yearEle = $('#wrapper #content h1 span.year')[0];
   if (yearEle && yearEle.children[0] && yearEle.children[0].data) {
     const len = yearEle.children[0].data.length || 0;
-    return yearEle.children[0].data.slice(1, len - 1);
+    return yearEle.children[0].data.slice(1, len - 1) || '';
   }
   return '';
 };
