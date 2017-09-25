@@ -1,41 +1,50 @@
 import fs from 'fs';
 import path from 'path';
 import _ from 'lodash';
-import { textToObject } from '../src/util/';
 
 const filmPrototype = {
   name: '',
   year: '',
   collaborators: [],
+  tag: '',
 };
 
 const objPrototype = {
   name: '',
+  long: [],
+  short: [],
+  other: [],
   films: [],
 };
 
 const processResult = (res) => {
+  const sortFunc = (a, b) => {
+    if (a.year === b.year) {
+      return b.name < a.name;
+    }
+    return a.year - b.year;
+  };
   res.forEach((obj) => {
     const _obj = obj;
-    _obj.films = _obj.films.sort((a, b) => {
-      if (a.year === b.year) {
-        return b.name < a.name;
-      }
-      return a.year - b.year;
-    });
+    _obj.long = _obj.long.sort(sortFunc);
+    _obj.short = _obj.short.sort(sortFunc);
+    _obj.other = _obj.other.sort(sortFunc);
   });
 
   return res.sort((a, b) => {
-    if (a.films.length === b.films.length) {
-      return a.films[0].year - b.films[0].year;
+    if (a.long.length === b.long.length) {
+      if (a.films.length === b.films.length) {
+        return a.films[0].year - b.films[0].year;
+      }
+      return b.films.length - a.films.length;
     }
-    return b.films.length - a.films.length;
+    return b.long.length - a.long.length;
   });
 };
 
 const getResult = () => {
   const outputPath = path.join(__dirname, '..', 'output', 'full_output.json');
-  const origin = textToObject(fs.readFileSync(outputPath, 'utf8'));
+  const origin = JSON.parse(fs.readFileSync(outputPath, 'utf8'));
   const res = [];
 
   origin.forEach((obj) => {
@@ -49,21 +58,49 @@ const getResult = () => {
         }
       }
 
+      let tag;
+      if (obj.tags.indexOf('电影') !== -1) {
+        tag = '长片';
+      } else if (obj.tags.indexOf('短片') !== -1) {
+        tag = '短片';
+      } else {
+        tag = '其它';
+      }
+
       const item = {
         ...filmPrototype,
-        name: obj.name,
+        name: obj.multiName,
         year: +obj.year,
         collaborators: collas,
+        tag,
       };
 
       if (findObj) {
-        findObj.films.push(item);
+        if (item.tag === '长片') {
+          findObj.long.push(item);
+        } else if (item.tag === '短片') {
+          findObj.short.push(item);
+        } else {
+          findObj.other.push(item);
+        }
       } else {
-        res.push({
+        const newObj = {
           ...objPrototype,
           name: director,
-          films: [item],
-        });
+          long: [],
+          short: [],
+          other: [],
+          films: [],
+        };
+        if (item.tag === '长片') {
+          newObj.long.push(item);
+        } else if (item.tag === '短片') {
+          newObj.short.push(item);
+        } else {
+          newObj.other.push(item);
+        }
+        newObj.films.push(item);
+        res.push(newObj);
       }
     });
   });
@@ -71,17 +108,23 @@ const getResult = () => {
   return processResult(res);
 };
 
+const filmToLog = (logs) => (film) => {
+  const filmName = film.name;
+  const year = `（${film.year}年）`;
+  const collas = film.collaborators.length > 0 ? `（与 ${film.collaborators.join('、')} 联合指导）` : '';
+  logs.push(`[${film.tag}]${filmName}${year}${collas}`);
+};
+
 const getStatisticsText = (res) => {
   const text = [];
+  const loopFunc = filmToLog(text);
   res.forEach((obj) => {
-    text.push(`${obj.name}（${obj.films.length}部）`);
+    text.push(`${obj.name}（${obj.films.length}部，${obj.long.length}部长片，${obj.short.length}部短片）`);
 
-    obj.films.forEach((film) => {
-      const filmName = film.name;
-      const year = `（${film.year}年）`;
-      const collas = film.collaborators.length > 0 ? `（与 ${film.collaborators.join('、')} 联合指导）` : '';
-      text.push(`${filmName}${year}${collas}`);
-    });
+    obj.long.forEach(loopFunc);
+    obj.short.forEach(loopFunc);
+    obj.other.forEach(loopFunc);
+
     text.push('');
   });
 
