@@ -41,6 +41,15 @@ const checkProperty = (obj) => {
     } else if (typeof obj[arr[i]] !== propertyPreset[arr[i]]) { // eslint-disable-line
       console.log(`${obj.name} 属性 ${arr[i]} 类型不正确`);
       flag = false;
+      } else if (obj[arr[i]].length === 0) {
+        errorMessages.push(`${obj.name} 属性 ${arr[i]} 值为空数组`);
+        flag = false;
+      }
+    }
+    if (typeof obj[arr[i]] === 'string') {
+      if (obj[arr[i]] === '') {
+        errorMessages.push(`${obj.name} 属性 ${arr[i]} 值为空字符串`);
+        flag = false;
     }
   }
   return flag;
