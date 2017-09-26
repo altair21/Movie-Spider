@@ -91,6 +91,10 @@ const checkProperty = (obj) => {
         errorMessages.push(`${obj.name} 属性 ${arr[i]} 包含换行符`);
         flag = false;
       }
+      if (obj[arr[i]].indexOf('�') !== -1) {
+        errorMessages.push(`${obj.name} 属性 ${arr[i]} 包含不识别的字符`);
+        flag = false;
+      }
     }
     if (((arr[i] === 'w' || arr[i] === 'h') && obj[arr[i]] === 0)
       || (arr[i] === 'color' && obj[arr[i]] === 'white')) {
