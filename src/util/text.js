@@ -92,6 +92,10 @@ const checkProperty = (obj) => {
         flag = false;
       }
     }
+    if (((arr[i] === 'w' || arr[i] === 'h') && obj[arr[i]] === 0)
+      || (arr[i] === 'color' && obj[arr[i]] === 'white')) {
+      errorMessages.push(`${obj.name} 海报解析不正确`);
+    }
   }
   return { isCorrect: flag, errorMessages };
 };

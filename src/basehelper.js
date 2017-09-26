@@ -81,7 +81,12 @@ const getDetailInfo = async (info) => {
   const year = carveDetailInfo.year(content);
   const director = carveDetailInfo.director(content);
 
-  const imgInfo = await getPosterInfo(posterURL || info.posterURL);
+  let imgInfo = { width: 0, height: 0, color: 'white' };
+  try {
+    imgInfo = await getPosterInfo(posterURL || info.posterURL);
+  } catch (e) {
+    console.error(e);
+  }
 
   const checkStringLegal = (str) => str && str !== '';
   return {
@@ -96,7 +101,8 @@ const getDetailInfo = async (info) => {
     color: imgInfo.color || 'white',
     tags: _.cloneDeep(info.tags),
     multiName: info.multiName,
-    posterError: !checkStringLegal(posterURL) && !checkStringLegal(info.posterURL),
+    posterError: !checkStringLegal(posterURL) && !checkStringLegal(info.posterURL)
+    && imgInfo.width > 0 && imgInfo.height > 0,
     yearError: !checkStringLegal(year),
     directorError: !director || director.length === 0,
   };
