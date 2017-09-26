@@ -9,9 +9,11 @@ import {
 
 const createStepRange = (step) => (end) => _.range(0, end, step);
 
+const removeLF = (str) => str.split('\n').join('');
+
 const carveRoughInfo = {
   id: (content) => {
-    const url = extractDetailURL(content);
+    const url = removeLF(extractDetailURL(content));
     if (url.match(/\d+/)) {
       return url.match(/\d+/)[0];
     }
@@ -19,22 +21,28 @@ const carveRoughInfo = {
   },
   href: (content) => {
     const url = extractDetailURL(content);
-    return url.split('\n').join('').replace('https://movie.douban.com', '');
+    return removeLF(url).replace('https://movie.douban.com', '');
   },
-  poster: (content) => hdThumbPoster(extractRoughPoster(content)),
-  multiName: (content) => extractRoughName(content),
+  poster: (content) => hdThumbPoster(removeLF(extractRoughPoster(content))),
+  multiName: (content) => {
+    const multiName = extractRoughName(content);
+    return multiName.split('/').map(name => removeLF(name).trim()).join(' / ');
+  },
   name: (content) => {
     const multiName = extractRoughName(content);
-    return multiName.split('/')[0].trim();
+    return removeLF(multiName.split('/')[0].trim());
   },
-  tags: (content) => extractTags(content).filter(tag => tag.indexOf('标签') === -1),
+  tags: (content) => extractTags(content).map(tag => removeLF(tag)).filter(tag => tag.indexOf('标签') === -1),
 };
 
 const carveDetailInfo = {
-  name: extractDetailName,
-  poster: extractDetailPoster,
-  year: extractDetailYear,
-  director: extractDetailDirector,
+  name: (content) => removeLF(extractDetailName(content)),
+  poster: (content) => {
+    const posterURL = extractDetailPoster(content);
+    return removeLF(posterURL);
+  },
+  year: (content) => removeLF(extractDetailYear(content)),
+  director: (content) => extractDetailDirector(content).map(director => removeLF(director)),
 };
 
 const getRoughInfo = (content) => {
@@ -137,5 +145,5 @@ const getURLs = async (id, offset) => {
 
 export {
   createStepRange, carveRoughInfo, carveDetailInfo, getURLs, genOffsetStep15,
-  getDetailInfo, mergeObject,
+  getDetailInfo, mergeObject, removeLF,
 };

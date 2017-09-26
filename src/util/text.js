@@ -87,6 +87,9 @@ const checkProperty = (obj) => {
       if (obj[arr[i]] === '') {
         errorMessages.push(`${obj.name} 属性 ${arr[i]} 值为空字符串`);
         flag = false;
+      } else if (obj[arr[i]].indexOf('\n') !== -1) {
+        errorMessages.push(`${obj.name} 属性 ${arr[i]} 包含换行符`);
+        flag = false;
       }
     }
   }

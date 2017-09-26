@@ -2,13 +2,14 @@ import sizeOf from 'image-size';
 import getColors from 'get-image-colors';
 
 import { getBuffer } from './httputil';
+import { removeLF } from '../basehelper';
 
 const getPosterInfo = (url) => new Promise((resolve, reject) => {
   if (!url || url === '') {
     resolve({});
     return;
   }
-  const _url = url.replace('\n', '');
+  const _url = removeLF(url);
   getBuffer(_url).then((buffer) => {
     const imgInfo = sizeOf(buffer);
     // TODO: set MIME according to `imgInfo`
