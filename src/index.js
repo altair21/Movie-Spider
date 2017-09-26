@@ -8,6 +8,7 @@ import {
   writeToDisk, genLogMessage, filterResult, finishResult, checkResult,
   sendToServer,
 } from './helper';
+import { initialState } from './preset/prototype';
 
 const main = () => {
   const outputDir = path.join(__dirname, '..', 'output');
@@ -20,24 +21,15 @@ const main = () => {
     process.exit(1);
   }
   const config = JSON.parse(fs.readFileSync(configPath, 'utf8'));
-  const initialState = {
+  const _initialState = {
+    ...initialState,
     fullOutputPath,
     outputPath,
     config,
     startTime: new Date(),
-    total: -1,
-    actualTotal: 0,
-    infos: [],
-    appendedItem: [],
-    errorItem: {
-      poster: [],
-      year: [],
-      director: [],
-    },
-    logs: [],
   };
 
-  getTotal(initialState)
+  getTotal(_initialState)
     .then(genRoughInfos)
     .then(filterKeywords)
     .then(genDetailInfos)

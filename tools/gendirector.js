@@ -59,7 +59,9 @@ const getResult = () => {
       }
 
       let tag;
-      if (obj.tags.indexOf('电影') !== -1) {
+      if (!obj.tags || obj.tags.length === 1) {
+        tag = '其它';
+      } else if (obj.tags.indexOf('电影') !== -1) {
         tag = '长片';
       } else if (obj.tags.indexOf('短片') !== -1) {
         tag = '短片';
@@ -69,7 +71,7 @@ const getResult = () => {
 
       const item = {
         ...filmPrototype,
-        name: obj.multiName,
+        name: obj.multiName || obj.name,
         year: +obj.year,
         collaborators: collas,
         tag,
@@ -83,6 +85,7 @@ const getResult = () => {
         } else {
           findObj.other.push(item);
         }
+        findObj.films.push(item);
       } else {
         const newObj = {
           ...objPrototype,

@@ -18,7 +18,7 @@ const processResult = (res) => {
     _obj.films = _obj.films.sort((a, b) => b.name < a.name);
   });
 
-  return res.sort((a, b) => (+a.year) - (+b.year));
+  return res.sort((a, b) => (+b.year) - (+a.year));
 };
 
 const getResult = () => {

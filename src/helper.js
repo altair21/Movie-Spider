@@ -8,8 +8,9 @@ import { extractTotal } from './xpath';
 import {
   genOffsetStep15, getURLs, getDetailInfo, mergeObject,
 } from './basehelper';
+import { initialState } from './preset/prototype';
 
-const getTotal = async (state) => {
+const getTotal = async (state = initialState) => {
   const content = await getText(`/people/${state.config.id}/`);
   const element = extractTotal(content);
   return {
@@ -18,7 +19,7 @@ const getTotal = async (state) => {
   };
 };
 
-const genRoughInfos = async (state) => {
+const genRoughInfos = async (state = initialState) => {
   const offsets = genOffsetStep15(state.total);
 
   const res = await offsets.reduce((promise, curOffset) =>
@@ -31,7 +32,7 @@ const genRoughInfos = async (state) => {
   };
 };
 
-const filterKeywords = (state) => ({
+const filterKeywords = (state = initialState) => ({
   ...state,
   infos: state.config.keywords ? state.infos.filter(info =>
     (() => info.tags.reduce((flag, tag) =>
@@ -40,7 +41,7 @@ const filterKeywords = (state) => ({
   ) : state.infos,
 });
 
-const genDetailInfos = async (state) => ({
+const genDetailInfos = async (state = initialState) => ({
   ...state,
   infos: await state.infos.reduce((promise, info) =>
     promise.then(async arr =>
@@ -48,7 +49,7 @@ const genDetailInfos = async (state) => ({
     Promise.resolve([])),
 });
 
-const mergeResult = (state) => {
+const mergeResult = (state = initialState) => {
   const appendedItem = [];
   const origin = JSONPathToObject(state.fullOutputPath);
 
@@ -72,7 +73,7 @@ const mergeResult = (state) => {
   };
 };
 
-const filterResult = (state) => {
+const filterResult = (state = initialState) => {
   const errorItem = {
     poster: [],
     year: [],
@@ -100,7 +101,7 @@ const filterResult = (state) => {
   };
 };
 
-const finishResult = (state) => {
+const finishResult = (state = initialState) => {
   let res = _.cloneDeep(state.infos);
   if (state.config.shuffle) {
     res = res.sort(() => (Math.random() > 0.5 ? -1 : 1));
@@ -112,7 +113,7 @@ const finishResult = (state) => {
   };
 };
 
-const writeToDisk = (state) => {
+const writeToDisk = (state = initialState) => {
   objectToJSONPath(state.infos, state.fullOutputPath);
 
   const simpleInfos = state.infos.map(_info => {
@@ -136,12 +137,12 @@ const writeToDisk = (state) => {
   return state;
 };
 
-const sendToServer = async (state) => {
+const sendToServer = async (state = initialState) => {
   await scp(state.outputPath, state.config.ssh);
   return state;
 };
 
-const genLogMessage = (state) => {
+const genLogMessage = (state = initialState) => {
   const logs = [];
   logs.push('爬取成功：');
   logs.push(`数量：${state.actualTotal}/${state.total}`);
@@ -168,7 +169,7 @@ const genLogMessage = (state) => {
   };
 };
 
-const checkResult = (state) => {
+const checkResult = (state = initialState) => {
   let flag = true;
   let emptyObjFlag = false;
   let logs = [];
