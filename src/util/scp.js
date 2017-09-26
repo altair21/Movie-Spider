@@ -1,23 +1,19 @@
-import fs from 'fs';
-import path from 'path';
 import { exec } from 'child_process';
 
-const config = JSON.parse(fs.readFileSync(path.join(__dirname, '..', '..', 'config.json'), 'utf8'));
-
-const scp = origFile => new Promise((resolve, reject) => {
-  if (!config.ssh || !config.ssh.host || !config.ssh.path) {
-    resolve(false);
+const scp = (filePath, sshInfo) => new Promise((resolve, reject) => {
+  if (!sshInfo || !sshInfo.host || !sshInfo.path) {
+    reject(new Error(`服务器信息不正确 或 缺少所需字段：${JSON.stringify(sshInfo)}`));
     return;
   }
-  const user = config.ssh.user || 'root';
-  const host = config.ssh.host;
-  const port = config.ssh.port || 22;
-  const targetPath = config.ssh.path;
-  const command = `scp -P ${port} ${origFile} ${user}@${host}:${targetPath}`;
+  const user = sshInfo.user || 'root';
+  const host = sshInfo.host;
+  const port = sshInfo.port || 22;
+  const targetPath = sshInfo.path;
+  const command = `scp -P ${port} ${filePath} ${user}@${host}:${targetPath}`;
 
   exec(command, { maxBuffer: 24 * 1024 * 1024 })
     .on('close', () => resolve(true))
-    .on('error', err => reject(new Error(`scp出错：${err.message}`)));
+    .on('error', err => reject(new Error(`scp 出错：${err}`)));
 });
 
 export { scp };

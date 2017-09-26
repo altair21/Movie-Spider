@@ -2,14 +2,6 @@ import fs from 'fs';
 import path from 'path';
 import _ from 'lodash';
 
-const textToObject = (text = '') => {
-  const str = text.replace('let data = \'', '').slice(0, -1).split('\\\'').join('\'');
-  return JSON.parse(str);
-};
-
-const objectToText = (object) =>
-  `let data = '${JSON.stringify(object).split('\'').join('\\\'')}'`;
-
 const propertyPreset = {
   id: 'string',
   url: 'string',
@@ -19,28 +11,73 @@ const propertyPreset = {
   color: 'string',
   w: 'number',
   h: 'number',
+  tags: 'object',
   director: 'object',
+  multiName: 'string',
   yearError: 'boolean',
   posterError: 'boolean',
   directorError: 'boolean',
 };
 
+const mkdirForFilePath = (filePath) => {
+  path.dirname(filePath).split(path.sep).reduce((parentDir, childDir) => {
+    const curDir = path.resolve(parentDir, childDir);
+    if (!fs.existsSync(curDir)) {
+      fs.mkdirSync(curDir);
+    }
+    return curDir;
+  }, path.isAbsolute(path.dirname(filePath)) ? path.sep : '');
+};
+
+const textToObject = (text = '') => {
+  const str = text.replace('let data = \'', '').slice(0, -1).split('\\\'').join('\'');
+  return JSON.parse(str);
+};
+
+const textPathToObject = (filePath = '') => {
+  if (fs.existsSync(filePath)) {
+    const text = fs.readFileSync(filePath, 'utf8');
+    return textToObject(text);
+  }
+  return [];
+};
+
+const JSONPathToObject = (filePath = '') => {
+  if (fs.existsSync(filePath)) {
+    const text = fs.readFileSync(filePath, 'utf8');
+    return JSON.parse(text);
+  }
+  return [];
+};
+
+const objectToText = (object) =>
+  `let data = '${JSON.stringify(object).split('\'').join('\\\'')}'`;
+
+const objectToTextPath = (object, filePath) => {
+  mkdirForFilePath(filePath);
+  fs.writeFileSync(filePath, objectToText(object), 'utf8');
+};
+
+const objectToJSONPath = (object, filePath) => {
+  mkdirForFilePath(filePath);
+  fs.writeFileSync(filePath, JSON.stringify(object), 'utf8');
+};
+
 const checkProperty = (obj) => {
   const arr = Object.keys(propertyPreset);
+  const errorMessages = [];
   let flag = true;
   for (let i = 0, l = arr.length; i < l; i++) {
-    if (arr[i] === 'director') {
-      if (!_.isArray(obj[arr[i]])) {
-        console.log(`${obj.name} 属性 ${arr[i]} 类型不正确`);
-        flag = false;
-      }
-    }
     if (!Object.prototype.hasOwnProperty.call(obj, arr[i])) {
-      console.log(`${obj.name} 缺少属性 ${arr[i]}`);
+      errorMessages.push(`${obj.name} 缺少属性 ${arr[i]}`);
       flag = false;
     } else if (typeof obj[arr[i]] !== propertyPreset[arr[i]]) { // eslint-disable-line
-      console.log(`${obj.name} 属性 ${arr[i]} 类型不正确`);
+      errorMessages.push(`${obj.name} 属性 ${arr[i]} 类型不正确`);
       flag = false;
+    } else if (arr[i] === 'director' || arr[i] === 'tags') {
+      if (!_.isArray(obj[arr[i]])) {
+        errorMessages.push(`${obj.name} 属性 ${arr[i]} 类型不正确`);
+        flag = false;
       } else if (obj[arr[i]].length === 0) {
         errorMessages.push(`${obj.name} 属性 ${arr[i]} 值为空数组`);
         flag = false;
@@ -50,9 +87,10 @@ const checkProperty = (obj) => {
       if (obj[arr[i]] === '') {
         errorMessages.push(`${obj.name} 属性 ${arr[i]} 值为空字符串`);
         flag = false;
+      }
     }
   }
-  return flag;
+  return { isCorrect: flag, errorMessages };
 };
 
 const genOutput = () => {
@@ -63,7 +101,7 @@ const genOutput = () => {
   const fullOutputPath = path.join(__dirname, '..', '..', 'output', 'full_output.json');
   const outputPath = path.join(__dirname, '..', '..', 'output', 'output.json');
   if (!fs.existsSync(fullOutputPath)) return '';
-  const res = [];
+  let res = [];
 
   const origin = JSON.parse(fs.readFileSync(fullOutputPath, 'utf8'));
   origin.forEach(val => {
@@ -82,14 +120,18 @@ const genOutput = () => {
       flag = false;
     }
 
-    flag = flag && checkProperty(_val);
+    const checked = checkProperty(_val);
+    res = res.concat(checked.errorMessages);
+    flag = flag && checked.isCorrect;
 
     delete _val.id;
+    delete _val.multiName;
     delete _val.posterError;
     delete _val.yearError;
     delete _val.directorError;
     delete _val.url;
     delete _val.director;
+    delete _val.tags;
   });
 
   if (config.outputAsJS) {
@@ -108,4 +150,7 @@ const genOutput = () => {
   return res.join('\n');
 };
 
-export { textToObject, objectToText, genOutput };
+export {
+  textToObject, textPathToObject, objectToText, genOutput, objectToTextPath,
+  objectToJSONPath, propertyPreset, checkProperty, JSONPathToObject,
+};
