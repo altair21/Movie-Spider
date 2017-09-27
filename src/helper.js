@@ -6,7 +6,7 @@ import {
 } from './util/';
 import { extractTotal } from './xpath';
 import {
-  genOffsetStep15, getURLs, getDetailInfo, mergeObject,
+  genOffsetStep15, getURLs, concurrentGetDetailInfo, mergeObject,
 } from './basehelper';
 import { initialState } from './preset/prototype';
 
@@ -43,10 +43,11 @@ const filterKeywords = (state = initialState) => ({
 
 const genDetailInfos = async (state = initialState) => ({
   ...state,
-  infos: await state.infos.reduce((promise, info) =>
-    promise.then(async arr =>
-      arr.concat(await getDetailInfo(info))),
-    Promise.resolve([])),
+  infos: await _.chunk(state.infos, state.config.concurrency || 2)
+    .reduce((promise, infoArr) =>
+      promise.then(async arr =>
+        arr.concat(await concurrentGetDetailInfo(infoArr))),
+      Promise.resolve([])),
 });
 
 const mergeResult = (state = initialState) => {
@@ -59,7 +60,7 @@ const mergeResult = (state = initialState) => {
     const isItemEqual = (item) => item.id === info.id || item.url === info.url || item.multiName === info.multiName;
     const findIndex = _.findIndex(res, isItemEqual);
     if (findIndex === -1) {
-      appendedItem.push(info.name);
+      appendedItem.push({ name: info.name, id: info.id });
       res.push(info);
     } else {
       res[findIndex] = mergeObject(res[findIndex], info);

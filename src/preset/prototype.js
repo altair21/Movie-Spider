@@ -11,6 +11,7 @@ const initialConfig = {
   keywords: [],
   username: undefined,
   password: undefined,
+  concurrency: undefined,
 };
 
 const initialState = {

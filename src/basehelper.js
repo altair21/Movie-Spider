@@ -108,6 +108,14 @@ const getDetailInfo = async (info) => {
   };
 };
 
+const concurrentGetDetailInfo = async (infoArr) => {
+  const res = await Promise.all(infoArr.map(async info => {
+    const ret = await getDetailInfo(info);
+    return ret;
+  }));
+  return res;
+};
+
 const mergeObject = (oldObj, newObj) => {
   const res = {
     ...oldObj,
@@ -151,5 +159,5 @@ const getURLs = async (id, offset) => {
 
 export {
   createStepRange, carveRoughInfo, carveDetailInfo, getURLs, genOffsetStep15,
-  getDetailInfo, mergeObject, removeLF,
+  getDetailInfo, mergeObject, removeLF, concurrentGetDetailInfo,
 };
