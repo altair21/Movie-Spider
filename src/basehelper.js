@@ -26,7 +26,7 @@ const carveRoughInfo = {
   poster: (content) => hdThumbPoster(removeLF(extractRoughPoster(content))),
   multiName: (content) => {
     const multiName = extractRoughName(content);
-    return multiName.split('/').map(name => removeLF(name).trim()).join(' / ');
+    return removeLF(multiName).split('/').map(name => removeLF(name).trim()).join(' / ');
   },
   name: (content) => {
     const multiName = extractRoughName(content);
