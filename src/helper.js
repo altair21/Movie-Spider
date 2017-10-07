@@ -43,7 +43,7 @@ const filterKeywords = (state = initialState) => ({
 
 const genDetailInfos = async (state = initialState) => ({
   ...state,
-  infos: await _.chunk(state.infos, state.config.concurrency || 2)
+  infos: await _.chunk(state.infos, state.config.concurrency || 1)
     .reduce((promise, infoArr) =>
       promise.then(async arr =>
         arr.concat(await concurrentGetDetailInfo(infoArr))),
