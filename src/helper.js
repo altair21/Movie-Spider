@@ -56,7 +56,7 @@ const mergeResult = (state = initialState) => {
 
   const res = _.cloneDeep(origin);
 
-  state.infos.forEach(info => {
+  state.infos.filter(info => info.id && info.id !== '').forEach(info => {
     const isItemEqual = (item) => item.id === info.id || item.url === info.url || item.multiName === info.multiName;
     const findIndex = _.findIndex(res, isItemEqual);
     if (findIndex === -1) {
