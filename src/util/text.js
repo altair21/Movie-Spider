@@ -69,6 +69,9 @@ const checkProperty = (obj, config) => {
   let flag = true;
   for (let i = 0, l = arr.length; i < l; i++) {
     if (!Object.prototype.hasOwnProperty.call(obj, arr[i])) {
+      if (config.ignoreTags && arr[i] === 'tags') {
+        continue; // eslint-disable-line no-continue
+      }
       errorMessages.push(`${obj.name} 缺少属性 ${arr[i]}`);
       flag = false;
     } else if (typeof obj[arr[i]] !== propertyPreset[arr[i]]) { // eslint-disable-line
