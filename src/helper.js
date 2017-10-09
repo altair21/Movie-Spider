@@ -191,7 +191,7 @@ const checkResult = (state = initialState) => {
     //   flag = false;
     // }
 
-    const checked = checkProperty(info);
+    const checked = checkProperty(info, state.config);
     logs = logs.concat(checked.errorMessages);
     flag = flag && checked.isCorrect;
   });

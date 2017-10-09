@@ -63,7 +63,7 @@ const objectToJSONPath = (object, filePath) => {
   fs.writeFileSync(filePath, JSON.stringify(object), 'utf8');
 };
 
-const checkProperty = (obj) => {
+const checkProperty = (obj, config) => {
   const arr = Object.keys(propertyPreset);
   const errorMessages = [];
   let flag = true;
@@ -79,6 +79,9 @@ const checkProperty = (obj) => {
         errorMessages.push(`${obj.name} 属性 ${arr[i]} 类型不正确`);
         flag = false;
       } else if (obj[arr[i]].length === 0) {
+        if (config.ignoreTags && arr[i] === 'tags') {
+          continue; // eslint-disable-line no-continue
+        }
         errorMessages.push(`${obj.name} 属性 ${arr[i]} 值为空数组`);
         flag = false;
       }
@@ -131,7 +134,7 @@ const genOutput = () => {
       flag = false;
     }
 
-    const checked = checkProperty(_val);
+    const checked = checkProperty(_val, config);
     res = res.concat(checked.errorMessages);
     flag = flag && checked.isCorrect;
 
