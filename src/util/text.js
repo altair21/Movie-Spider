@@ -68,10 +68,10 @@ const checkProperty = (obj, config) => {
   const errorMessages = [];
   let flag = true;
   for (let i = 0, l = arr.length; i < l; i++) {
+    if (config.ignoreTags && arr[i] === 'tags') {
+      continue; // eslint-disable-line no-continue
+    }
     if (!Object.prototype.hasOwnProperty.call(obj, arr[i])) {
-      if (config.ignoreTags && arr[i] === 'tags') {
-        continue; // eslint-disable-line no-continue
-      }
       errorMessages.push(`${obj.name} 缺少属性 ${arr[i]}`);
       flag = false;
     } else if (typeof obj[arr[i]] !== propertyPreset[arr[i]]) { // eslint-disable-line
@@ -82,9 +82,6 @@ const checkProperty = (obj, config) => {
         errorMessages.push(`${obj.name} 属性 ${arr[i]} 类型不正确`);
         flag = false;
       } else if (obj[arr[i]].length === 0) {
-        if (config.ignoreTags && arr[i] === 'tags') {
-          continue; // eslint-disable-line no-continue
-        }
         errorMessages.push(`${obj.name} 属性 ${arr[i]} 值为空数组`);
         flag = false;
       }
