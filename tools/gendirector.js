@@ -122,7 +122,9 @@ const getStatisticsText = (res) => {
   const text = [];
   const loopFunc = filmToLog(text);
   res.forEach((obj) => {
-    text.push(`${obj.name}（${obj.films.length}部，${obj.long.length}部长片，${obj.short.length}部短片）`);
+    const longText = obj.long.length === 0 ? '' : `，${obj.long.length}部长片`;
+    const shortText = obj.short.length === 0 ? '' : `，${obj.short.length}部短片`;
+    text.push(`${obj.name}（${obj.films.length}部${longText}${shortText}）`);
 
     obj.long.forEach(loopFunc);
     obj.short.forEach(loopFunc);
