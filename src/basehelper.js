@@ -1,6 +1,8 @@
 import _ from 'lodash';
 
-import { getPosterInfo, getText, hdThumbPoster } from './util/';
+import {
+  getPosterInfo, getText, hdThumbPoster, JSONPathToObject,
+} from './util/';
 import {
   extractDetailURL, extractRoughName, extractRoughPoster,
   extractTags, extractRoughInfos, extractDetailYear, extractDetailDirector,
@@ -143,6 +145,11 @@ const mergeObject = (oldObj, newObj) => {
   return res;
 };
 
+const filterRuleOutItem = (array, filterPath) => {
+  const filter = JSONPathToObject(filterPath);
+  return _.filter(array, (o) => !_.find(filter, (v) => o.id && o.id === v.id));
+};
+
 const genOffsetStep15 = createStepRange(15);
 
 const getURLs = async (id, offset) => {
@@ -160,4 +167,5 @@ const getURLs = async (id, offset) => {
 export {
   createStepRange, carveRoughInfo, carveDetailInfo, getURLs, genOffsetStep15,
   getDetailInfo, mergeObject, removeLF, concurrentGetDetailInfo,
+  filterRuleOutItem,
 };

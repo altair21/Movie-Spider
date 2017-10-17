@@ -5,8 +5,8 @@ import 'babel-polyfill';  // eslint-disable-line
 
 import {
   getTotal, genRoughInfos, filterKeywords, genDetailInfos, mergeResult,
-  writeToDisk, genLogMessage, filterResult, finishResult, checkResult,
-  sendToServer,
+  writeToDisk, genLogMessage, filterResult, mergeManualItem, finishResult,
+  checkResult, sendToServer,
 } from './helper';
 import { initialState } from './preset/prototype';
 
@@ -15,6 +15,8 @@ const main = () => {
   const fullOutputPath = path.join(outputDir, 'full_output.json');
   const outputPath = path.join(outputDir, 'output.json');
   const configPath = path.join(__dirname, '..', 'config.json');
+  const manualPath = path.join(outputDir, 'manual.json');
+  const filterPath = path.join(outputDir, 'filter.json');
 
   if (!fs.existsSync(configPath)) {
     console.log('没有找到配置文件');
@@ -25,6 +27,8 @@ const main = () => {
     ...initialState,
     fullOutputPath,
     outputPath,
+    manualPath,
+    filterPath,
     config,
     startTime: new Date(),
   };
@@ -35,6 +39,7 @@ const main = () => {
     .then(genDetailInfos)
     .then(mergeResult)
     .then(filterResult)
+    .then(mergeManualItem)
     .then(finishResult)
     .then(writeToDisk)
     .then(sendToServer)

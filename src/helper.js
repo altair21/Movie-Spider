@@ -7,6 +7,7 @@ import {
 import { extractTotal } from './xpath';
 import {
   genOffsetStep15, getURLs, concurrentGetDetailInfo, mergeObject,
+  filterRuleOutItem,
 } from './basehelper';
 import { initialState } from './preset/prototype';
 
@@ -96,9 +97,17 @@ const filterResult = (state = initialState) => {
 
   return {
     ...state,
-    actualTotal: res.length,
-    infos: res,
+    infos: filterRuleOutItem(res, state.filterPath),
     errorItem,
+  };
+};
+
+const mergeManualItem = (state = initialState) => {
+  const manualItem = JSONPathToObject(state.manualPath);
+
+  return {
+    ...state,
+    infos: state.infos.concat(manualItem),
   };
 };
 
@@ -110,6 +119,7 @@ const finishResult = (state = initialState) => {
 
   return {
     ...state,
+    actualTotal: res.length,
     infos: res,
   };
 };
@@ -207,6 +217,6 @@ const checkResult = (state = initialState) => {
 
 export {
   getTotal, genRoughInfos, filterKeywords, genDetailInfos, mergeResult,
-  filterResult, finishResult, writeToDisk, genLogMessage, checkResult,
-  sendToServer,
+  filterResult, mergeManualItem, finishResult, writeToDisk, genLogMessage,
+  checkResult, sendToServer,
 };
