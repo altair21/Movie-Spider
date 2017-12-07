@@ -44,7 +44,9 @@ const filterKeywords = (state = initialState) => ({
 
 const genDetailInfos = async (state = initialState) => ({
   ...state,
-  infos: await _.chunk(state.infos, state.config.concurrency || 1)
+  infos: await _.chunk(state.infos.filter(info =>
+    !_.find(state.ruleoutItems, (ruleoutItem) => ruleoutItem.url === info.url || ruleoutItem.id === info.id)),
+    state.config.concurrency || 1)
     .reduce((promise, infoArr) =>
       promise.then(async arr =>
         arr.concat(await concurrentGetDetailInfo(infoArr))),
@@ -97,7 +99,7 @@ const filterResult = (state = initialState) => {
 
   return {
     ...state,
-    infos: filterRuleOutItem(res, state.filterPath),
+    infos: res,
     errorItem,
   };
 };

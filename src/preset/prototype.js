@@ -18,12 +18,12 @@ const initialState = {
   fullOutputPath: null,
   outputPath: null,
   manualPath: null,
-  filterPath: null,
   config: initialConfig,
   startTime: new Date(),
   total: -1,
   actualTotal: 0,
   infos: [],
+  ruleoutItems: [],
   appendedItem: [],
   errorItem: {
     poster: [],
