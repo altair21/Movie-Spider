@@ -10,7 +10,7 @@ const getPosterInfo = (url) => new Promise((resolve, reject) => {
     return;
   }
   const _url = removeLF(url);
-  getBuffer(_url, true).then((buffer) => {  // 最近解析 https 经常 hang up，试试 http。 -- 2017.12.18
+  getBuffer(_url).then((buffer) => {
     const imgInfo = sizeOf(buffer);
     // TODO: set MIME according to `imgInfo`
     getColors(buffer, 'image/jpeg').then((colors) => {

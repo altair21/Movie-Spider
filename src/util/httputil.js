@@ -1,4 +1,3 @@
-import http from 'http';
 import https from 'https';
 import URL from 'url';
 
@@ -60,20 +59,8 @@ const getText = (url, param = {}) => new Promise((resolve, reject) => {
   }).on('error', e => reject(new Error(`url ${url}\n${e.message}`)));
 });
 
-const getBuffer = (url, useHTTP = false) => new Promise((resolve, reject) => {
-  let delegate;
-  if (useHTTP) {
-    delegate = http;
-    if (url.startsWith('https')) {
-      url = url.replace('https', 'http'); // eslint-disable-line
-    }
-  } else {
-    delegate = https;
-    if (url.startsWith('http')) {
-      url = url.replace('http', 'https'); // eslint-disable-line
-    }
-  }
-  delegate.get(URL.parse(url), (response) => {
+const getBuffer = url => new Promise((resolve, reject) => {
+  https.get(URL.parse(url), (response) => {
     const chunks = [];
     response.on('data', (chunk) => {
       chunks.push(chunk);
