@@ -62,8 +62,17 @@ const getText = (url, param = {}) => new Promise((resolve, reject) => {
 
 const getBuffer = (url, useHTTP = false) => new Promise((resolve, reject) => {
   let delegate;
-  if (useHTTP) delegate = http;
-  else delegate = https;
+  if (useHTTP) {
+    delegate = http;
+    if (url.startsWith('https')) {
+      url = url.replace('https', 'http'); // eslint-disable-line
+    }
+  } else {
+    delegate = https;
+    if (url.startsWith('http')) {
+      url = url.replace('http', 'https'); // eslint-disable-line
+    }
+  }
   delegate.get(URL.parse(url), (response) => {
     const chunks = [];
     response.on('data', (chunk) => {
