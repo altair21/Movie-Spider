@@ -1,3 +1,4 @@
+import http from 'http';
 import https from 'https';
 import URL from 'url';
 
@@ -59,8 +60,11 @@ const getText = (url, param = {}) => new Promise((resolve, reject) => {
   }).on('error', e => reject(new Error(`url ${url}\n${e.message}`)));
 });
 
-const getBuffer = url => new Promise((resolve, reject) => {
-  https.get(URL.parse(url), (response) => {
+const getBuffer = (url, useHTTP = false) => new Promise((resolve, reject) => {
+  let delegate;
+  if (useHTTP) delegate = http;
+  else delegate = https;
+  delegate.get(URL.parse(url), (response) => {
     const chunks = [];
     response.on('data', (chunk) => {
       chunks.push(chunk);
