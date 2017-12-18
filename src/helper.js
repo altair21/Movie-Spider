@@ -7,7 +7,6 @@ import {
 import { extractTotal } from './xpath';
 import {
   genOffsetStep15, getURLs, concurrentGetDetailInfo, mergeObject,
-  filterRuleOutItem,
 } from './basehelper';
 import { initialState } from './preset/prototype';
 
