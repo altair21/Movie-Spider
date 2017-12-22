@@ -1,12 +1,15 @@
 import _ from 'lodash';
 
+import { ScoreDefinition } from './preset/valueDef';
 import {
   getPosterInfo, getText, hdThumbPoster, JSONPathToObject,
 } from './util/';
 import {
   extractDetailURL, extractRoughName, extractRoughPoster,
-  extractTags, extractRoughInfos, extractDetailYear, extractDetailDirector,
-  extractDetailPoster, extractDetailName,
+  extractRoughTags, extractRoughInfos, extractDetailYear, extractDetailDirector,
+  extractDetailPoster, extractDetailName, extractRoughUserComment,
+  extractRoughUserScore, extractRoughMarkDate, extractDetailCategory,
+  extractDetailNumOfScore, extractDetailScore, extractDetailRefFilms,
 } from './xpath';
 
 const createStepRange = (step) => (end) => _.range(0, end, step);
@@ -34,7 +37,10 @@ const carveRoughInfo = {
     const multiName = extractRoughName(content);
     return removeLF(multiName.split('/')[0].trim());
   },
-  tags: (content) => extractTags(content).map(tag => removeLF(tag)).filter(tag => tag.indexOf('标签') === -1),
+  tags: (content) => extractRoughTags(content).map(tag => removeLF(tag)).filter(tag => tag.indexOf('标签') === -1),
+  userScore: (content) => extractRoughUserScore(content),
+  userComment: (content) => removeLF(extractRoughUserComment(content)),
+  markDate: (content) => removeLF(extractRoughMarkDate(content)),
 };
 
 const carveDetailInfo = {
@@ -45,6 +51,11 @@ const carveDetailInfo = {
   },
   year: (content) => removeLF(extractDetailYear(content)),
   director: (content) => extractDetailDirector(content).map(director => removeLF(director)),
+  category: (content) => extractDetailCategory(content).map(val => removeLF(val)),
+  score: (content) => extractDetailScore(content),
+  numberOfScore: (content) => extractDetailNumOfScore(content),
+  refFilms: (content) => extractDetailRefFilms(content)
+    .map(val => ({ ...val, name: removeLF(val.name) })),
 };
 
 const getRoughInfo = (content) => {
@@ -54,8 +65,11 @@ const getRoughInfo = (content) => {
   const multiName = carveRoughInfo.multiName(content);
   const tags = carveRoughInfo.tags(content);
   const posterURL = carveRoughInfo.poster(content);
+  const userScore = carveRoughInfo.userScore(content);
+  const userComment = carveRoughInfo.userComment(content);
+  const markDate = carveRoughInfo.markDate(content);
   return {
-    id, url, posterURL, name, multiName, tags,
+    id, url, posterURL, name, multiName, tags, userScore, userComment, markDate,
   };
 };
 
@@ -71,9 +85,17 @@ const getDetailInfo = async (info) => {
       w: 0,
       h: 0,
       color: '',
+      category: [],
+      score: -1,
+      numberOfScore: -1,
+      refFilms: [],
       yearError: true,
       directorError: true,
       posterError: true,
+      categoryError: true,
+      scoreError: true,
+      numberOfScoreError: true,
+      refFilmsError: true,
     };
   }
 
@@ -82,12 +104,16 @@ const getDetailInfo = async (info) => {
   const posterURL = carveDetailInfo.poster(content);
   const year = carveDetailInfo.year(content);
   const director = carveDetailInfo.director(content);
+  const score = carveDetailInfo.score(content);
+  const numberOfScore = carveDetailInfo.numberOfScore(content);
+  const category = carveDetailInfo.category(content);
+  const refFilms = carveDetailInfo.refFilms(content);
 
   let imgInfo = { width: 0, height: 0, color: 'white' };
   try {
     imgInfo = await getPosterInfo(posterURL || info.posterURL);
   } catch (e) {
-    console.error(e);
+    // console.error(e);
   }
 
   const checkStringLegal = (str) => str && str !== '';
@@ -95,18 +121,31 @@ const getDetailInfo = async (info) => {
     id: info.id,
     url: info.url,
     name: info.name,
-    year,
-    director,
     posterURL: posterURL || info.posterURL || '',
     w: imgInfo.width || 0,
     h: imgInfo.height || 0,
     color: imgInfo.color || 'white',
     tags: _.cloneDeep(info.tags),
+    userScore: info.userScore || ScoreDefinition.GetFailure,
+    userComment: info.userComment,
+    markDate: info.markDate,
     multiName: info.multiName,
+
+    year,
+    director,
+    score: score || ScoreDefinition.GetFailure,
+    numberOfScore: numberOfScore || ScoreDefinition.GetFailure,
+    category,
+    refFilms,
+
     posterError: !checkStringLegal(posterURL) && !checkStringLegal(info.posterURL)
     && imgInfo.width > 0 && imgInfo.height > 0,
     yearError: !checkStringLegal(year),
     directorError: !director || director.length === 0,
+    scoreError: !score || score === ScoreDefinition.GetFailure,
+    numberOfScoreError: !numberOfScore || numberOfScore === ScoreDefinition.GetFailure,
+    categoryError: !category || category.length === 0,
+    refFilmsError: !refFilms || refFilms.length === 0,
   };
 };
 
@@ -124,9 +163,17 @@ const mergeObject = (oldObj, newObj) => {
     name: newObj.name || oldObj.name,
     tags: (newObj.tags && newObj.tags.length > 0) ? _.cloneDeep(newObj.tags) : _.cloneDeep(oldObj.tags),
     multiName: newObj.multiName || oldObj.multiName,
+    userScore: newObj.userScore > 0 ? newObj.userScore : oldObj.userScore,
+    userComment: newObj.userComment || oldObj.userComment,
+    markDate: newObj.markDate || oldObj.markDate,
+
     yearError: oldObj.yearError && newObj.yearError,
     posterError: oldObj.posterError && newObj.posterError,
     directorError: oldObj.directorError && newObj.directorError,
+    categoryError: oldObj.categoryError && newObj.categoryError,
+    scoreError: oldObj.scoreError && newObj.scoreError,
+    numberOfScoreError: oldObj.numberOfScoreError && newObj.numberOfScoreError,
+    refFilmsError: oldObj.refFilmsError && newObj.refFilmsError,
   };
 
   if (!newObj.posterError) {
@@ -140,6 +187,18 @@ const mergeObject = (oldObj, newObj) => {
   }
   if (!newObj.directorError) {
     res.director = (newObj.director && newObj.director.length) ? _.cloneDeep(newObj.director) : _.cloneDeep(oldObj.director);
+  }
+  if (!newObj.categoryError) {
+    res.category = (newObj.category && newObj.category.length) ? _.cloneDeep(newObj.category) : _.cloneDeep(oldObj.category);
+  }
+  if (!newObj.scoreError) {
+    res.score = newObj.score;
+  }
+  if (!newObj.numberOfScoreError) {
+    res.numberOfScore = newObj.numberOfScore;
+  }
+  if (!newObj.refFilmsError) {
+    res.refFilms = _.uniqWith(oldObj.refFilms.concat(newObj.refFilms), (a, b) => a.id === b.id);
   }
 
   return res;

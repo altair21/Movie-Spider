@@ -7,16 +7,15 @@ import {
 import { extractTotal } from './xpath';
 import {
   genOffsetStep15, getURLs, concurrentGetDetailInfo, mergeObject,
-  filterRuleOutItem,
 } from './basehelper';
 import { initialState } from './preset/prototype';
 
 const getTotal = async (state = initialState) => {
   const content = await getText(`/people/${state.config.id}/`);
-  const element = extractTotal(content);
+  const totalStr = extractTotal(content);
   return {
     ...state,
-    total: Number.parseInt(element.children[0].data, 10),
+    total: Number.parseInt(totalStr, 10),
   };
 };
 
@@ -193,15 +192,6 @@ const checkResult = (state = initialState) => {
       emptyObjFlag = true;
       flag = false;
     }
-    // `checkProperty 函数也做了这些事`
-    // if (!info.year || info.yearError || info.year === '') {
-    //   logs.push(`${info.name} 年份信息出错  ${info.url}`);
-    //   flag = false;
-    // }
-    // if (!info.director || info.directorError || info.director.length === 0) {
-    //   logs.push(`${info.name} 导演信息出错  ${info.url}`);
-    //   flag = false;
-    // }
 
     const checked = checkProperty(info, state.config);
     logs = logs.concat(checked.errorMessages);
