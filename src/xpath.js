@@ -60,8 +60,8 @@ const extractRoughUserComment = (content) => {
 const extractRoughMarkDate = (content) => {
   const $ = cheerio.load(content);
   const markDateEle = $('.info .date')[0];
-  if (markDateEle && markDateEle.children[0]) return markDateEle.children[0].data;
-  return undefined;
+  if (markDateEle && markDateEle.children[0]) return markDateEle.children[0].data || '';
+  return '';
 };
 
 const extractTotal = (content) => {
