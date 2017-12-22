@@ -167,13 +167,13 @@ const mergeObject = (oldObj, newObj) => {
     userComment: newObj.userComment || oldObj.userComment,
     markDate: newObj.markDate || oldObj.markDate,
 
-    yearError: oldObj.yearError && newObj.yearError,
-    posterError: oldObj.posterError && newObj.posterError,
-    directorError: oldObj.directorError && newObj.directorError,
-    categoryError: oldObj.categoryError && newObj.categoryError,
-    scoreError: oldObj.scoreError && newObj.scoreError,
-    numberOfScoreError: oldObj.numberOfScoreError && newObj.numberOfScoreError,
-    refFilmsError: oldObj.refFilmsError && newObj.refFilmsError,
+    yearError: (oldObj.yearError || oldObj.yearError == undefined) && newObj.yearError, // eslint-disable-line eqeqeq
+    posterError: (oldObj.posterError || oldObj.posterError == undefined) && newObj.posterError,  // eslint-disable-line eqeqeq
+    directorError: (oldObj.directorError || oldObj.directorError == undefined) && newObj.directorError, // eslint-disable-line eqeqeq
+    categoryError: (oldObj.categoryError || oldObj.categoryError == undefined) && newObj.categoryError, // eslint-disable-line eqeqeq
+    scoreError: (oldObj.scoreError || oldObj.scoreError == undefined) && newObj.scoreError, // eslint-disable-line eqeqeq
+    numberOfScoreError: (oldObj.numberOfScoreError || oldObj.numberOfScoreError == undefined) && newObj.numberOfScoreError, // eslint-disable-line eqeqeq
+    refFilmsError: (oldObj.refFilmsError || oldObj.refFilmsError == undefined) && newObj.refFilmsError, // eslint-disable-line eqeqeq
   };
 
   if (!newObj.posterError) {
