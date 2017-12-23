@@ -198,7 +198,7 @@ const mergeObject = (oldObj, newObj) => {
     res.numberOfScore = newObj.numberOfScore;
   }
   if (!newObj.refFilmsError) {
-    res.refFilms = _.uniqWith(oldObj.refFilms.concat(newObj.refFilms), (a, b) => a.id === b.id);
+    res.refFilms = _.uniqWith((oldObj.refFilms || []).concat(newObj.refFilms), (a, b) => a.id === b.id);
   }
 
   return res;
