@@ -14,6 +14,7 @@ const propertyPreset = {
   tags: 'object',                 // 用户打的标签
   userScore: 'number',            // 用户评分
   userComment: 'string',          // 用户短评
+  commentLikes: 'number',         // 短评被赞数
   markDate: 'string',             // 用户标记日期
   multiName: 'string',            // 长名称，`/` 分隔
 
@@ -23,7 +24,7 @@ const propertyPreset = {
   category: 'object',             // 类别
   score: 'number',                // 豆瓣评分
   numberOfScore: 'number',        // 评分人数
-  refFilms: 'object',             // 相关影片 // TODO: 新建一个 object
+  refFilms: 'object',             // 相关影片
 
   // detailInfo validator
   posterError: 'boolean',         // 海报信息是否获取成功
@@ -185,6 +186,7 @@ const genOutput = () => {
     delete _val.tags;
     delete _val.userScore;
     delete _val.userComment;
+    delete _val.commentLikes;
     delete _val.markDate;
     delete _val.score;
     delete _val.numberOfScore;

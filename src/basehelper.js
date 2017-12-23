@@ -7,7 +7,7 @@ import {
 import {
   extractDetailURL, extractRoughName, extractRoughPoster,
   extractRoughTags, extractRoughInfos, extractDetailYear, extractDetailDirector,
-  extractDetailPoster, extractDetailName, extractRoughUserComment,
+  extractDetailPoster, extractDetailName, extractRoughUserComment, extractRoughCommentLikes,
   extractRoughUserScore, extractRoughMarkDate, extractDetailCategory,
   extractDetailNumOfScore, extractDetailScore, extractDetailRefFilms,
 } from './xpath';
@@ -40,6 +40,7 @@ const carveRoughInfo = {
   tags: (content) => extractRoughTags(content).map(tag => removeLF(tag)).filter(tag => tag.indexOf('标签') === -1),
   userScore: (content) => extractRoughUserScore(content),
   userComment: (content) => removeLF(extractRoughUserComment(content)),
+  commentLikes: (content) => extractRoughCommentLikes(content),
   markDate: (content) => removeLF(extractRoughMarkDate(content)),
 };
 
@@ -67,9 +68,10 @@ const getRoughInfo = (content) => {
   const posterURL = carveRoughInfo.poster(content);
   const userScore = carveRoughInfo.userScore(content);
   const userComment = carveRoughInfo.userComment(content);
+  const commentLikes = carveRoughInfo.commentLikes(content);
   const markDate = carveRoughInfo.markDate(content);
   return {
-    id, url, posterURL, name, multiName, tags, userScore, userComment, markDate,
+    id, url, posterURL, name, multiName, tags, userScore, userComment, commentLikes, markDate,
   };
 };
 
@@ -128,6 +130,7 @@ const getDetailInfo = async (info) => {
     tags: _.cloneDeep(info.tags),
     userScore: info.userScore || ScoreDefinition.GetFailure,
     userComment: info.userComment,
+    commentLikes: info.commentLikes,
     markDate: info.markDate,
     multiName: info.multiName,
 
@@ -164,7 +167,8 @@ const mergeObject = (oldObj, newObj) => {
     tags: (newObj.tags && newObj.tags.length > 0) ? _.cloneDeep(newObj.tags) : _.cloneDeep(oldObj.tags),
     multiName: newObj.multiName || oldObj.multiName,
     userScore: newObj.userScore > 0 ? newObj.userScore : oldObj.userScore,
-    userComment: newObj.userComment || oldObj.userComment,
+    userComment: newObj.userComment || oldObj.userComment || '',
+    commentLikes: newObj.commentLikes != undefined ? newObj.commentLikes : oldObj.commentLikes, // eslint-disable-line
     markDate: newObj.markDate || oldObj.markDate,
 
     yearError: (oldObj.yearError || oldObj.yearError == undefined) && newObj.yearError, // eslint-disable-line eqeqeq

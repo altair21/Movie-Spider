@@ -57,6 +57,19 @@ const extractRoughUserComment = (content) => {
   return '';
 };
 
+const extractRoughCommentLikes = (content) => {
+  const $ = cheerio.load(content);
+  const commentEle = $('.info .comment')[0];
+  let res = 0;
+  if (commentEle && commentEle.parent && commentEle.parent.children
+    && commentEle.parent.children[3] && commentEle.parent.children[3].children[0]
+    && commentEle.parent.children[3].children[0].data) {
+    res = Number.parseInt(commentEle.parent.children[3].children[0].data.substr(1), 10);
+    if (isNaN(res)) res = 0;
+  }
+  return res;
+};
+
 const extractRoughMarkDate = (content) => {
   const $ = cheerio.load(content);
   const markDateEle = $('.info .date')[0];
@@ -180,6 +193,7 @@ export {
   extractTotal, extractDetailURL, extractRoughName, extractRoughPoster,
   extractRoughTags, extractRoughInfos, extractDetailName, extractDetailPoster,
   extractDetailYear, extractDetailDirector, extractRoughUserScore,
-  extractRoughUserComment, extractRoughMarkDate, extractDetailCategory,
-  extractDetailScore, extractDetailNumOfScore, extractDetailRefFilms,
+  extractRoughUserComment, extractRoughCommentLikes, extractRoughMarkDate,
+  extractDetailCategory, extractDetailScore, extractDetailNumOfScore,
+  extractDetailRefFilms,
 };
