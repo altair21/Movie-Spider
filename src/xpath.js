@@ -1,41 +1,32 @@
-import cheerio from 'cheerio';
-
 import ErrorMessage from './preset/errormessage';
 import { ScoreDefinition } from './preset/valueDef';
 
-// TODO: 参数传 $ ，不要传 content，可以减少几次解析 HTML 的时间
-
-const extractDetailURL = (content) => {
-  const $ = cheerio.load(content);
+const extractDetailURL = ($) => {
   const urlEle = $('.info .title a')[0];
   if (urlEle) return urlEle.attribs.href || '';
   return '';
 };
 
-const extractRoughPoster = (content) => {
-  const $ = cheerio.load(content);
+const extractRoughPoster = ($) => {
   const posterEle = $('.pic a img')[0];
   if (posterEle) return posterEle.attribs.src || '';
   return '';
 };
 
 // FIXME: 更完整的名字，如港译、台译在 em 标签之外
-const extractRoughName = (content) => {
-  const $ = cheerio.load(content);
+const extractRoughName = ($) => {
   const nameEle = $('.info .title em')[0];
   if (nameEle && nameEle.children[0]) return nameEle.children[0].data || '';
   return '';
 };
 
-const extractRoughTags = (content) => {
-  const $ = cheerio.load(content);
+const extractRoughTags = ($) => {
   const tagEle = $('.info span.tags')[0];
   if (tagEle) return $(tagEle).text().split(' ') || [];
   return [];
 };
 
-const extractRoughUserScore = (content) => {
-  const $ = cheerio.load(content);
+const extractRoughUserScore = ($) => {
   const spans = $('.info span');
   let res = ScoreDefinition.GetFailure;
   if (spans) {
@@ -50,15 +41,13 @@ const extractRoughUserScore = (content) => {
   return res;
 };
 
-const extractRoughUserComment = (content) => {
-  const $ = cheerio.load(content);
+const extractRoughUserComment = ($) => {
   const commentEle = $('.info .comment')[0];
   if (commentEle && commentEle.children[0]) return commentEle.children[0].data || '';
   return '';
 };
 
-const extractRoughCommentLikes = (content) => {
-  const $ = cheerio.load(content);
+const extractRoughCommentLikes = ($) => {
   const commentEle = $('.info .comment')[0];
   let res = 0;
   if (commentEle && commentEle.parent && commentEle.parent.children
@@ -70,43 +59,37 @@ const extractRoughCommentLikes = (content) => {
   return res;
 };
 
-const extractRoughMarkDate = (content) => {
-  const $ = cheerio.load(content);
+const extractRoughMarkDate = ($) => {
   const markDateEle = $('.info .date')[0];
   if (markDateEle && markDateEle.children[0]) return markDateEle.children[0].data || '';
   return '';
 };
 
-const extractTotal = (content) => {
-  const $ = cheerio.load(content);
+const extractTotal = ($) => {
   const element = $('#db-movie-mine h2 a')[0];
   if (element && element.children[0]) return element.children[0].data;
   throw new Error(ErrorMessage.total);
 };
 
-const extractRoughInfos = (content) => {
-  const $ = cheerio.load(content);
+const extractRoughInfos = ($) => {
   const element = $('#content .article .grid-view .item');
   if (element) return element.toArray();
   throw new Error(ErrorMessage.roughInfo);
 };
 
-const extractDetailName = (content) => {
-  const $ = cheerio.load(content);
+const extractDetailName = ($) => {
   const nameEle = $('#wrapper #content h1 span')[0];
   if (nameEle && nameEle.children[0]) return nameEle.children[0].data || '';
   return '';
 };
 
-const extractDetailPoster = (content) => {
-  const $ = cheerio.load(content);
+const extractDetailPoster = ($) => {
   const posterEle = $('#wrapper #content .article #mainpic a img')[0];
   if (posterEle) return posterEle.attribs.src || '';
   return '';
 };
 
-const extractDetailYear = (content) => {
-  const $ = cheerio.load(content);
+const extractDetailYear = ($) => {
   const yearEle = $('#wrapper #content h1 span.year')[0];
   if (yearEle && yearEle.children[0] && yearEle.children[0].data) {
     const len = yearEle.children[0].data.length || 0;
@@ -115,8 +98,7 @@ const extractDetailYear = (content) => {
   return '';
 };
 
-const extractDetailDirector = (content) => {
-  const $ = cheerio.load(content);
+const extractDetailDirector = ($) => {
   const directorEle = $('#wrapper #content #info span .attrs')[0];
   if (directorEle) {
     const director = [];
@@ -131,8 +113,7 @@ const extractDetailDirector = (content) => {
   return [];
 };
 
-const extractDetailScore = (content) => {
-  const $ = cheerio.load(content);
+const extractDetailScore = ($) => {
   const scoreEle = $('#wrapper #content #interest_sectl .rating_num')[0];
   let res = ScoreDefinition.GetFailure;
   if (scoreEle && scoreEle.children[0]) res = +scoreEle.children[0].data;
@@ -140,8 +121,7 @@ const extractDetailScore = (content) => {
   return res;
 };
 
-const extractDetailNumOfScore = (content) => {
-  const $ = cheerio.load(content);
+const extractDetailNumOfScore = ($) => {
   const element = $('#wrapper #content #interest_sectl .rating_sum span')[0];
   let res = ScoreDefinition.GetFailure;
   if (element && element.children[0]) res = +element.children[0].data;
@@ -149,8 +129,7 @@ const extractDetailNumOfScore = (content) => {
   return res;
 };
 
-const extractDetailCategory = (content) => {
-  const $ = cheerio.load(content);
+const extractDetailCategory = ($) => {
   const elements = $('#wrapper #content #info span[property=v\\:genre]');
   const res = [];
   elements.each((index, element) => {
@@ -159,8 +138,7 @@ const extractDetailCategory = (content) => {
   return res;
 };
 
-const extractDetailRefFilms = (content) => {
-  const $ = cheerio.load(content);
+const extractDetailRefFilms = ($) => {
   const aEles = $('.recommendations-bd dl dd a');
   const imgEles = $('.recommendations-bd dl dt img');
   const aArr = aEles.map((index, aEle) => {

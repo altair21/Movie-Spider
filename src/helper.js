@@ -1,4 +1,5 @@
 import _ from 'lodash';
+import cheerio from 'cheerio';
 
 import {
   getText, objectToJSONPath, JSONPathToObject,
@@ -12,7 +13,7 @@ import { initialState } from './preset/prototype';
 
 const getTotal = async (state = initialState) => {
   const content = await getText(`/people/${state.config.id}/`);
-  const totalStr = extractTotal(content);
+  const totalStr = extractTotal(cheerio.load(content));
   return {
     ...state,
     total: Number.parseInt(totalStr, 10),

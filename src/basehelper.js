@@ -1,4 +1,5 @@
 import _ from 'lodash';
+import cheerio from 'cheerio';
 
 import { ScoreDefinition } from './preset/valueDef';
 import {
@@ -17,139 +18,148 @@ const createStepRange = (step) => (end) => _.range(0, end, step);
 const removeLF = (str) => str.split('\n').join('');
 
 const carveRoughInfo = {
-  id: (content) => {
-    const url = removeLF(extractDetailURL(content));
+  id: ($) => {
+    const url = removeLF(extractDetailURL($));
     if (url.match(/\d+/)) {
       return url.match(/\d+/)[0];
     }
     return url;
   },
-  href: (content) => {
-    const url = extractDetailURL(content);
+  href: ($) => {
+    const url = extractDetailURL($);
     return removeLF(url).replace('https://movie.douban.com', '');
   },
-  poster: (content) => hdThumbPoster(removeLF(extractRoughPoster(content))),
-  multiName: (content) => {
-    const multiName = extractRoughName(content);
+  poster: ($) => hdThumbPoster(removeLF(extractRoughPoster($))),
+  multiName: ($) => {
+    const multiName = extractRoughName($);
     return removeLF(multiName).split('/').map(name => removeLF(name).trim()).join(' / ');
   },
-  name: (content) => {
-    const multiName = extractRoughName(content);
+  name: ($) => {
+    const multiName = extractRoughName($);
     return removeLF(multiName.split('/')[0].trim());
   },
-  tags: (content) => extractRoughTags(content).map(tag => removeLF(tag)).filter(tag => tag.indexOf('标签') === -1),
-  userScore: (content) => extractRoughUserScore(content),
-  userComment: (content) => removeLF(extractRoughUserComment(content)),
-  commentLikes: (content) => extractRoughCommentLikes(content),
-  markDate: (content) => removeLF(extractRoughMarkDate(content)),
+  tags: ($) => extractRoughTags($).map(tag => removeLF(tag)).filter(tag => tag.indexOf('标签') === -1),
+  userScore: ($) => extractRoughUserScore($),
+  userComment: ($) => removeLF(extractRoughUserComment($)),
+  commentLikes: ($) => extractRoughCommentLikes($),
+  markDate: ($) => removeLF(extractRoughMarkDate($)),
 };
 
 const carveDetailInfo = {
-  name: (content) => removeLF(extractDetailName(content)),
-  poster: (content) => {
-    const posterURL = extractDetailPoster(content);
+  name: ($) => removeLF(extractDetailName($)),
+  poster: ($) => {
+    const posterURL = extractDetailPoster($);
     return removeLF(posterURL);
   },
-  year: (content) => removeLF(extractDetailYear(content)),
-  director: (content) => extractDetailDirector(content).map(director => removeLF(director)),
-  category: (content) => extractDetailCategory(content).map(val => removeLF(val)),
-  score: (content) => extractDetailScore(content),
-  numberOfScore: (content) => extractDetailNumOfScore(content),
-  refFilms: (content) => extractDetailRefFilms(content)
+  year: ($) => removeLF(extractDetailYear($)),
+  director: ($) => extractDetailDirector($).map(director => removeLF(director)),
+  category: ($) => extractDetailCategory($).map(val => removeLF(val)),
+  score: ($) => extractDetailScore($),
+  numberOfScore: ($) => extractDetailNumOfScore($),
+  refFilms: ($) => extractDetailRefFilms($)
     .map(val => ({ ...val, name: removeLF(val.name) })),
 };
 
 const getRoughInfo = (content) => {
-  const id = carveRoughInfo.id(content);
-  const url = carveRoughInfo.href(content);
-  const name = carveRoughInfo.name(content);
-  const multiName = carveRoughInfo.multiName(content);
-  const tags = carveRoughInfo.tags(content);
-  const posterURL = carveRoughInfo.poster(content);
-  const userScore = carveRoughInfo.userScore(content);
-  const userComment = carveRoughInfo.userComment(content);
-  const commentLikes = carveRoughInfo.commentLikes(content);
-  const markDate = carveRoughInfo.markDate(content);
+  const $ = cheerio.load(content);
+  const id = carveRoughInfo.id($);
+  const url = carveRoughInfo.href($);
+  const name = carveRoughInfo.name($);
+  const multiName = carveRoughInfo.multiName($);
+  const tags = carveRoughInfo.tags($);
+  const posterURL = carveRoughInfo.poster($);
+  const userScore = carveRoughInfo.userScore($);
+  const userComment = carveRoughInfo.userComment($);
+  const commentLikes = carveRoughInfo.commentLikes($);
+  const markDate = carveRoughInfo.markDate($);
   return {
     id, url, posterURL, name, multiName, tags, userScore, userComment, commentLikes, markDate,
   };
 };
 
 const getRoughInfos = (content) =>
-  extractRoughInfos(content).map(getRoughInfo);
+  extractRoughInfos(cheerio.load(content)).map(getRoughInfo);
 
 const getDetailInfo = async (info) => {
-  if (!info || !info.url) {
-    return {
-      ...info,
-      year: '',
-      director: [],
-      w: 0,
-      h: 0,
-      color: '',
-      category: [],
-      score: -1,
-      numberOfScore: -1,
-      refFilms: [],
-      yearError: true,
-      directorError: true,
-      posterError: true,
-      categoryError: true,
-      scoreError: true,
-      numberOfScoreError: true,
-      refFilmsError: true,
-    };
-  }
-
-  const content = await getText(info.url);
-
-  const posterURL = carveDetailInfo.poster(content);
-  const year = carveDetailInfo.year(content);
-  const director = carveDetailInfo.director(content);
-  const score = carveDetailInfo.score(content);
-  const numberOfScore = carveDetailInfo.numberOfScore(content);
-  const category = carveDetailInfo.category(content);
-  const refFilms = carveDetailInfo.refFilms(content);
-
-  let imgInfo = { width: 0, height: 0, color: 'white' };
-  try {
-    imgInfo = await getPosterInfo(posterURL || info.posterURL);
-  } catch (e) {
-    // console.error(e);
-  }
-
-  const checkStringLegal = (str) => str && str !== '';
-  return {
-    id: info.id,
-    url: info.url,
-    name: info.name,
-    posterURL: posterURL || info.posterURL || '',
-    w: imgInfo.width || 0,
-    h: imgInfo.height || 0,
-    color: imgInfo.color || 'white',
-    tags: _.cloneDeep(info.tags),
-    userScore: info.userScore || ScoreDefinition.GetFailure,
-    userComment: info.userComment,
-    commentLikes: info.commentLikes,
-    markDate: info.markDate,
-    multiName: info.multiName,
-
-    year,
-    director,
-    score: score || ScoreDefinition.GetFailure,
-    numberOfScore: numberOfScore || ScoreDefinition.GetFailure,
-    category,
-    refFilms,
-
-    posterError: !checkStringLegal(posterURL) && !checkStringLegal(info.posterURL)
-    && imgInfo.width > 0 && imgInfo.height > 0,
-    yearError: !checkStringLegal(year),
-    directorError: !director || director.length === 0,
-    scoreError: !score || score === ScoreDefinition.GetFailure,
-    numberOfScoreError: !numberOfScore || numberOfScore === ScoreDefinition.GetFailure,
-    categoryError: !category || category.length === 0,
-    refFilmsError: !refFilms || refFilms.length === 0,
+  const fallbackRes = {
+    ...info,
+    year: '',
+    director: [],
+    w: 0,
+    h: 0,
+    color: '',
+    category: [],
+    score: -1,
+    numberOfScore: -1,
+    refFilms: [],
+    yearError: true,
+    directorError: true,
+    posterError: true,
+    categoryError: true,
+    scoreError: true,
+    numberOfScoreError: true,
+    refFilmsError: true,
   };
+
+  if (!info || !info.url) {
+    return fallbackRes;
+  }
+
+  try {
+    const content = await getText(info.url);
+    const $ = cheerio.load(content);
+
+    const posterURL = carveDetailInfo.poster($);
+    const year = carveDetailInfo.year($);
+    const director = carveDetailInfo.director($);
+    const score = carveDetailInfo.score($);
+    const numberOfScore = carveDetailInfo.numberOfScore($);
+    const category = carveDetailInfo.category($);
+    const refFilms = carveDetailInfo.refFilms($);
+
+    let imgInfo = { width: 0, height: 0, color: 'white' };
+    try {
+      imgInfo = await getPosterInfo(posterURL || info.posterURL);
+    } catch (e) {
+      // console.error(e);
+    }
+
+    const checkStringLegal = (str) => str && str !== '';
+    return {
+      id: info.id,
+      url: info.url,
+      name: info.name,
+      posterURL: posterURL || info.posterURL || '',
+      w: imgInfo.width || 0,
+      h: imgInfo.height || 0,
+      color: imgInfo.color || 'white',
+      tags: _.cloneDeep(info.tags),
+      userScore: info.userScore || ScoreDefinition.GetFailure,
+      userComment: info.userComment,
+      commentLikes: info.commentLikes,
+      markDate: info.markDate,
+      multiName: info.multiName,
+
+      year,
+      director,
+      score: score || ScoreDefinition.GetFailure,
+      numberOfScore: numberOfScore || ScoreDefinition.GetFailure,
+      category,
+      refFilms,
+
+      posterError: !checkStringLegal(posterURL) && !checkStringLegal(info.posterURL)
+      && imgInfo.width > 0 && imgInfo.height > 0,
+      yearError: !checkStringLegal(year),
+      directorError: !director || director.length === 0,
+      scoreError: !score || score === ScoreDefinition.GetFailure,
+      numberOfScoreError: !numberOfScore || numberOfScore === ScoreDefinition.GetFailure,
+      categoryError: !category || category.length === 0,
+      refFilmsError: !refFilms || refFilms.length === 0,
+    };
+  } catch (e) {
+    console.error(`function 'getDetailInfo' error: ${e}`);
+    return fallbackRes;
+  }
 };
 
 const concurrentGetDetailInfo = async (infoArr) => {
@@ -165,7 +175,8 @@ const mergeObject = (oldObj, newObj) => {
     ...oldObj,
     name: newObj.name || oldObj.name,
     tags: (newObj.tags && newObj.tags.length > 0) ? _.cloneDeep(newObj.tags) : _.cloneDeep(oldObj.tags),
-    multiName: newObj.multiName || oldObj.multiName,
+    multiName: newObj.multiName && newObj.multiName.indexOf('�') === -1 ?
+      newObj.multiName : oldObj.multiName,
     userScore: newObj.userScore > 0 ? newObj.userScore : oldObj.userScore,
     userComment: newObj.userComment || oldObj.userComment || '',
     commentLikes: newObj.commentLikes != undefined ? newObj.commentLikes : oldObj.commentLikes, // eslint-disable-line
