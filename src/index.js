@@ -25,7 +25,7 @@ const main = () => {
   const config = JSON.parse(fs.readFileSync(configPath, 'utf8'));
   const _initialState = {
     ...initialState,
-    ruleoutItems: JSON.parse(fs.readFileSync(filterPath, 'utf8')),
+    ruleoutItems: fs.existsSync(filterPath) ? JSON.parse(fs.readFileSync(filterPath, 'utf8')) : [],
     fullOutputPath,
     outputPath,
     manualPath,
