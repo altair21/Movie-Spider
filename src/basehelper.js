@@ -191,28 +191,28 @@ const mergeObject = (oldObj, newObj) => {
     refFilmsError: (oldObj.refFilmsError || oldObj.refFilmsError == undefined) && newObj.refFilmsError, // eslint-disable-line eqeqeq
   };
 
-  if (!newObj.posterError) {
+  if (newObj.posterError === false) {
     res.posterURL = newObj.posterURL || oldObj.posterURL;
     res.w = newObj.w || oldObj.w;
     res.h = newObj.h || oldObj.h;
     res.color = newObj.color || oldObj.color;
   }
-  if (!newObj.yearError) {
+  if (newObj.yearError === false) {
     res.year = newObj.year || oldObj.year;
   }
-  if (!newObj.directorError) {
+  if (newObj.directorError === false) {
     res.director = (newObj.director && newObj.director.length) ? _.cloneDeep(newObj.director) : _.cloneDeep(oldObj.director);
   }
-  if (!newObj.categoryError) {
+  if (newObj.categoryError === false) {
     res.category = (newObj.category && newObj.category.length) ? _.cloneDeep(newObj.category) : _.cloneDeep(oldObj.category);
   }
-  if (!newObj.scoreError) {
+  if (newObj.scoreError === false) {
     res.score = newObj.score;
   }
-  if (!newObj.numberOfScoreError) {
+  if (newObj.numberOfScoreError === false) {
     res.numberOfScore = newObj.numberOfScore;
   }
-  if (!newObj.refFilmsError) {
+  if (newObj.refFilmsError === false) {
     res.refFilms = _.uniqWith((oldObj.refFilms || []).concat(newObj.refFilms), (a, b) => a.id === b.id);
   }
 
