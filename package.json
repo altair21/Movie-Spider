@@ -6,9 +6,12 @@
   "scripts": {
     "start": "babel-node src/index.js",
     "build": "babel src -d dist",
-    "nightmare": "babel-node src/nightmare.js",
+    "nightmare": "babel-node src/nightmare/nightmare.js",
+    "complete": "babel-node src/nightmare/completeinfo.js",
     "director": "babel-node tools/gendirector.js",
     "year": "babel-node tools/genyear.js",
+    "recommand": "babel-node tools/genrecommand.js",
+    "single": "babel-node tools/analyzesingle.js",
     "stat": "npm run director && npm run year",
     "test": "echo \"Error: no test specified\" && exit 1"
   },

@@ -5,9 +5,9 @@ import Nightmare from 'nightmare';
 import cheerio from 'cheerio';
 import _ from 'lodash';
 
-import { hdThumbPoster } from './util/';
+import { hdThumbPoster } from '../util/';
 
-const config = JSON.parse(fs.readFileSync(path.join(__dirname, '..', 'nightmare-config.json'), 'utf8'));
+const config = JSON.parse(fs.readFileSync(path.join(__dirname, '..', '..', 'nightmare-config.json'), 'utf8'));
 let res = [];
 
 const extractFilmName = (content) => {
@@ -69,7 +69,7 @@ const extractFilmName = (content) => {
 };
 
 const writeResult = () => {
-  const fileDir = path.join(__dirname, '..', 'output');
+  const fileDir = path.join(__dirname, '..', '..', 'output');
   const filePath = path.join(fileDir, 'all.json');
   if (!fs.existsSync(fileDir)) {
     fs.mkdirSync(fileDir);

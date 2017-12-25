@@ -8,4 +8,6 @@ const getDuration = (startTime, endTime = new Date()) => {
   return `${pad(hours)}:${pad(minutes)}:${pad(seconds)}`;
 };
 
-export { getDuration };
+const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
+export { getDuration, sleep };
