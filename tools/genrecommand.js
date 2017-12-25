@@ -39,10 +39,10 @@ const normalizeWeight = (_res, padding) => {
     if (obj.weights > maxVal) maxVal = obj.weights;
   });
 
-  const range = maxVal - minVal + 2 * padding;  // eslint-disable-line
+  const range = maxVal - minVal + 2 * padding;
   minVal -= padding;
   res.forEach((obj) => {
-    const val = (obj.weights - minVal) / range * 100.0;  // eslint-disable-line no-mixed-operators
+    const val = (obj.weights - minVal) / range * 100.0;
     obj.normalizedWeights = Number.parseFloat(val.toFixed(2), 10);  // eslint-disable-line no-param-reassign
   });
   return res;

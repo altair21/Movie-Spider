@@ -3,7 +3,7 @@ import cheerio from 'cheerio';
 
 import { ScoreDefinition } from './preset/valueDef';
 import {
-  getPosterInfo, getText, hdThumbPoster, JSONPathToObject,
+  getPosterInfo, getText, hdThumbPoster, JSONPathToObject, sleep,
 } from './util/';
 import {
   extractDetailURL, extractRoughName, extractRoughPoster,
@@ -123,6 +123,8 @@ const getDetailInfo = async (info) => {
     } catch (e) {
       // console.error(e);
     }
+
+    await sleep(Math.random() * 1500 + 1500); // IP 保护
 
     const checkStringLegal = (str) => str && str !== '';
     return {

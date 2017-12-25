@@ -125,13 +125,13 @@ const main = async () => {
             const newInfo = await analyze(nightmare, `https://movie.douban.com${origin[index].url}`, origin[index]);
             const checked = checkProperty(newInfo, config);
             if (checked.errorMessages.length === 0) {
-              total++;
-              origin[index] = newInfo;
-              writeResult(origin);
               console.log(`=: ${newInfo.name} 补充完成！`);
             } else {
               console.log(checked.errorMessages.join('\n'));
             }
+            total++;
+            origin[index] = newInfo;
+            writeResult(origin);
             return res.concat([newInfo]);
           }), Promise.resolve([]));
         return newOrigin;
