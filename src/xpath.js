@@ -32,7 +32,7 @@ const extractRoughUserScore = ($) => {
   if (spans) {
     spans.each((index, element) => {
       const className = $(element).attr('class');
-      if (className.startsWith('rating')) {
+      if (className && className.startsWith('rating')) {
         res = +className.substr(6, 1);
         if (isNaN(res)) res = ScoreDefinition.NoScore;
       }
