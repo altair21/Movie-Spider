@@ -11,6 +11,7 @@
     "director": "babel-node tools/gendirector.js",
     "year": "babel-node tools/genyear.js",
     "recommand": "babel-node tools/genrecommand.js",
+    "sortcomment": "babel-node tools/sortcommentlikes.js",
     "single": "babel-node tools/analyzesingle.js",
     "stat": "npm run director && npm run year",
     "test": "echo \"Error: no test specified\" && exit 1"

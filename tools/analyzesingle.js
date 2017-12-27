@@ -4,7 +4,7 @@ import _ from 'lodash';
 
 import { mergeObject } from '../src/basehelper';
 import { checkProperty } from '../src/util/text';
-import { getDetailInfoExceptPoster } from '../src/nightmare/completeinfo';
+import { getDetailInfoExceptPoster } from '../src/nightmare/nightmarecommon';
 
 const url = 'https://movie.douban.com/subject/1294240/';
 

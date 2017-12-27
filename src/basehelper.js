@@ -243,5 +243,5 @@ const getURLs = async (id, offset) => {
 export {
   createStepRange, carveRoughInfo, carveDetailInfo, getURLs, genOffsetStep15,
   getDetailInfo, mergeObject, removeLF, concurrentGetDetailInfo,
-  filterRuleOutItem,
+  filterRuleOutItem, getRoughInfos,
 };
