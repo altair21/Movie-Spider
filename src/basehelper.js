@@ -194,35 +194,35 @@ const mergeObject = (oldObj, newObj) => {
     refFilmsError: (oldObj.refFilmsError || oldObj.refFilmsError == undefined) && newObj.refFilmsError, // eslint-disable-line eqeqeq
   };
 
-  if (newObj.name !== oldObj.name) messages.push(`${oldObj.name} 片名修改：${oldObj.name} ---> ${newObj.name}`);
-  if (!_.isEqual(newObj.tags, oldObj.tags) && newObj.tags && newObj.tags.length > 0) messages.push(`${newObj.name} 标签修改： ${oldObj.tags} ---> ${newObj.tags}`);
-  if (newObj.multiName !== oldObj.multiName && newObj.multiName.indexOf('�') === -1) messages.push(`${newObj.name} 长片名修改：${oldObj.multiName} ---> ${newObj.multiName}`);
-  if (newObj.userScore !== oldObj.userScore) messages.push(`${newObj.name} 用户评分修改：${oldObj.userScore} ---> ${newObj.userScore}`);
-  if (newObj.userComment !== oldObj.userComment) messages.push(`${newObj.name} 用户短评修改：${oldObj.userComment} ---> ${newObj.userComment}`);
-  if (newObj.commentLikes !== oldObj.commentLikes) messages.push(`${newObj.name} 用户短评被赞：${oldObj.commentLikes} ---> ${newObj.commentLikes}`);
+  if (newObj.name !== oldObj.name && oldObj.name) messages.push(`${oldObj.name} 片名修改：${oldObj.name} ---> ${newObj.name}`);
+  if (!_.isEqual(newObj.tags, oldObj.tags && oldObj.tags) && newObj.tags && newObj.tags.length > 0 && oldObj.tags) messages.push(`${newObj.name} 标签修改： ${oldObj.tags} ---> ${newObj.tags}`);
+  if (newObj.multiName !== oldObj.multiName && newObj.multiName.indexOf('�') === -1 && oldObj.multiName) messages.push(`${newObj.name} 长片名修改：${oldObj.multiName} ---> ${newObj.multiName}`);
+  if (newObj.userScore !== oldObj.userScore && oldObj.userScore) messages.push(`${newObj.name} 用户评分修改：${oldObj.userScore} ---> ${newObj.userScore}`);
+  if (newObj.userComment !== oldObj.userComment && oldObj.userComment) messages.push(`${newObj.name} 用户短评修改：${oldObj.userComment} ---> ${newObj.userComment}`);
+  if (newObj.commentLikes !== oldObj.commentLikes && oldObj.commentLikes) messages.push(`${newObj.name} 用户短评被赞：${oldObj.commentLikes} ---> ${newObj.commentLikes}`);
 
   if (newObj.posterError === false) {
     res.posterURL = newObj.posterURL || oldObj.posterURL;
     res.w = newObj.w || oldObj.w;
     res.h = newObj.h || oldObj.h;
     res.color = newObj.color || oldObj.color;
-    if (newObj.posterURL !== oldObj.posterURL) messages.push(`${newObj.name} 海报修改：${oldObj.posterURL} ---> ${newObj.posterURL}`);
+    if (newObj.posterURL !== oldObj.posterURL && oldObj.posterURL) messages.push(`${newObj.name} 海报修改：${oldObj.posterURL} ---> ${newObj.posterURL}`);
   }
   if (newObj.yearError === false) {
     res.year = newObj.year || oldObj.year;
-    if (newObj.year !== oldObj.year) messages.push(`${newObj.name} 年份修改：${oldObj.year} ---> ${newObj.year}`);
+    if (newObj.year !== oldObj.year && oldObj.year) messages.push(`${newObj.name} 年份修改：${oldObj.year} ---> ${newObj.year}`);
   }
   if (newObj.directorError === false) {
     res.director = (newObj.director && newObj.director.length) ? _.cloneDeep(newObj.director) : _.cloneDeep(oldObj.director);
-    if (!_.isEqual(newObj.director, oldObj.director) && newObj.director && newObj.director.length) messages.push(`${newObj.name} 导演信息修改：${oldObj.director} ---> ${newObj.director}`);
+    if (!_.isEqual(newObj.director, oldObj.director && oldObj.director) && newObj.director && newObj.director.length) messages.push(`${newObj.name} 导演信息修改：${oldObj.director} ---> ${newObj.director}`);
   }
   if (newObj.categoryError === false) {
     res.category = (newObj.category && newObj.category.length) ? _.cloneDeep(newObj.category) : _.cloneDeep(oldObj.category);
-    if (!_.isEqual(newObj.category, oldObj.category) && newObj.category && newObj.category.length) messages.push(`${newObj.name} 分类修改：${oldObj.category} ---> ${newObj.category}`);
+    if (!_.isEqual(newObj.category, oldObj.category) && newObj.category && newObj.category.length && oldObj.category) messages.push(`${newObj.name} 分类修改：${oldObj.category} ---> ${newObj.category}`);
   }
   if (newObj.scoreError === false) {
     res.score = newObj.score;
-    if (newObj.score !== oldObj.score) messages.push(`${newObj.name} 评分变化：${oldObj.score} ---> ${newObj.score}`);
+    if (newObj.score !== oldObj.score && oldObj.score) messages.push(`${newObj.name} 评分变化：${oldObj.score} ---> ${newObj.score}`);
   }
   if (newObj.numberOfScoreError === false) {
     res.numberOfScore = newObj.numberOfScore;

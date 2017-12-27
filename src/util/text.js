@@ -124,8 +124,7 @@ const checkProperty = (obj, config) => {
       errorMessages.push(`${obj.name} 属性 ${arr[i]} 为 true`);
       flag = false;
     }
-    if (((arr[i] === 'w' || arr[i] === 'h') && obj[arr[i]] === 0)
-      || (arr[i] === 'color' && obj[arr[i]] === 'white')) {
+    if (((arr[i] === 'w' || arr[i] === 'h') && obj[arr[i]] === 0)) {
       errorMessages.push(`${obj.name} 海报解析不正确`);
     }
   }
