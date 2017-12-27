@@ -31,6 +31,7 @@ const initialState = {
     director: [],
   },
   logs: [],
+  changes: [],
 };
 
 export { initialState };

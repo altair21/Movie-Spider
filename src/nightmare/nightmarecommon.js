@@ -82,8 +82,9 @@ const analyze = (nightmare = Nightmare({ show: true }), url, obj) => new Promise
     .evaluate(() => document.body.innerHTML)
     .then(async (content) => {
       const newInfo = await getDetailInfoExceptPoster(obj, content);
-      const resInfo = obj ? mergeObject(obj, newInfo) : newInfo;
-      resolve(resInfo);
+      const merged = mergeObject(obj, newInfo);
+      const resInfo = obj ? merged.newObject : newInfo;
+      resolve({ resInfo, messages: merged.messages });
     })
     .catch(reject);
 });

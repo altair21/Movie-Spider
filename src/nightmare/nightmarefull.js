@@ -80,7 +80,10 @@ const analyzeAll = async (nightmare) => {
   const newOrigin = await arr.reduce((promise, index) =>
     promise.then(async (ret) => {
       const findIndex = _.findIndex(origin, (o) => o.id === res[index].id);
-      const newInfo = await analyze(nightmare, `https://movie.douban.com${res[index].url}`, findIndex !== -1 ? origin[findIndex] : res[index]);
+      const newAnalyzed = await analyze(nightmare, `https://movie.douban.com${res[index].url}`, findIndex !== -1 ? origin[findIndex] : res[index]);
+      const newInfo = newAnalyzed.resInfo;
+      console.log(newAnalyzed.messages.join('\n'));
+
       const checked = checkProperty(newInfo, config);
       if (checked.errorMessages.length !== 0) {
         console.log(checked.errorMessages.join('\n'));

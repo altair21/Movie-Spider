@@ -22,7 +22,7 @@ const doAnalyze = async () => {
   }
 
   const newInfo = await getDetailInfoExceptPoster(origin[infoIndex], fs.readFileSync(htmlPath, 'utf8'));
-  const resInfo = mergeObject(origin[infoIndex], newInfo);
+  const resInfo = mergeObject(origin[infoIndex], newInfo).newObject;
   origin[infoIndex] = resInfo;
   fs.writeFileSync(fullOutputPath, JSON.stringify(origin), 'utf8');
   console.log(`${resInfo.name} 修改成功！`);

@@ -38,7 +38,8 @@ const main = async () => {
             if (origin[index].categoryError === false || origin[index].isManual) {
               return res.concat([origin[index]]);
             }
-            const newInfo = await analyze(nightmare, `https://movie.douban.com${origin[index].url}`, origin[index]);
+            const newAnalyzed = await analyze(nightmare, `https://movie.douban.com${origin[index].url}`, origin[index]);
+            const newInfo = newAnalyzed.resInfo;
             const checked = checkProperty(newInfo, config);
             if (checked.errorMessages.length === 0) {
               console.log(`=: ${newInfo.name} 补充完成！`);

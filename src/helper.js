@@ -58,6 +58,7 @@ const mergeResult = (state = initialState) => {
   const origin = JSONPathToObject(state.fullOutputPath);
 
   const res = _.cloneDeep(origin);
+  let changes = [];
 
   state.infos.filter(info => info.id && info.id !== '').forEach(info => {
     const isItemEqual = (item) => item.id === info.id || item.url === info.url;
@@ -66,7 +67,9 @@ const mergeResult = (state = initialState) => {
       appendedItem.push({ name: info.name, id: info.id });
       res.push(info);
     } else {
-      res[findIndex] = mergeObject(res[findIndex], info);
+      const merged = mergeObject(res[findIndex], info);
+      res[findIndex] = merged.newObject;
+      changes = merged.messages;
     }
   });
 
@@ -74,6 +77,7 @@ const mergeResult = (state = initialState) => {
     ...state,
     appendedItem,
     infos: res,
+    changes,
   };
 };
 

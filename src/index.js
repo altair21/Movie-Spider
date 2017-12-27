@@ -46,6 +46,7 @@ const main = () => {
     .then(genLogMessage)
     .then(checkResult)
     .then(finalState => {
+      if (finalState.changes) console.log(finalState.changes.join('\n'));
       console.log(finalState.logs.join('\n'));
     })
     .catch(e => {
