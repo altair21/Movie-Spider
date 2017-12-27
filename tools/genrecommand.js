@@ -93,6 +93,9 @@ const doRecommand = () => {
   });
 
   res = res.filter((obj) => !_.find(origin, (o) => o.id === obj.id));  // 过滤标记过的影片
+  res.forEach((obj) => {
+    obj.fromObj = obj.fromObj.sort((a, b) => b.userScore - a.userScore);  // eslint-disable-line no-param-reassign
+  });
 
   res = normalizeWeight(res, res.length / origin.length);
 

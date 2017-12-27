@@ -4,7 +4,7 @@ import _ from 'lodash';
 
 import { mergeObject } from '../src/basehelper';
 import { checkProperty } from '../src/util/text';
-import { getDetailInfoExceptPoster } from '../src/nightmare/completeinfo';
+import { getDetailInfoExceptPoster } from '../src/nightmare/nightmarecommon';
 
 const url = 'https://movie.douban.com/subject/1294240/';
 
@@ -22,7 +22,7 @@ const doAnalyze = async () => {
   }
 
   const newInfo = await getDetailInfoExceptPoster(origin[infoIndex], fs.readFileSync(htmlPath, 'utf8'));
-  const resInfo = mergeObject(origin[infoIndex], newInfo);
+  const resInfo = mergeObject(origin[infoIndex], newInfo).newObject;
   origin[infoIndex] = resInfo;
   fs.writeFileSync(fullOutputPath, JSON.stringify(origin), 'utf8');
   console.log(`${resInfo.name} 修改成功！`);
