@@ -81,6 +81,9 @@ const objectToJSONPath = (object, filePath) => {
 };
 
 const checkProperty = (obj, config) => {
+  if (obj.isManual) {
+    return { isCorrect: true, errorMessages: [] };
+  }
   const arr = Object.keys(propertyPreset);
   const errorMessages = [];
   let flag = true;

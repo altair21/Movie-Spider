@@ -119,7 +119,11 @@ const main = async () => {
         const arr = _.range(origin.length);
         const newOrigin = arr.reduce((promise, index) =>
           promise.then(async (res) => {
-            if (origin[index].categoryError === false || origin[index].isManual) {
+            if ((origin[index].categoryError === false
+              && origin[index].scoreError === false
+              && origin[index].numberOfScoreError === false
+              && origin[index].refFilmsError === false)
+              || origin[index].isManual) {
               return res.concat([origin[index]]);
             }
             const newInfo = await analyze(nightmare, `https://movie.douban.com${origin[index].url}`, origin[index]);
