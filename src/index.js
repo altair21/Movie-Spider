@@ -8,6 +8,7 @@ import {
   writeToDisk, genLogMessage, filterResult, mergeManualItem, finishResult,
   checkResult, sendToServer,
 } from './helper';
+import { getTodayDate } from './util/';
 import { initialState } from './preset/prototype';
 
 const main = () => {
@@ -46,7 +47,15 @@ const main = () => {
     .then(genLogMessage)
     .then(checkResult)
     .then(finalState => {
-      if (finalState.changes) console.log(finalState.changes.join('\n'));
+      if (finalState.changes) {
+        const changesDir = path.join(__dirname, '..', 'output', 'changes');
+        const changesPath = path.join(changesDir, `${getTodayDate()}-changes.txt`);
+        if (!fs.existsSync(changesDir)) {
+          fs.mkdirSync(changesDir);
+        }
+        fs.writeFileSync(changesPath, finalState.changes.join('\n'), 'utf8');
+        console.log(finalState.changes.join('\n'));
+      }
       console.log(finalState.logs.join('\n'));
     })
     .catch(e => {

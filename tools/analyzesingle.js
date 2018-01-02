@@ -27,7 +27,7 @@ const doAnalyze = async () => {
   fs.writeFileSync(fullOutputPath, JSON.stringify(origin), 'utf8');
   console.log(`${resInfo.name} 修改成功！`);
 
-  const checked = checkProperty(resInfo, config);
+  const checked = checkProperty(resInfo, config.ignoreTags);
   console.log(checked.errorMessages.join('\n'));
 };
 

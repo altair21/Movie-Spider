@@ -48,7 +48,7 @@ const getResult = () => {
   const res = [];
 
   origin.forEach((obj) => {
-    obj.director.forEach((director) => {
+    (obj.director || []).forEach((director) => {
       const findObj = _.find(res, (o) => o.name === director);
 
       const collas = [];

@@ -5,25 +5,29 @@ import Nightmare from 'nightmare';
 import cheerio from 'cheerio';
 import _ from 'lodash';
 
-import { checkProperty, getPosterInfo, getTodayDate } from '../util/';
+import { checkProperty, getPosterInfo, getTodayDate, getDuration, sleep } from '../util/';
 import { analyze } from './nightmarecommon';
 import { getRoughInfos } from '../basehelper';
 
-const targetId = 4513116;
+const targetId = '4513116';
+const ignoreTags = true;
+// const keywords = [];
+const keywords = ['电影', '短片'];
 
-const fullOutputPath = path.join(__dirname, '..', '..', 'output', 'full_output.json');
-const configPath = path.join(__dirname, '..', '..', 'config.json');
+const startTime = new Date();
+const todayDate = getTodayDate();
+
+const hardFullOutputPath = path.join(__dirname, '..', '..', 'output', 'full_output.json');
+const fullOutputPath = path.join(__dirname, '..', '..', 'output', 'full', `${targetId}-${todayDate}-full_output.json`);
 const ruleoutPath = path.join(__dirname, '..', '..', 'output', 'filter.json');
 const ruleoutItems = fs.existsSync(ruleoutPath) ? JSON.parse(fs.readFileSync(ruleoutPath, 'utf8')) : [];
-const origin = JSON.parse(fs.readFileSync(fullOutputPath, 'utf8'));
-const config = JSON.parse(fs.readFileSync(configPath, 'utf8'));
+const origin = fs.existsSync(hardFullOutputPath) ? JSON.parse(fs.readFileSync(hardFullOutputPath, 'utf8')) : [];
 const nightmareConfig = JSON.parse(fs.readFileSync(path.join(__dirname, '..', '..', 'nightmare-config.json'), 'utf8'));
 let res = [];
-console.log(origin.length);
 
+let page = 1;
 const extractFilmName = async (content) => {
   const $ = cheerio.load(content);
-  const avaiIndex = [];
 
   const resObj = await getRoughInfos(content).reduce((promise, obj) =>
     promise.then(async (arr) => {
@@ -33,45 +37,18 @@ const extractFilmName = async (content) => {
       } catch (e) {
         const findObj = _.find(origin, (o) => o.id === obj.id);
         if (findObj) {
-          return { ...obj, w: findObj.w || 0, h: findObj.h || 0, color: findObj.color || 'white', posterError: findObj.posterError };
+          return arr.concat([{ ...obj, w: findObj.w || 0, h: findObj.h || 0, color: findObj.color || 'white', posterError: findObj.posterError }]);
         }
-        return { ...obj };
+        return arr.concat([{ ...obj }]);
       }
     }), Promise.resolve([]));
 
-  const tags = $('#content .article .grid-view .item .info span.tags');
-  tags.each((index, element) => {
-    const text = $(element).text();
-    if (config.keywords && config.keywords.length > 0) {
-      let flag = false;
-      for (let i = 0, l = config.keywords.length; i < l; i++) {
-        if (text.indexOf(config.keywords[i]) !== -1) {
-          flag = true;
-          break;
-        }
-      }
-      if (flag) avaiIndex.push(index);
-    } else {
-      avaiIndex.push(index);
-    }
-  });
-
-  res = res.concat(resObj.filter(
-    obj => _.find((obj.tags || []),
-      (tag) => _.find((config.keywords || []),
+  res = res.concat((!keywords || keywords.length === 0) ? resObj :
+    resObj.filter(obj => _.find((obj.tags || []),
+      (tag) => _.find((keywords || []),
         (keyword) => keyword === tag)))); // 过滤关键字之外的内容
+  console.log(`${page++} 完成`);
   return !!$('.next a')[0];
-  // if (!config.keywords || config.keywords.length < 1 || tags.length === 0 || avaiIndex.length === 0) {
-  //   res = res.concat(resObj);
-  //   return !!$('.next a')[0];
-  // }
-
-  // const ret = [];
-  // for (let i = 0, l = avaiIndex.length; i < l; i++) {
-  //   ret.push(resObj[avaiIndex[i]]);
-  // }
-  // res = res.concat(ret);
-  // return !!$('.next a')[0];
 };
 
 const writeResult = (newOrigin) => {
@@ -86,24 +63,28 @@ const initialize = () => {
 const analyzeAll = async (nightmare) => {
   const arr = _.range(res.length);
   console.log(arr.length);
-  const allMessages = [];
+  let allMessages = [];
 
   // TODO: 输出新增影片
   // const newItems = [];
   const newOrigin = await arr.reduce((promise, index) =>
     promise.then(async (ret) => {
-      if (res[index].isManual) {
+      if (index % 250 === 0) console.log(index); // 进度
+      if (res[index].isManual
+        || _.find(ruleoutItems, (ruleoutItem) =>  // 手动过滤项不需要进入详细页
+          (ruleoutItem.url && res[index].url && ruleoutItem.url === res[index].url)
+          || (ruleoutItem.id && res[index].id && ruleoutItem.id === res[index].id))) {
         return ret.concat([res[index]]);
       }
       const findIndex = _.findIndex(origin, (o) => o.id === res[index].id);
-      const newAnalyzed = await analyze(nightmare, `https://movie.douban.com${res[index].url}`, findIndex !== -1 ? origin[findIndex] : res[index]);
+      const newAnalyzed = await analyze(nightmare, `https://movie.douban.com${res[index].url}`, res[index], findIndex !== -1 ? origin[findIndex] : undefined);
       const newInfo = newAnalyzed.resInfo;
       if (findIndex !== -1 && newAnalyzed.messages.length !== 0) {
         console.log(newAnalyzed.messages.join('\n'));
-        allMessages.concat(newAnalyzed.messages);
+        allMessages = allMessages.concat(newAnalyzed.messages);
       }
 
-      const checked = checkProperty(newInfo, config);
+      const checked = checkProperty(newInfo, ignoreTags);
       if (checked.errorMessages.length !== 0) {
         console.log(checked.errorMessages.join('\n'));
       }
@@ -116,20 +97,22 @@ const analyzeAll = async (nightmare) => {
       return ret.concat([newInfo]);
     }), Promise.resolve([]));
   nightmare.end().then(() => console.log('完成！'));
-  // TODO: 输出运行时长
 
   const changesDir = path.join(__dirname, '..', '..', 'output', 'changes');
-  const changesPath = path.join(changesDir, `${getTodayDate()}-changes.txt`);
+  const changesPath = path.join(changesDir, `${targetId}-${todayDate}-changes.txt`);
   if (!fs.existsSync(changesDir)) {
     fs.mkdirSync(changesDir);
   }
   fs.writeFileSync(changesPath, allMessages.join('\n'), 'utf8');
 
   const origin2 = JSON.parse(fs.readFileSync(fullOutputPath, 'utf8'))
-    .filter(obj => !_.find(ruleoutItems, (ruleoutItem) =>
-    (ruleoutItem.url && obj.url && ruleoutItem.url === obj.url)
-    || (ruleoutItem.id && obj.id && ruleoutItem.id === obj.id))); // 过滤手动排除的内容
+  .filter(obj => !_.find(ruleoutItems, (ruleoutItem) =>
+  (ruleoutItem.url && obj.url && ruleoutItem.url === obj.url)
+  || (ruleoutItem.id && obj.id && ruleoutItem.id === obj.id))); // 过滤手动排除的内容
   fs.writeFileSync(fullOutputPath, JSON.stringify(origin2), 'utf8');
+  fs.writeFileSync(hardFullOutputPath, JSON.stringify(origin2), 'utf8');
+  console.log(`总计 ${origin2.length} 部，再接再厉！`);
+  console.log(`运行时间：${getDuration(startTime)}`);
 
   return newOrigin;
 };
@@ -164,6 +147,7 @@ const main = () => {
     .wait('.nav-user-account')
 
     .goto(`https://movie.douban.com/people/${targetId}/collect`)
+    // .goto('https://movie.douban.com/people/4513116/collect?start=45&sort=time&rating=all&filter=all&mode=grid')
     .wait('.nav-user-account')
     .evaluate(() => document.body.innerHTML)
     .then(async (content) => {

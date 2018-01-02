@@ -12,6 +12,7 @@ const initialConfig = {
   username: undefined,
   password: undefined,
   concurrency: undefined,
+  ignoreTags: true,
 };
 
 const initialState = {

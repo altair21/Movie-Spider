@@ -80,7 +80,7 @@ const objectToJSONPath = (object, filePath) => {
   fs.writeFileSync(filePath, JSON.stringify(object), 'utf8');
 };
 
-const checkProperty = (obj, config) => {
+const checkProperty = (obj, ignoreTags) => {
   if (obj.isManual) {
     return { isCorrect: true, errorMessages: [] };
   }
@@ -88,7 +88,7 @@ const checkProperty = (obj, config) => {
   const errorMessages = [];
   let flag = true;
   for (let i = 0, l = arr.length; i < l; i++) {
-    if (config.ignoreTags && arr[i] === 'tags') {
+    if (ignoreTags && arr[i] === 'tags') {
       continue; // eslint-disable-line no-continue
     }
     if (obj.isManual) continue; // eslint-disable-line
@@ -174,7 +174,7 @@ const genOutput = () => {
       flag = false;
     }
 
-    const checked = checkProperty(_val, config);
+    const checked = checkProperty(_val, config.ignoreTags);
     res = res.concat(checked.errorMessages);
     flag = flag && checked.isCorrect;
 

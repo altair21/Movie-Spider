@@ -75,16 +75,21 @@ const getDetailInfoExceptPoster = async (info, content) => {
   }
 };
 
-const analyze = (nightmare = Nightmare({ show: true }), url, obj) => new Promise((resolve, reject) => {
+const analyze = (nightmare = Nightmare({ show: true }), url, newObj, oldObj) => new Promise((resolve, reject) => {
   nightmare
     .goto(url)
     .wait('.nav-user-account')
     .evaluate(() => document.body.innerHTML)
     .then(async (content) => {
-      const newInfo = await getDetailInfoExceptPoster(obj, content);
-      const merged = mergeObject(obj, newInfo);
-      const resInfo = obj ? merged.newObject : newInfo;
-      resolve({ resInfo, messages: merged.messages });
+      const newInfo = await getDetailInfoExceptPoster(newObj, content);
+      let resInfo = newInfo;
+      let messages = [];
+      if (oldObj) {
+        const merged = mergeObject(oldObj, newInfo);
+        resInfo = merged.newObject;
+        messages = merged.messages;
+      }
+      resolve({ resInfo, messages });
     })
     .catch(reject);
 });

@@ -18,9 +18,12 @@ const sortLikes = () => {
     return b.commentLikes - a.commentLikes;
   });
   const messages = [];
+  let total = 0;
   res.forEach((obj, index) => {
+    total += obj.commentLikes || 0;
     messages.push(`${index + 1}. 《${obj.name}》（${obj.commentLikes} 个有用）：${obj.userComment}`);
   });
+  messages.push(`总计 ${total} 个赞！`);
   fs.writeFileSync(outPath, messages.join('\n'));
 };
 

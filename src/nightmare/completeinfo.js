@@ -44,7 +44,7 @@ const main = async () => {
             }
             const newAnalyzed = await analyze(nightmare, `https://movie.douban.com${origin[index].url}`, origin[index]);
             const newInfo = newAnalyzed.resInfo;
-            const checked = checkProperty(newInfo, config);
+            const checked = checkProperty(newInfo, config.ignoreTags);
             if (checked.errorMessages.length === 0) {
               console.log(`=: ${newInfo.name} 补充完成！`);
             } else {
