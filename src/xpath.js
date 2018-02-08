@@ -145,7 +145,7 @@ const extractDetailRefFilms = ($) => {
     if (!aEle || !aEle.children[0]) {
       return { id: null, name: null };
     }
-    const href = aEle.attribs.href;
+    const href = aEle.attribs.href || '';
     const name = aEle.children[0].data;
     const hrefPart = href.replace('https://movie.douban.com/subject/', '')
                       .replace('http://movie.douban.com/subject/', '');

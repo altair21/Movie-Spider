@@ -5,9 +5,10 @@ import Nightmare from 'nightmare';
 import cheerio from 'cheerio';
 import _ from 'lodash';
 
-import { checkProperty, getPosterInfo, getTodayDate, getDuration, sleep } from '../util/';
+import { checkProperty, getPosterInfo, getTodayDate, getDuration } from '../util/';
 import { analyze } from './nightmarecommon';
 import { getRoughInfos } from '../basehelper';
+import { colored, Color, ColorType } from '../logger/';
 
 const targetId = '4513116';
 const ignoreTags = true;
@@ -16,6 +17,10 @@ const keywords = ['电影', '短片'];
 
 const startTime = new Date();
 const todayDate = getTodayDate();
+
+const progressColored = colored(ColorType.foreground)(Color.cyan);
+const statColored = colored(ColorType.background)(Color.blue);
+const errorColored = colored(ColorType.foreground)(Color.red);
 
 const hardFullOutputPath = path.join(__dirname, '..', '..', 'output', 'full_output.json');
 const fullOutputPath = path.join(__dirname, '..', '..', 'output', 'full', `${targetId}-${todayDate}-full_output.json`);
@@ -47,7 +52,7 @@ const extractFilmName = async (content) => {
     resObj.filter(obj => _.find((obj.tags || []),
       (tag) => _.find((keywords || []),
         (keyword) => keyword === tag)))); // 过滤关键字之外的内容
-  console.log(`${page++} 完成`);
+  console.log(progressColored(`${page++} 完成`));
   return !!$('.next a')[0];
 };
 
@@ -62,14 +67,14 @@ const initialize = () => {
 
 const analyzeAll = async (nightmare) => {
   const arr = _.range(res.length);
-  console.log(arr.length);
+  console.log(statColored(arr.length));
   let allMessages = [];
 
   // TODO: 输出新增影片
   // const newItems = [];
   const newOrigin = await arr.reduce((promise, index) =>
     promise.then(async (ret) => {
-      if (index % 250 === 0) console.log(index); // 进度
+      if (index % 250 === 0) console.log(progressColored(index)); // 进度
       if (res[index].isManual
         || _.find(ruleoutItems, (ruleoutItem) =>  // 手动过滤项不需要进入详细页
           (ruleoutItem.url && res[index].url && ruleoutItem.url === res[index].url)
@@ -86,7 +91,7 @@ const analyzeAll = async (nightmare) => {
 
       const checked = checkProperty(newInfo, ignoreTags);
       if (checked.errorMessages.length !== 0) {
-        console.log(checked.errorMessages.join('\n'));
+        console.log(errorColored(checked.errorMessages.join('\n')));
       }
       if (findIndex === -1) {
         origin.push(newInfo);
@@ -96,7 +101,7 @@ const analyzeAll = async (nightmare) => {
       writeResult(origin);
       return ret.concat([newInfo]);
     }), Promise.resolve([]));
-  nightmare.end().then(() => console.log('完成！'));
+  nightmare.end().then(() => console.log(statColored('完成！')));
 
   const changesDir = path.join(__dirname, '..', '..', 'output', 'changes');
   const changesPath = path.join(changesDir, `${targetId}-${todayDate}-changes.txt`);
@@ -111,8 +116,8 @@ const analyzeAll = async (nightmare) => {
   || (ruleoutItem.id && obj.id && ruleoutItem.id === obj.id))); // 过滤手动排除的内容
   fs.writeFileSync(fullOutputPath, JSON.stringify(origin2), 'utf8');
   fs.writeFileSync(hardFullOutputPath, JSON.stringify(origin2), 'utf8');
-  console.log(`总计 ${origin2.length} 部，再接再厉！`);
-  console.log(`运行时间：${getDuration(startTime)}`);
+  console.log(statColored(`总计 ${origin2.length} 部，再接再厉！`));
+  console.log(statColored(`运行时间：${getDuration(startTime)}`));
 
   return newOrigin;
 };
@@ -130,7 +135,7 @@ const nightmareDo = (nightmare) => {
       return analyzeAll(nightmare);
     })
     .catch((error) => {
-      console.log('[nightmare do error]: ', error);
+      console.log(errorColored('[nightmare do error]: ', error));
     });
 };
 
