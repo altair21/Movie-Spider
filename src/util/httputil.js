@@ -4,6 +4,7 @@ import URL from 'url';
 import { cookieMgr } from '../cookiemgr';
 
 const hostname = 'movie.douban.com';
+const retryTimes = 10;
 
 const login = (username, password) => new Promise((resolve, reject) => {
   if (!username || !password) {
@@ -39,7 +40,7 @@ const login = (username, password) => new Promise((resolve, reject) => {
   request.end();
 });
 
-const getText = (url, param = {}) => new Promise((resolve, reject) => {
+const getText = (url, param = {}, times = 0) => new Promise((resolve) => {
   const paramStr = Object.keys(param).map(key => `${key}=${param[key]}`).join('&');
   const seprator = paramStr.length > 0 ? '?' : '';
   const reqStr = `${url}${seprator}${paramStr}`;
@@ -66,18 +67,38 @@ const getText = (url, param = {}) => new Promise((resolve, reject) => {
       ret.push(data);
     });
     res.on('end', () => resolve(ret.join('\n')));
-    res.on('error', e => reject(new Error(`url: ${url}\n${e.message}`)));
-  }).on('error', e => reject(new Error(`url ${url}\n${e.message}`)));
+    res.on('error', e => {
+      if (times >= retryTimes) {
+        return Promise.reject(new Error(`url: ${url}\n${e.message}\nHad retry: ${times} times`));
+      }
+      return getText(url, param, times + 1);
+    });
+  }).on('error', e => {
+    if (times >= retryTimes) {
+      return Promise.reject(new Error(`url ${url}\n${e.message}\nHad retry: ${times} times`));
+    }
+    return getText(url, param, times + 1);
+  });
 });
 
-const getBuffer = url => new Promise((resolve, reject) => {
+const getBuffer = (url, times = 0) => new Promise((resolve) => {
   https.get(URL.parse(url), (response) => {
     const chunks = [];
     response.on('data', (chunk) => {
       chunks.push(chunk);
     }).on('end', () => resolve(Buffer.concat(chunks)))
-      .on('error', e => reject(new Error(`url: ${url}\n${e.message}`)));
-  }).on('error', e => reject(new Error(`url ${url}\n${e.message}`)));
+      .on('error', e => {
+        if (times >= retryTimes) {
+          return Promise.reject(new Error(`url: ${url}\n${e.message}\nHad retry: ${times} times`));
+        }
+        return getBuffer(url, times + 1);
+      });
+  }).on('error', e => {
+    if (times >= retryTimes) {
+      return Promise.reject(new Error(`url: ${url}\n${e.message}\nHad retry: ${times} times`));
+    }
+    return getBuffer(url, times + 1);
+  });
 });
 
 export { login, getText, getBuffer };
