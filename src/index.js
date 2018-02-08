@@ -10,6 +10,7 @@ import {
 } from './helper';
 import { getTodayDate } from './util/';
 import { initialState } from './preset/prototype';
+import { cookieMgr } from './cookiemgr';
 
 const main = () => {
   const outputDir = path.join(__dirname, '..', 'output');
@@ -33,6 +34,7 @@ const main = () => {
     config,
     startTime: new Date(),
   };
+  cookieMgr.setCookie(config.cookie);
 
   getTotal(_initialState)
     .then(genRoughInfos)

@@ -1,6 +1,8 @@
 import https from 'https';
 import URL from 'url';
 
+import { cookieMgr } from '../cookiemgr';
+
 const hostname = 'movie.douban.com';
 
 const login = (username, password) => new Promise((resolve, reject) => {
@@ -47,9 +49,18 @@ const getText = (url, param = {}) => new Promise((resolve, reject) => {
     path: reqStr,
     method: 'GET',
     timeout: 60 * 1000,
+    headers: {
+      'User-Agent': 'Mozilla/5.0 (X11; Linux i686) AppleWebKit/537.11 (KHTML, like Gecko) Chrome/23.0.1271.64 Safari/537.11',
+      Accept: '/',
+      Connection: 'keep-alive',
+      Cookie: cookieMgr.getCookie(),
+    },
   };
 
   https.get(option, (res) => {
+    if (res.headers['set-cookie']) {
+      cookieMgr.updateCookie(res.headers['set-cookie'][0]);
+    }
     const ret = [];
     res.on('data', (data) => {
       ret.push(data);

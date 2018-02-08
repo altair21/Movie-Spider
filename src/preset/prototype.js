@@ -13,6 +13,7 @@ const initialConfig = {
   password: undefined,
   concurrency: undefined,
   ignoreTags: true,
+  cookie: undefined,
 };
 
 const initialState = {
