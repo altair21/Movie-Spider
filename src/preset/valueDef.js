@@ -4,4 +4,14 @@ const ScoreDefinition = {
   GetFailure: -2,
 };
 
-export { ScoreDefinition };
+const NodeEnvDefinition = {
+  development: 'development',
+  production: 'production',
+};
+
+const RequestEnvDefinition = {
+  shell: 'shell',
+  nightmare: 'nightmare',
+};
+
+export { ScoreDefinition, NodeEnvDefinition, RequestEnvDefinition };

@@ -1,9 +1,10 @@
+import readline from 'readline';
 import _ from 'lodash';
 import cheerio from 'cheerio';
 
-import { ScoreDefinition } from './preset/valueDef';
+import { ScoreDefinition, NodeEnvDefinition, RequestEnvDefinition } from './preset/valueDef';
 import {
-  getPosterInfo, getText, hdThumbPoster, JSONPathToObject, sleep,
+  getPosterInfo, getText, hdThumbPoster, JSONPathToObject, sleep, getTimeByHMS,
 } from './util/';
 import {
   extractDetailURL, extractRoughName, extractRoughPoster,
@@ -12,8 +13,12 @@ import {
   extractRoughUserScore, extractRoughMarkDate, extractDetailCategory,
   extractDetailNumOfScore, extractDetailScore, extractDetailRefFilms,
 } from './xpath';
+import { colored, Color, ColorType } from './logger/';
 
 const createStepRange = (step) => (end) => _.range(0, end, step);
+const changesColored = colored(ColorType.foreground)(Color.green);
+const statColored = (text) => colored(ColorType.foreground)(Color.blue)(`[${getTimeByHMS()}]: ${text}`);
+const terribleErrorColored = (text) => colored(ColorType.background)(Color.red)(`[${getTimeByHMS()}]: ${text}`);
 
 const removeLF = (str) => str.split('\n').join('');
 
@@ -107,6 +112,10 @@ const getDetailInfo = async (info) => {
 
   try {
     const content = await getText(info.url);
+    if (process.env.NODE_ENV === NodeEnvDefinition.development
+      && process.env.REQUEST_ENV === RequestEnvDefinition.shell) {
+      process.stdout.write(statColored(`${info.name}(${info.url}) 爬取完成，正在分析...`));
+    }
     const $ = cheerio.load(content);
 
     const posterURL = carveDetailInfo.poster($);
@@ -121,11 +130,19 @@ const getDetailInfo = async (info) => {
     try {
       imgInfo = await getPosterInfo(posterURL || info.posterURL);
     } catch (e) {
-      // console.error(e);
+      if (process.env.NODE_ENV === NodeEnvDefinition.development) {
+        console.log(terribleErrorColored(`海报处理失败 ${posterURL || info.posterURL}`));
+      }
     }
 
     await sleep(Math.random() * 1500 + 1500); // IP 保护
 
+    if (process.env.NODE_ENV === NodeEnvDefinition.development
+      && process.env.REQUEST_ENV === RequestEnvDefinition.shell) {
+      readline.clearLine(process.stdout);
+      readline.cursorTo(process.stdout, 0);
+      process.stdout.write(statColored(`${info.name}(${info.url}) 分析完成!\n`));
+    }
     const checkStringLegal = (str) => str && str !== '';
     return {
       id: info.id,
@@ -159,7 +176,7 @@ const getDetailInfo = async (info) => {
       refFilmsError: !refFilms || refFilms.length === 0,
     };
   } catch (e) {
-    console.error(`function 'getDetailInfo' error: ${e}`);
+    console.error(terribleErrorColored(`function 'getDetailInfo' error: ${e}`));
     return fallbackRes;
   }
 };
@@ -199,7 +216,13 @@ const mergeObject = (oldObj, newObj) => {
   if (newObj.multiName !== oldObj.multiName && newObj.multiName.indexOf('�') === -1 && oldObj.multiName) messages.push(`${newObj.name} 长片名修改：${oldObj.multiName} ---> ${newObj.multiName}`);
   if (newObj.userScore !== oldObj.userScore && oldObj.userScore) messages.push(`${newObj.name} 用户评分修改：${oldObj.userScore} ---> ${newObj.userScore}`);
   if (newObj.userComment !== oldObj.userComment && oldObj.userComment) messages.push(`${newObj.name} 用户短评修改：${oldObj.userComment} ---> ${newObj.userComment}`);
-  if (newObj.commentLikes !== oldObj.commentLikes && oldObj.commentLikes) messages.push(`${newObj.name} 用户短评被赞：${oldObj.commentLikes} ---> ${newObj.commentLikes}`);
+  if (newObj.commentLikes !== oldObj.commentLikes && oldObj.commentLikes) {
+    if (process.env.NODE_ENV === NodeEnvDefinition.development) {
+      messages.push(changesColored(`${newObj.name} 用户短评被赞：${oldObj.commentLikes} ---> ${newObj.commentLikes}`));
+    } else {
+      messages.push(`${newObj.name} 用户短评被赞：${oldObj.commentLikes} ---> ${newObj.commentLikes}`);
+    }
+  }
 
   if (newObj.posterError === false) {
     res.posterURL = newObj.posterURL || oldObj.posterURL;
@@ -222,7 +245,13 @@ const mergeObject = (oldObj, newObj) => {
   }
   if (newObj.scoreError === false) {
     res.score = newObj.score;
-    if (newObj.score !== oldObj.score && oldObj.score) messages.push(`${newObj.name} 评分变化：${oldObj.score} ---> ${newObj.score}`);
+    if (newObj.score !== oldObj.score && oldObj.score) {
+      if (Math.abs(Math.floor(+newObj.score) - Math.floor(+oldObj.score)) >= 1) {
+        messages.push(changesColored(`${newObj.name} 评分变化：${oldObj.score} ---> ${newObj.score}`));
+      }
+    } else {
+      messages.push(`${newObj.name} 评分变化：${oldObj.score} ---> ${newObj.score}`);
+    }
   }
   if (newObj.numberOfScoreError === false) {
     res.numberOfScore = newObj.numberOfScore;

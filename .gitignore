@@ -3,5 +3,6 @@ config.json
 nightmare-config.json
 output/
 dist/
+src/tmp/
 package-lock.json
 npm-debug.log
