@@ -2,22 +2,28 @@ import readline from 'readline';
 import _ from 'lodash';
 import cheerio from 'cheerio';
 
-import { ScoreDefinition, NodeEnvDefinition, RequestEnvDefinition } from './preset/valueDef';
+import {
+  ScoreDefinition, NodeEnvDefinition, RequestEnvDefinition,
+} from './preset/valueDef';
 import {
   getPosterInfo, getText, hdThumbPoster, JSONPathToObject, sleep, getTimeByHMS,
 } from './util/';
 import {
   extractDetailURL, extractRoughName, extractRoughPoster,
   extractRoughTags, extractRoughInfos, extractDetailYear, extractDetailDirector,
-  extractDetailPoster, extractDetailName, extractRoughUserComment, extractRoughCommentLikes,
-  extractRoughUserScore, extractRoughMarkDate, extractDetailCategory,
-  extractDetailNumOfScore, extractDetailScore, extractDetailRefFilms,
+  extractDetailPoster, extractDetailName, extractRoughUserComment,
+  extractRoughCommentLikes, extractRoughUserScore, extractRoughMarkDate,
+  extractDetailCategory, extractDetailCountry, extractDetailNumOfScore,
+  extractDetailScore, extractDetailRefFilms, extractDetailReleaseDate,
+  extractDetailNumberOfWatched, extractDetailNumberOfWanted,
+  extractDetailFriendsNoS, extractDetailFriendsScore,
 } from './xpath';
 import { colored, Color, ColorType } from './logger/';
 
 const createStepRange = (step) => (end) => _.range(0, end, step);
 const changesColored = colored(ColorType.foreground)(Color.green);
 const statColored = (text) => colored(ColorType.foreground)(Color.blue)(`[${getTimeByHMS()}]: ${text}`);
+const errorColored = (text) => colored(ColorType.foreground)(Color.red)(`[${getTimeByHMS()}]: ${text}`);
 const terribleErrorColored = (text) => colored(ColorType.background)(Color.red)(`[${getTimeByHMS()}]: ${text}`);
 
 const removeLF = (str) => str.split('\n').join('');
@@ -61,6 +67,12 @@ const carveDetailInfo = {
   category: ($) => extractDetailCategory($).map(val => removeLF(val)),
   score: ($) => extractDetailScore($),
   numberOfScore: ($) => extractDetailNumOfScore($),
+  country: ($) => extractDetailCountry($),
+  releaseDate: ($) => extractDetailReleaseDate($),
+  numberOfWatched: ($) => extractDetailNumberOfWatched($),
+  numberOfWanted: ($) => extractDetailNumberOfWanted($),
+  friendsScore: ($) => extractDetailFriendsScore($),
+  friendsNoS: ($) => extractDetailFriendsNoS($),
   refFilms: ($) => extractDetailRefFilms($)
     .map(val => ({ ...val, name: removeLF(val.name) })),
 };
@@ -125,6 +137,12 @@ const getDetailInfo = async (info) => {
     const numberOfScore = carveDetailInfo.numberOfScore($);
     const category = carveDetailInfo.category($);
     const refFilms = carveDetailInfo.refFilms($);
+    const country = carveDetailInfo.country($);
+    const releaseDate = carveDetailInfo.releaseDate($);
+    const numberOfWatched = carveDetailInfo.numberOfWatched($);
+    const numberOfWanted = carveDetailInfo.numberOfWanted($);
+    const friendsScore = carveDetailInfo.friendsScore($);
+    const friendsNoS = carveDetailInfo.friendsNoS($);
 
     let imgInfo = { width: 0, height: 0, color: 'white' };
     try {
@@ -141,7 +159,11 @@ const getDetailInfo = async (info) => {
       && process.env.REQUEST_ENV === RequestEnvDefinition.shell) {
       readline.clearLine(process.stdout);
       readline.cursorTo(process.stdout, 0);
-      process.stdout.write(statColored(`${info.name}(${info.url}) 分析完成!\n`));
+      if (_.isEmpty(year) && _.isEmpty(score) && _.isEmpty(posterURL) && _.isEmpty(numberOfScore)) {
+        process.stdout.write(errorColored(`${info.name}(${info.url}) 分析失败！`));
+      } else {
+        process.stdout.write(statColored(`${info.name}(${info.url}) 分析完成!\n`));
+      }
     }
     const checkStringLegal = (str) => str && str !== '';
     return {
@@ -164,6 +186,12 @@ const getDetailInfo = async (info) => {
       score: score || ScoreDefinition.GetFailure,
       numberOfScore: numberOfScore || ScoreDefinition.GetFailure,
       category,
+      country,
+      releaseDate,
+      numberOfWatched,
+      numberOfWanted,
+      friendsNoS,
+      friendsScore,
       refFilms,
 
       posterError: !checkStringLegal(posterURL) && !checkStringLegal(info.posterURL)

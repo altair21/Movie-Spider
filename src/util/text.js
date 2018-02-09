@@ -22,8 +22,14 @@ const propertyPreset = {
   year: 'string',                 // 年份
   director: 'object',             // 导演
   category: 'object',             // 类别
+  country: 'object',              // 制片国家/地区
+  releaseDate: 'object',          // 上映日期（可以为空）
   score: 'number',                // 豆瓣评分
   numberOfScore: 'number',        // 评分人数
+  numberOfWatched: 'number',      // 看过的人数
+  numberOfWanted: 'number',       // 想看的人数
+  friendsScore: 'number',         // 友邻评分
+  friendsNoS: 'number',           // 友邻评分人数
   refFilms: 'object',             // 相关影片
 
   // detailInfo validator
@@ -98,7 +104,8 @@ const checkProperty = (obj, ignoreTags) => {
     } else if (typeof obj[arr[i]] !== propertyPreset[arr[i]]) { // eslint-disable-line
       errorMessages.push(`${obj.name} 属性 ${arr[i]} 类型不正确`);
       flag = false;
-    } else if (arr[i] === 'director' || arr[i] === 'tags' || arr[i] === 'category' || arr[i] === 'refFilms') {  // 应是数组类型的属性
+    } else if (arr[i] === 'director' || arr[i] === 'tags' || arr[i] === 'category'
+      || arr[i] === 'refFilms' || arr[i] === 'country') {  // 应是数组类型的属性
       if (!_.isArray(obj[arr[i]])) {
         errorMessages.push(`${obj.name} 属性 ${arr[i]} 类型不正确`);
         flag = false;

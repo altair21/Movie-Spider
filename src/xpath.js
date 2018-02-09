@@ -138,6 +138,63 @@ const extractDetailCategory = ($) => {
   return res;
 };
 
+const extractDetailCountry = ($) => {
+  const elements = $('#info span');
+  let res = [];
+  elements.each((index, element) => {
+    if (element && element.children[0] && typeof element.children[0].data === 'string'
+      && element.children[0].data.startsWith('制片国家/地区')) {
+      res = res.concat(element.next.data.split('/').map(c => (c || '').trim()));
+    }
+  });
+  return res;
+};
+
+const extractDetailReleaseDate = ($) => {
+  const elements = $('#info span[property=v\\:initialReleaseDate]');
+  const res = [];
+  elements.each((index, element) => {
+    if (element && element.children[0]) res.push(element.children[0].data);
+  });
+  return res;
+};
+
+const extractDetailNumberOfWatched = ($) => {
+  const elements = $('.subject-others-interests-ft a');
+  let res = 0;
+  elements.each((index, element) => {
+    if (element && element.children[0] && element.children[0].data
+      && element.children[0].data.indexOf('看过') !== -1) {
+      res = Number.parseInt(element.children[0].data, 10);
+    }
+  });
+  return res;
+};
+
+const extractDetailNumberOfWanted = ($) => {
+  const elements = $('.subject-others-interests-ft a');
+  let res = 0;
+  elements.each((index, element) => {
+    if (element && element.children[0] && element.children[0].data
+      && element.children[0].data.indexOf('想看') !== -1) {
+      res = Number.parseInt(element.children[0].data, 10);
+    }
+  });
+  return res;
+};
+
+const extractDetailFriendsScore = ($) => {
+  const element = $('.friends_rating_wrap .rating_avg')[0];
+  if (element && element.children[0]) return +element.children[0].data;
+  return 0;
+};
+
+const extractDetailFriendsNoS = ($) => {  // Friends Number of Score
+  const element = $('.friends_rating_wrap .friends_count')[0];
+  if (element && element.children[0]) return Number.parseInt(element.children[0].data, 10);
+  return 0;
+};
+
 const extractDetailRefFilms = ($) => {
   const aEles = $('.recommendations-bd dl dd a');
   const imgEles = $('.recommendations-bd dl dt img');
@@ -173,5 +230,7 @@ export {
   extractDetailYear, extractDetailDirector, extractRoughUserScore,
   extractRoughUserComment, extractRoughCommentLikes, extractRoughMarkDate,
   extractDetailCategory, extractDetailScore, extractDetailNumOfScore,
-  extractDetailRefFilms,
+  extractDetailRefFilms, extractDetailCountry, extractDetailReleaseDate,
+  extractDetailNumberOfWatched, extractDetailNumberOfWanted,
+  extractDetailFriendsScore, extractDetailFriendsNoS,
 };
