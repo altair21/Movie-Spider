@@ -3,7 +3,7 @@ import cheerio from 'cheerio';
 
 import {
   getText, objectToJSONPath, JSONPathToObject,
-  checkProperty, objectToTextPath, scp, getDuration,
+  checkProperty, objectToTextPath, scp, getDuration, sleep,
 } from './util/';
 import { extractTotal } from './xpath';
 import {
@@ -24,9 +24,10 @@ const genRoughInfos = async (state = initialState) => {
   const offsets = genOffsetStep15(state.total);
 
   const res = await offsets.reduce((promise, curOffset) =>
-    promise.then(async arr =>
-      arr.concat(await getURLs(state.config.id, curOffset))),
-    Promise.resolve([]));
+    promise.then(async arr => {
+      await sleep(Math.random() * 1500 + 1500); // IP 保护
+      return arr.concat(await getURLs(state.config.id, curOffset));
+    }), Promise.resolve([]));
   return {
     ...state,
     infos: res,

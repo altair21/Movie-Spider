@@ -307,6 +307,10 @@ const getURLs = async (id, offset) => {
     mode: 'grid',
   });
 
+  if (process.env.NODE_ENV === NodeEnvDefinition.development
+    && process.env.REQUEST_ENV === RequestEnvDefinition.shell) {
+    console.log(statColored(`已爬取 ${offset} 个简要信息`));
+  }
   return getRoughInfos(content);
 };
 

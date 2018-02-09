@@ -143,7 +143,7 @@ const extractDetailCountry = ($) => {
   let res = [];
   elements.each((index, element) => {
     if (element && element.children[0] && typeof element.children[0].data === 'string'
-      && element.children[0].data.startsWith('制片国家/地区')) {
+      && element.children[0].data.startsWith('制片国家/地区') && element.next.data) {
       res = res.concat(element.next.data.split('/').map(c => (c || '').trim()));
     }
   });
@@ -154,7 +154,7 @@ const extractDetailReleaseDate = ($) => {
   const elements = $('#info span[property=v\\:initialReleaseDate]');
   const res = [];
   elements.each((index, element) => {
-    if (element && element.children[0]) res.push(element.children[0].data);
+    if (element && element.children[0]) res.push((element.children[0].data || '').trim());
   });
   return res;
 };
@@ -185,13 +185,13 @@ const extractDetailNumberOfWanted = ($) => {
 
 const extractDetailFriendsScore = ($) => {
   const element = $('.friends_rating_wrap .rating_avg')[0];
-  if (element && element.children[0]) return +element.children[0].data;
+  if (element && element.children[0] && element.children[0].data) return +element.children[0].data;
   return 0;
 };
 
 const extractDetailFriendsNoS = ($) => {  // Friends Number of Score
   const element = $('.friends_rating_wrap .friends_count')[0];
-  if (element && element.children[0]) return Number.parseInt(element.children[0].data, 10);
+  if (element && element.children[0] && element.children[0].data) return Number.parseInt(element.children[0].data, 10);
   return 0;
 };
 
