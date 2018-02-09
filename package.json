@@ -8,6 +8,7 @@
     "dev": "NODE_ENV=development REQUEST_ENV=shell babel-node src/index.js",
     "build": "babel src -d dist",
     "nightmare": "NODE_ENV=development REQUEST_ENV=nightmare babel-node src/nightmare/nightmare.js",
+    "nightmarefull": "NODE_ENV=development REQUEST_ENV=nightmare babel-node src/nightmare/nightmarefull.js",
     "complete": "babel-node src/nightmare/completeinfo.js",
     "director": "babel-node tools/gendirector.js",
     "year": "babel-node tools/genyear.js",

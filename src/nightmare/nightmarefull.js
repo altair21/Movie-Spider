@@ -12,14 +12,14 @@ import { colored, Color, ColorType } from '../logger/';
 
 const targetId = '4513116';
 const ignoreTags = true;
-const logCheckResult = false;
+const logCheckResult = true;
 const keywords = ['电影', '短片'];
 
 const startTime = new Date();
 const todayDate = getTodayDate();
 
 const progressColored = colored(ColorType.foreground)(Color.cyan);
-const statColored = colored(ColorType.background)(Color.blue);
+const statColored = (text) => colored(ColorType.background)(Color.blue)(colored(ColorType.foreground)(Color.black)(text));
 const errorColored = colored(ColorType.foreground)(Color.red);
 
 const hardFullOutputPath = path.join(__dirname, '..', '..', 'output', 'full_output.json');
@@ -40,6 +40,7 @@ const extractFilmName = async (content) => {
         const imgInfo = await getPosterInfo(obj.posterURL);
         return arr.concat([{ ...obj, w: imgInfo.width || 0, h: imgInfo.height || 0, color: imgInfo.color || 'white', posterError: false }]);
       } catch (e) {
+        console.log(errorColored(`获取海报信息失败(${obj.posterURL})：${e}`));
         const findObj = _.find(origin, (o) => o.id === obj.id);
         if (findObj) {
           return arr.concat([{ ...obj, w: findObj.w || 0, h: findObj.h || 0, color: findObj.color || 'white', posterError: findObj.posterError }]);
@@ -72,6 +73,7 @@ const analyzeAll = async (nightmare) => {
 
   // TODO: 输出新增影片
   // const newItems = [];
+  let statLen = 0;
   const newOrigin = await arr.reduce((promise, index) =>
     promise.then(async (ret) => {
       if (index % 250 === 0) console.log(progressColored(`[进度] ${index}`)); // 进度
@@ -82,7 +84,7 @@ const analyzeAll = async (nightmare) => {
         return ret.concat([res[index]]);
       }
       const findIndex = _.findIndex(origin, (o) => o.id === res[index].id);
-      const newAnalyzed = await analyze(nightmare, `https://movie.douban.com${res[index].url}`, res[index], findIndex !== -1 ? origin[findIndex] : undefined);
+      const newAnalyzed = await analyze(nightmare, `https://movie.douban.com${res[index].url}`, res[index], findIndex !== -1 ? origin[findIndex] : undefined, ++statLen);
       const newInfo = newAnalyzed.resInfo;
       if (findIndex !== -1 && newAnalyzed.messages.length !== 0) {
         console.log(newAnalyzed.messages.map(str => `[更新] ${str}`).join('\n'));

@@ -22,7 +22,7 @@ import { colored, Color, ColorType } from './logger/';
 
 const createStepRange = (step) => (end) => _.range(0, end, step);
 const changesColored = colored(ColorType.foreground)(Color.green);
-const statColored = (text) => colored(ColorType.foreground)(Color.blue)(`[${getTimeByHMS()}]: ${text}`);
+const statColored = (text) => colored(ColorType.background)(Color.blue)(colored(ColorType.foreground)(Color.black)(text));
 const errorColored = (text) => colored(ColorType.foreground)(Color.red)(`[${getTimeByHMS()}]: ${text}`);
 const terribleErrorColored = (text) => colored(ColorType.background)(Color.red)(`[${getTimeByHMS()}]: ${text}`);
 
@@ -124,8 +124,7 @@ const getDetailInfo = async (info, len) => {
 
   try {
     const content = await getText(info.url);
-    if (process.env.NODE_ENV === NodeEnvDefinition.development
-      && process.env.REQUEST_ENV === RequestEnvDefinition.shell) {
+    if (process.env.NODE_ENV === NodeEnvDefinition.development) {
       process.stdout.write(statColored(`${len}. ${info.name}(${info.url}) 爬取完成，正在分析...`));
     }
     const $ = cheerio.load(content);
@@ -155,8 +154,7 @@ const getDetailInfo = async (info, len) => {
 
     await sleep(Math.random() * 1500 + 1500); // IP 保护
 
-    if (process.env.NODE_ENV === NodeEnvDefinition.development
-      && process.env.REQUEST_ENV === RequestEnvDefinition.shell) {
+    if (process.env.NODE_ENV === NodeEnvDefinition.development) {
       readline.clearLine(process.stdout);
       readline.cursorTo(process.stdout, 0);
       if (_.isEmpty(year) && _.isEmpty(score) && _.isEmpty(posterURL) && _.isEmpty(numberOfScore)) {
@@ -204,7 +202,7 @@ const getDetailInfo = async (info, len) => {
       refFilmsError: !refFilms || refFilms.length === 0,
     };
   } catch (e) {
-    console.error(terribleErrorColored(`function 'getDetailInfo' error: ${e}`));
+    console.log(terribleErrorColored(`function 'getDetailInfo' error: ${e}`));
     return fallbackRes;
   }
 };
@@ -229,6 +227,12 @@ const mergeObject = (oldObj, newObj) => {
     userComment: newObj.userComment || oldObj.userComment || '',
     commentLikes: newObj.commentLikes != undefined ? newObj.commentLikes : oldObj.commentLikes, // eslint-disable-line
     markDate: newObj.markDate || oldObj.markDate,
+    country: newObj.country && newObj.country.length > 0 ? newObj.country : oldObj.country,
+    releaseDate: newObj.releaseDate && newObj.releaseDate.length > 0 ? newObj.releaseDate : oldObj.releaseDate,
+    numberOfWatched: !_.isNull(newObj.numberOfWatched) ? newObj.numberOfWatched : oldObj.numberOfWatched,
+    numberOfWanted: !_.isNull(newObj.numberOfWanted) ? newObj.numberOfWanted : oldObj.numberOfWanted,
+    friendsScore: !_.isNull(newObj.friendsScore) ? newObj.friendsScore : oldObj.friendsScore,
+    friendsNoS: !_.isNull(newObj.friendsNoS) ? newObj.friendsNoS : oldObj.friendsNoS,
 
     yearError: (oldObj.yearError || oldObj.yearError == undefined) && newObj.yearError, // eslint-disable-line eqeqeq
     posterError: (oldObj.posterError || oldObj.posterError == undefined) && newObj.posterError,  // eslint-disable-line eqeqeq
@@ -276,9 +280,9 @@ const mergeObject = (oldObj, newObj) => {
     if (newObj.score !== oldObj.score && oldObj.score) {
       if (Math.abs(Math.floor(+newObj.score) - Math.floor(+oldObj.score)) >= 1) {
         messages.push(changesColored(`${newObj.name} 评分变化：${oldObj.score} ---> ${newObj.score}`));
+      } else {
+        messages.push(`${newObj.name} 评分变化：${oldObj.score} ---> ${newObj.score}`);
       }
-    } else {
-      messages.push(`${newObj.name} 评分变化：${oldObj.score} ---> ${newObj.score}`);
     }
   }
   if (newObj.numberOfScoreError === false) {

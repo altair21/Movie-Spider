@@ -1,13 +1,20 @@
 /* global document */
+import readline from 'readline';
 import cheerio from 'cheerio';
 import Nightmare from 'nightmare';
 import _ from 'lodash';
 
 import { carveDetailInfo, mergeObject } from '../basehelper';
-import { ScoreDefinition } from '../preset/valueDef';
+import { ScoreDefinition, NodeEnvDefinition } from '../preset/valueDef';
+import { Color, ColorType, colored } from '../logger/';
+import { getTimeByHMS } from '../util/';
+
+const statColored = (text) => colored(ColorType.foreground)(Color.blue)(`[${getTimeByHMS()}]: ${text}`);
+const errorColored = (text) => colored(ColorType.foreground)(Color.red)(`[${getTimeByHMS()}]: ${text}`);
+const terribleErrorColored = (text) => colored(ColorType.background)(Color.red)(`[${getTimeByHMS()}]: ${text}`);
 
 // 和 `basehelper.js` 里的同名函数相比，使用了原始 `info` 中的海报信息
-const getDetailInfoExceptPoster = async (info, content) => {
+const getDetailInfoExceptPoster = async (info, content, len) => {
   const fallbackRes = {
     ...info,
     year: '',
@@ -30,14 +37,32 @@ const getDetailInfoExceptPoster = async (info, content) => {
 
   try {
     const $ = cheerio.load(content);
+    if (process.env.NODE_ENV === NodeEnvDefinition.development) {
+      process.stdout.write(statColored(`${len}. ${info.name}(${info.url}) 爬取完成，正在分析...`));
+    }
 
     const year = carveDetailInfo.year($);
     const director = carveDetailInfo.director($);
     const score = carveDetailInfo.score($);
     const numberOfScore = carveDetailInfo.numberOfScore($);
     const category = carveDetailInfo.category($);
+    const country = carveDetailInfo.country($);
+    const releaseDate = carveDetailInfo.releaseDate($);
+    const numberOfWatched = carveDetailInfo.numberOfWatched($);
+    const numberOfWanted = carveDetailInfo.numberOfWanted($);
+    const friendsScore = carveDetailInfo.friendsScore($);
+    const friendsNoS = carveDetailInfo.friendsNoS($);
     const refFilms = carveDetailInfo.refFilms($);
 
+    if (process.env.NODE_ENV === NodeEnvDefinition.development) {
+      readline.clearLine(process.stdout);
+      readline.cursorTo(process.stdout, 0);
+      if (_.isEmpty(year) && _.isEmpty(score) && _.isEmpty(numberOfScore)) {
+        process.stdout.write(errorColored(`${len}. ${info.name}(${info.url}) 分析失败！\n`));
+      } else {
+        process.stdout.write(statColored(`${len}. ${info.name}(${info.url}) 分析完成!\n`));
+      }
+    }
     const checkStringLegal = (str) => str && str !== '';
     return {
       id: info.id,
@@ -59,6 +84,12 @@ const getDetailInfoExceptPoster = async (info, content) => {
       score: score || ScoreDefinition.GetFailure,
       numberOfScore: numberOfScore || ScoreDefinition.GetFailure,
       category,
+      country,
+      releaseDate,
+      numberOfWatched,
+      numberOfWanted,
+      friendsScore,
+      friendsNoS,
       refFilms,
 
       posterError: info.posterError,
@@ -70,18 +101,18 @@ const getDetailInfoExceptPoster = async (info, content) => {
       refFilmsError: !refFilms || refFilms.length === 0,
     };
   } catch (e) {
-    console.error(`function 'getDetailInfoExceptPoster' error: ${e}`);
+    console.log(terribleErrorColored(`function 'getDetailInfoExceptPoster' error: ${e}`));
     return fallbackRes;
   }
 };
 
-const analyze = (nightmare = Nightmare({ show: true }), url, newObj, oldObj) => new Promise((resolve, reject) => {
+const analyze = (nightmare = Nightmare({ show: true }), url, newObj, oldObj, len = 0) => new Promise((resolve, reject) => {
   nightmare
     .goto(url)
     .wait('.nav-user-account')
     .evaluate(() => document.body.innerHTML)
     .then(async (content) => {
-      const newInfo = await getDetailInfoExceptPoster(newObj, content);
+      const newInfo = await getDetailInfoExceptPoster(newObj, content, len);
       let resInfo = newInfo;
       let messages = [];
       if (oldObj) {
