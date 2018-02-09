@@ -200,6 +200,12 @@ const genOutput = () => {
     delete _val.score;
     delete _val.numberOfScore;
     delete _val.category;
+    delete _val.country;
+    delete _val.releaseDate;
+    delete _val.numberOfWatched;
+    delete _val.numberOfWanted;
+    delete _val.friendsScore;
+    delete _val.friendsNoS;
     delete _val.refFilms;
   });
 
