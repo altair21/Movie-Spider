@@ -76,7 +76,7 @@ const getText = (url, param = {}, times = 0) => new Promise((resolve) => {
         return Promise.reject(new Error(`url: ${url}\n${e.message}\nHad retry: ${times} times`));
       }
       if (process.env.NODE_ENV === NodeEnvDefinition.development) {
-        console.log(retryColored(`${url} 请求失败，开始重试，当前尝试次数：${times + 1}`));
+        console.log(retryColored(`${url} 请求失败，开始重试，当前尝试次数：${times + 1}\n${e}`));
       }
       return getText(url, param, times + 1);
     });
@@ -85,7 +85,7 @@ const getText = (url, param = {}, times = 0) => new Promise((resolve) => {
       return Promise.reject(new Error(`url ${url}\n${e.message}\nHad retry: ${times} times`));
     }
     if (process.env.NODE_ENV === NodeEnvDefinition.development) {
-      console.log(retryColored(`${url} 请求失败，开始重试，当前尝试次数：${times + 1}`));
+      console.log(retryColored(`${url} 请求失败，开始重试，当前尝试次数：${times + 1}\n${e}`));
     }
     return getText(url, param, times + 1);
   });
@@ -102,7 +102,7 @@ const getBuffer = (url, times = 0) => new Promise((resolve) => {
           return Promise.reject(new Error(`url: ${url}\n${e.message}\nHad retry: ${times} times`));
         }
         if (process.env.NODE_ENV === NodeEnvDefinition.development) {
-          console.log(retryColored(`${url} 请求失败，开始重试，当前尝试次数：${times + 1}`));
+          console.log(retryColored(`${url} 请求失败，开始重试，当前尝试次数：${times + 1}\n${e}`));
         }
         return getBuffer(url, times + 1);
       });
@@ -111,7 +111,7 @@ const getBuffer = (url, times = 0) => new Promise((resolve) => {
       return Promise.reject(new Error(`url: ${url}\n${e.message}\nHad retry: ${times} times`));
     }
     if (process.env.NODE_ENV === NodeEnvDefinition.development) {
-      console.log(retryColored(`${url} 请求失败，开始重试，当前尝试次数：${times + 1}`));
+      console.log(retryColored(`${url} 请求失败，开始重试，当前尝试次数：${times + 1}\n${e}`));
     }
     return getBuffer(url, times + 1);
   });

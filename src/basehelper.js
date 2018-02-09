@@ -97,7 +97,7 @@ const getRoughInfo = (content) => {
 const getRoughInfos = (content) =>
   extractRoughInfos(cheerio.load(content)).map(getRoughInfo);
 
-const getDetailInfo = async (info) => {
+const getDetailInfo = async (info, len) => {
   const fallbackRes = {
     ...info,
     year: '',
@@ -126,7 +126,7 @@ const getDetailInfo = async (info) => {
     const content = await getText(info.url);
     if (process.env.NODE_ENV === NodeEnvDefinition.development
       && process.env.REQUEST_ENV === RequestEnvDefinition.shell) {
-      process.stdout.write(statColored(`${info.name}(${info.url}) 爬取完成，正在分析...`));
+      process.stdout.write(statColored(`${len}. ${info.name}(${info.url}) 爬取完成，正在分析...`));
     }
     const $ = cheerio.load(content);
 
@@ -160,9 +160,9 @@ const getDetailInfo = async (info) => {
       readline.clearLine(process.stdout);
       readline.cursorTo(process.stdout, 0);
       if (_.isEmpty(year) && _.isEmpty(score) && _.isEmpty(posterURL) && _.isEmpty(numberOfScore)) {
-        process.stdout.write(errorColored(`${info.name}(${info.url}) 分析失败！`));
+        process.stdout.write(errorColored(`${len}. ${info.name}(${info.url}) 分析失败！\n`));
       } else {
-        process.stdout.write(statColored(`${info.name}(${info.url}) 分析完成!\n`));
+        process.stdout.write(statColored(`${len}. ${info.name}(${info.url}) 分析完成!\n`));
       }
     }
     const checkStringLegal = (str) => str && str !== '';
@@ -209,9 +209,9 @@ const getDetailInfo = async (info) => {
   }
 };
 
-const concurrentGetDetailInfo = async (infoArr) => {
+const concurrentGetDetailInfo = async (infoArr, len) => {
   const res = await Promise.all(infoArr.map(async info => {
-    const ret = await getDetailInfo(info);
+    const ret = await getDetailInfo(info, len);
     return ret;
   }));
   return res;

@@ -50,7 +50,7 @@ const genDetailInfos = async (state = initialState) => ({
     state.config.concurrency || 1)
     .reduce((promise, infoArr) =>
       promise.then(async arr =>
-        arr.concat(await concurrentGetDetailInfo(infoArr))),
+        arr.concat(await concurrentGetDetailInfo(infoArr, arr.length))),
       Promise.resolve([])),
 });
 

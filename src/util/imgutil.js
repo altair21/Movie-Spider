@@ -38,12 +38,12 @@ const getPosterInfo = (url, times = 0) => new Promise((resolve) => {
 
     getColors(buffer, 'image/jpeg').then((colors) => {
       resolve({ width: imgInfo.width, height: imgInfo.height, color: colors[0].hex() });
-    }).on('error', e => {
+    }).catch(e => {
       if (times >= retryTimes) {
         return Promise.reject(new Error(`海报颜色解析失败(${_url}): ${e.message}`));
       }
       if (process.env.NODE_ENV === NodeEnvDefinition.development) {
-        console.log(retryColored(`${url} 请求失败，开始重试，当前尝试次数：${times + 1}`));
+        console.log(retryColored(`${url} 请求失败，开始重试，当前尝试次数：${times + 1}\n${e}`));
       }
       return getPosterInfo(url, times + 1);
     });
@@ -52,7 +52,7 @@ const getPosterInfo = (url, times = 0) => new Promise((resolve) => {
       return Promise.reject(new Error(`获取海报信息失败(${_url})：${e.message}`));
     }
     if (process.env.NODE_ENV === NodeEnvDefinition.development) {
-      console.log(retryColored(`${url} 请求失败，开始重试，当前尝试次数：${times + 1}`));
+      console.log(retryColored(`${url} 请求失败，开始重试，当前尝试次数：${times + 1}\n${e}`));
     }
     return getPosterInfo(url, times + 1);
   });
