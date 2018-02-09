@@ -2,6 +2,10 @@ import https from 'https';
 import URL from 'url';
 
 import { cookieMgr } from '../cookiemgr';
+import { colored, Color, ColorType } from '../logger/';
+import { NodeEnvDefinition } from '../preset/valueDef';
+
+const retryColored = colored(ColorType.foreground)(Color.magenta);
 
 const hostname = 'movie.douban.com';
 const retryTimes = 10;
@@ -71,11 +75,17 @@ const getText = (url, param = {}, times = 0) => new Promise((resolve) => {
       if (times >= retryTimes) {
         return Promise.reject(new Error(`url: ${url}\n${e.message}\nHad retry: ${times} times`));
       }
+      if (process.env.NODE_ENV === NodeEnvDefinition.development) {
+        console.log(retryColored(`${url} 请求失败，开始重试，当前尝试次数：${times + 1}`));
+      }
       return getText(url, param, times + 1);
     });
   }).on('error', e => {
     if (times >= retryTimes) {
       return Promise.reject(new Error(`url ${url}\n${e.message}\nHad retry: ${times} times`));
+    }
+    if (process.env.NODE_ENV === NodeEnvDefinition.development) {
+      console.log(retryColored(`${url} 请求失败，开始重试，当前尝试次数：${times + 1}`));
     }
     return getText(url, param, times + 1);
   });
@@ -91,11 +101,17 @@ const getBuffer = (url, times = 0) => new Promise((resolve) => {
         if (times >= retryTimes) {
           return Promise.reject(new Error(`url: ${url}\n${e.message}\nHad retry: ${times} times`));
         }
+        if (process.env.NODE_ENV === NodeEnvDefinition.development) {
+          console.log(retryColored(`${url} 请求失败，开始重试，当前尝试次数：${times + 1}`));
+        }
         return getBuffer(url, times + 1);
       });
   }).on('error', e => {
     if (times >= retryTimes) {
       return Promise.reject(new Error(`url: ${url}\n${e.message}\nHad retry: ${times} times`));
+    }
+    if (process.env.NODE_ENV === NodeEnvDefinition.development) {
+      console.log(retryColored(`${url} 请求失败，开始重试，当前尝试次数：${times + 1}`));
     }
     return getBuffer(url, times + 1);
   });
