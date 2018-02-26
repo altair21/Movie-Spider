@@ -58,6 +58,9 @@ const extractFilmName = async (content) => {
 };
 
 const writeResult = (newOrigin) => {
+  if (!fs.existsSync(path.join(__dirname, '..', '..', 'output', 'full'))) {
+    fs.mkdirSync(path.join(__dirname, '..', '..', 'output', 'full'));
+  }
   fs.writeFileSync(fullOutputPath, JSON.stringify(newOrigin), 'utf8');
   return 0;
 };
@@ -91,9 +94,11 @@ const analyzeAll = async (nightmare) => {
         allMessages = allMessages.concat(newAnalyzed.messages);
       }
 
-      const checked = checkProperty(newInfo, ignoreTags);
-      if (checked.errorMessages.length !== 0 && logCheckResult) {
-        console.log(errorColored(checked.errorMessages.map(str => `[检测] ${str}`).join('\n')));
+      if (logCheckResult) {
+        const checked = checkProperty(newInfo, ignoreTags);
+        if (checked.errorMessages.length !== 0) {
+          console.log(errorColored(checked.errorMessages.map(str => `[检测] ${str}`).join('\n')));
+        }
       }
       if (findIndex === -1) {
         origin.push(newInfo);

@@ -8,6 +8,7 @@
   7. `genyear.js`：按照年份分类，通过 `output/full_output.json` 生成统计信息，输出 `output/years.txt`。
   8. `imageinfo.js`：接受一个 **url** 作为参数，输出图像尺寸和主导色。
   9. `sortcommentlikes`：按照被赞次数将短评排序，输出 `output/sortedComments.txt`。
+  10. `genuser`: 分析用户的打分、看片类型等情况。
 
 **npm scripts** 作用：
   1. `nightmare`：用 nightmare 的方式获取一遍电影的简要信息，会输出一个 `output/all.json`，目的是补漏
@@ -16,4 +17,4 @@
   4. `recommand`：调用 `tools/genrecommand.js`。
   5. `single`：调用 `tools/analyzesingle.js`。
   6. `complete`：借助 nightmare 检查完整性，补全不完整项。
-  7. `sortComment`: 调用 `tools/sortcommentlikes`。
+  7. `sortcomment`: 调用 `tools/sortcommentlikes`。

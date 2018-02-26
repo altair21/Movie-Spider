@@ -15,7 +15,7 @@
     "recommand": "babel-node tools/genrecommand.js",
     "sortcomment": "babel-node tools/sortcommentlikes.js",
     "single": "babel-node tools/analyzesingle.js",
-    "stat": "npm run director && npm run year && npm run recommand && sortcomment",
+    "stat": "npm run director && npm run year && npm run recommand && npm run sortcomment",
     "verify": "babel-node tools/verifycookie.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
