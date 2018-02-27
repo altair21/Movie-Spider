@@ -38,6 +38,7 @@ const extractFilmName = async (content) => {
     promise.then(async (arr) => {
       try {
         const imgInfo = await getPosterInfo(obj.posterURL);
+        // FIXME: imgInfo 应该是一体的
         return arr.concat([{ ...obj, w: imgInfo.width || 0, h: imgInfo.height || 0, color: imgInfo.color || 'white', posterError: false }]);
       } catch (e) {
         console.log(errorColored(`获取海报信息失败(${obj.posterURL})：${e}`));

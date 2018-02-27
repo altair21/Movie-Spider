@@ -13,7 +13,7 @@ const retryTimes = 10;
 
 // support 'webp' 'png' 'jpg'
 // 登录的情况下看到的图片是 webp，不登录看到的是 png，有意思
-const getPosterInfo = (url, times = 0) => new Promise((resolve) => {
+const getPosterInfo = (url, times = 0) => Promise.race([new Promise((resolve) => {
   if (!url || url === '') {
     resolve({});
     return;
@@ -56,7 +56,12 @@ const getPosterInfo = (url, times = 0) => new Promise((resolve) => {
     }
     return getPosterInfo(url, times + 1);
   });
-});
+}), new Promise((resolve, reject) => {
+  const id = setTimeout(() => {
+    clearTimeout(id);
+    reject(`${url} timeout`);
+  }, 10000);
+})]);
 
 const hdThumbPoster = (url) => {
   if (typeof url === 'string' &&
