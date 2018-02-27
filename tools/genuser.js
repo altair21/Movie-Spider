@@ -8,11 +8,16 @@
 import fs from 'fs';
 import path from 'path';
 import _ from 'lodash';
+import {
+  header, bold, disorderItem, italic, separator,
+} from '../src/logger/markdown';
 
-// Macro
-const gapThreshold = 2;
+// -- Macro
+const gapThreshold = 2.1;
 const hasFriends = true;  // 是否生成友邻报告
 const friendsNosThreshold = 5;  // 友邻评分人数小于这个值就不统计了
+
+const h2 = header(2);
 
 const textFromScore = (score) => {
   if (score === 1) return '一星';
@@ -158,94 +163,94 @@ const getLatestMarkDate = (str1, str2) => {
   });
 
   // 输出
-  text.push('## 概况\n');
-  text.push(`*数据统计来自 ${origin.length} 部影片*`);
+  text.push(h2('概况\n'));
+  text.push(italic(`数据统计来自 ${origin.length} 部影片`));
   text.push(`根据标记记录截止至 ${latestMarkDate}`);
-  text.push('\n---\n');
+  text.push(separator());
 
-  text.push('## 类型分布\n');
+  text.push(h2('类型分布\n'));
   category.sort((a, b) => b.num - a.num);
   category.forEach((co, index) => {
     text.push(`${index + 1}. ${co.category} 共计 ${co.num} 部`);
   });
-  text.push('\n---\n');
+  text.push(separator());
 
-  text.push('## 打分分布\n');
-  text.push(`**打分的电影有 ${totalScored} 部，占比 ${(totalScored / origin.length * 100).toFixed(3)}%**`);
+  text.push(h2('打分分布\n'));
+  text.push(bold(`打分的电影有 ${totalScored} 部，占比 ${(totalScored / origin.length * 100).toFixed(3)}%`));
   if (noScoreFilms.length > 0) {
-    text.push(`**未打分的电影共有 ${origin.length - totalScored} 部，占比 ${((origin.length - totalScored) / origin.length * 100).toFixed(3)}%**`);
+    text.push(bold(`未打分的电影共有 ${origin.length - totalScored} 部，占比 ${((origin.length - totalScored) / origin.length * 100).toFixed(3)}%`));
   }
-  text.push(`- 五星电影：${score[5]} 部，占比 ${(score[5] / totalScored * 100).toFixed(2)}%`);
-  text.push(`- 四星电影：${score[4]} 部，占比 ${(score[4] / totalScored * 100).toFixed(2)}%`);
-  text.push(`- 三星电影：${score[3]} 部，占比 ${(score[3] / totalScored * 100).toFixed(2)}%`);
-  text.push(`- 两星电影：${score[2]} 部，占比 ${(score[2] / totalScored * 100).toFixed(2)}%`);
-  text.push(`- 一星电影：${score[1]} 部，占比 ${(score[1] / totalScored * 100).toFixed(2)}%`);
+  text.push(disorderItem(`五星电影：${score[5]} 部，占比 ${(score[5] / totalScored * 100).toFixed(2)}%`));
+  text.push(disorderItem(`四星电影：${score[4]} 部，占比 ${(score[4] / totalScored * 100).toFixed(2)}%`));
+  text.push(disorderItem(`三星电影：${score[3]} 部，占比 ${(score[3] / totalScored * 100).toFixed(2)}%`));
+  text.push(disorderItem(`两星电影：${score[2]} 部，占比 ${(score[2] / totalScored * 100).toFixed(2)}%`));
+  text.push(disorderItem(`一星电影：${score[1]} 部，占比 ${(score[1] / totalScored * 100).toFixed(2)}%`));
   if (noScoreFilms.length > 0) {
     text.push('\n未打分影片：');
     noScoreFilms.forEach((obj, index) => {
       text.push(`${index + 1}. ${obj.director} 执导的 《${obj.name}》(${obj.year})`);
     });
   }
-  text.push('\n---\n');
+  text.push(separator());
 
   if (badGap.length > 0) {
-    text.push('## 差评高分片（豆瓣均分）\n');
-    text.push(`**共有 ${badGap.length} 部豆瓣高分电影在你这里评分很低。**`);
+    text.push(h2('差评高分片（豆瓣均分）\n'));
+    text.push(bold(`共有 ${badGap.length} 部豆瓣高分电影在你这里评分很低。`));
     badGap.sort((a, b) => (b.score - b.userScore) - (a.score - a.userScore));
     badGap.forEach((obj, index) => {
       text.push(`${index + 1}. ${obj.director} 执导的 《${obj.name}》(${obj.year})，豆瓣 ${obj.score} 分，你打了 ${textFromScore(obj.userScore)}`);
     });
-    text.push('\n---\n');
+    text.push(separator());
   }
 
   if (badGapWithFriends.length > 0) {
-    text.push('## 差评高分片（友邻均分）\n');
-    text.push(`**共有 ${badGapWithFriends.length} 部友邻高分电影在你这里评分很低。**`);
+    text.push(h2('差评高分片（友邻均分）\n'));
+    text.push(bold(`共有 ${badGapWithFriends.length} 部友邻高分电影在你这里评分很低。`));
     badGapWithFriends.sort((a, b) => (b.friendsScore - b.userScore) - (a.friendsScore - a.userScore));
     badGapWithFriends.forEach((obj, index) => {
       text.push(`${index + 1}. ${obj.director} 执导的 《${obj.name}》(${obj.year})，${obj.friendsNoS} 位友邻打了 ${obj.friendsScore} 分，你打了 ${textFromScore(obj.userScore)}`);
     });
-    text.push('\n---\n');
+    text.push(separator());
   }
 
   if (friendsBadGap.length > 0) {
-    text.push('## 友邻差评高分片（豆瓣均分）\n');
-    text.push(`**共有 ${friendsBadGap.length} 部豆瓣高分电影在你的友邻里评分很低。**`);
+    text.push(h2('友邻差评高分片（豆瓣均分）\n'));
+    text.push(bold(`共有 ${friendsBadGap.length} 部豆瓣高分电影在你的友邻里评分很低。`));
     friendsBadGap.sort((a, b) => (b.score - b.friendsScore) - (a.score - a.friendsScore));
     friendsBadGap.forEach((obj, index) => {
       text.push(`${index + 1}. ${obj.director} 执导的 《${obj.name}》(${obj.year})，豆瓣 ${obj.score} 分，${obj.friendsNoS} 位友邻打了 ${obj.friendsScore} 分`);
     });
-    text.push('\n---\n');
+    text.push(separator());
   }
 
   if (goodGap.length > 0) {
-    text.push('## 好评低分片（豆瓣均分）\n');
-    text.push(`**共有 ${goodGap.length} 部豆瓣低分电影在你这里评分很高。**`);
+    text.push(h2('好评低分片（豆瓣均分）\n'));
+    text.push(bold(`共有 ${goodGap.length} 部豆瓣低分电影在你这里评分很高。`));
     goodGap.sort((a, b) => (b.userScore - b.score) - (a.userScore - a.score));
     goodGap.forEach((obj, index) => {
       text.push(`${index + 1}. ${obj.director} 执导的 《${obj.name}》(${obj.year})，豆瓣 ${obj.score} 分，你打了 ${textFromScore(obj.userScore)}`);
     });
-    text.push('\n---\n');
+    text.push(separator());
   }
 
   if (goodGapWithFriends.length > 0) {
-    text.push('## 好评低分片（友邻均分）\n');
-    text.push(`**共有 ${goodGapWithFriends.length} 部友邻低分电影在你这里评分很高。**`);
+    text.push(h2('好评低分片（友邻均分）\n'));
+    text.push(bold(`共有 ${goodGapWithFriends.length} 部友邻低分电影在你这里评分很高。`));
     goodGapWithFriends.sort((a, b) => (b.userScore - b.friendsScore) - (a.userScore - a.friendsScore));
     goodGapWithFriends.forEach((obj, index) => {
       text.push(`${index + 1}. ${obj.director} 执导的 《${obj.name}》(${obj.year})，${obj.friendsNoS} 位友邻打了 ${obj.friendsScore} 分，你打了 ${textFromScore(obj.userScore)}`);
     });
-    text.push('\n---\n');
+    text.push(separator());
   }
 
   if (friendsGoodGap.length > 0) {
-    text.push('## 友邻好评低分片（豆瓣均分）\n');
-    text.push(`**共有 ${friendsGoodGap.length} 部豆瓣低分电影在你的友邻里评分很高。**`);
+    text.push(h2('友邻好评低分片（豆瓣均分）\n'));
+    text.push(bold(`共有 ${friendsGoodGap.length} 部豆瓣低分电影在你的友邻里评分很高。`));
     friendsGoodGap.sort((a, b) => (b.friendsScore - b.score) - (a.friendsScore - a.score));
     friendsGoodGap.forEach((obj, index) => {
       text.push(`${index + 1}. ${obj.director} 执导的 《${obj.name}》(${obj.year})，豆瓣 ${obj.score} 分，${obj.friendsNoS} 位友邻打了 ${obj.friendsScore} 分`);
     });
-    text.push('\n---\n');
+    text.push(separator());
   }
 
   fs.writeFileSync(outputPath, text.join('\n'), 'utf8');

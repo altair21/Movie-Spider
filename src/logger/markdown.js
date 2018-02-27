@@ -10,4 +10,6 @@ const italic = (text) => `*${text}*`;
 
 const block = (text) => `> ${text}\n`;
 
-export { header, disorderItem, bold, italic, block };
+const separator = () => '\n---\n';
+
+export { header, disorderItem, bold, italic, block, separator };
