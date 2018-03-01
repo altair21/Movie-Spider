@@ -14,8 +14,10 @@
     "year": "babel-node tools/genyear.js",
     "recommand": "babel-node tools/genrecommand.js",
     "sortcomment": "babel-node tools/sortcommentlikes.js",
+    "userreport": "babel-node tools/genuserreport.js",
+    "theater": "babel-node tools/gentheater.js",
     "single": "babel-node tools/analyzesingle.js",
-    "stat": "npm run director && npm run year && npm run recommand && npm run sortcomment",
+    "stat": "npm run director && npm run year && npm run recommand && npm run sortcomment && npm run userreport && npm run theater",
     "verify": "babel-node tools/verifycookie.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },

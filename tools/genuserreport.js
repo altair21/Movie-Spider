@@ -37,7 +37,7 @@ const getLatestMarkDate = (str1, str2) => {
 (async () => {
   const fullOutputPath = path.join(__dirname, '..', 'output', 'full_output.json');
   const outputPath = path.join(__dirname, '..', 'output', 'user.md');
-  const origin = JSON.parse(fs.readFileSync(fullOutputPath, 'utf8')).filter(o => !o.isManual);
+  const origin = JSON.parse(fs.readFileSync(fullOutputPath, 'utf8')).filter(o => !o.isManual && o.score >= 0);
   const category = [];  // 类型分布统计
   let totalScored = 0;  // 共为几部片打分
   const score = [0, 0, 0, 0, 0, 0]; // 打分0（未打分）~5星分布数量
@@ -71,7 +71,7 @@ const getLatestMarkDate = (str1, str2) => {
     // 【统计打分分布】
     if (typeof obj.userScore === 'number') {
       score[obj.userScore]++;
-      if (obj.userScore !== 0) totalScored++;
+      if (obj.userScore > 0) totalScored++;
       else {
         noScoreFilms.push({
           name: obj.name,
