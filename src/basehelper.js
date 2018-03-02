@@ -199,7 +199,7 @@ const getDetailInfo = async (info, len) => {
       scoreError: !score || score === ScoreDefinition.GetFailure,
       numberOfScoreError: !numberOfScore || numberOfScore === ScoreDefinition.GetFailure,
       categoryError: !category || category.length === 0,
-      refFilmsError: !refFilms || refFilms.length === 0,
+      refFilmsError: !refFilms,
     };
   } catch (e) {
     console.log(terribleErrorColored(`function 'getDetailInfo' error: ${e}`));

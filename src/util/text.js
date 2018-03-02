@@ -2,45 +2,219 @@ import fs from 'fs';
 import path from 'path';
 import _ from 'lodash';
 
-const propertyPreset = {
-  // roughInfo
-  id: 'string',                   // 影片 id  （唯一）
-  url: 'string',                  // 影片 url （唯一）
-  name: 'string',                 // 短名称
-  posterURL: 'string',            // 海报 url
-  color: 'string',                // 海报主导色
-  w: 'number',                    // 海报宽度
-  h: 'number',                    // 海报高度
-  tags: 'object',                 // 用户打的标签
-  userScore: 'number',            // 用户评分
-  userComment: 'string',          // 用户短评
-  commentLikes: 'number',         // 短评被赞数
-  markDate: 'string',             // 用户标记日期
-  multiName: 'string',            // 长名称，`/` 分隔
-
-  // detailInfo
-  year: 'string',                 // 年份
-  director: 'object',             // 导演
-  category: 'object',             // 类别
-  country: 'object',              // 制片国家/地区
-  releaseDate: 'object',          // 上映日期（可以为空）
-  score: 'number',                // 豆瓣评分
-  numberOfScore: 'number',        // 评分人数
-  numberOfWatched: 'number',      // 看过的人数
-  numberOfWanted: 'number',       // 想看的人数
-  friendsScore: 'number',         // 友邻评分
-  friendsNoS: 'number',           // 友邻评分人数
-  refFilms: 'object',             // 相关影片
-
-  // detailInfo validator
-  posterError: 'boolean',         // 海报信息是否获取成功
-  yearError: 'boolean',           // 年份信息是否获取成功
-  directorError: 'boolean',
-  categoryError: 'boolean',
-  scoreError: 'boolean',
-  numberOfScoreError: 'boolean',
-  refFilmsError: 'boolean',
+const PropertyType = {
+  STRING: 'STRING',
+  NUMBER: 'NUMBER',
+  OBJECT: 'OBJECT',
+  ARRAY: 'ARRAY',
+  BOOLEAN: 'BOOLEAN',
 };
+
+/**
+ * 预设属性值
+ * - name*: 属性名
+ * - type*: 属性值的类型
+ * - allowNull: 属性是否可以为空 (default: false)
+ * - retainForOutput: 最后生成 `output.json` 时属性是否保留 (default: false)
+ * - allowEmptyArray: 属性是否可以为空数组（仅当属性是数组类型时有效）(default: false)
+ * - allowEmptyString: 属性是否可以为空字符串（仅当属性是字符串类型时有效）(default: false)
+*/
+const PropertyPreset = [
+  // --------------- Rough Info ---------------
+  // 影片 id （唯一）
+  {
+    name: 'id',
+    type: PropertyType.STRING,
+    allowNull: false,
+  },
+  // 影片 url（唯一）
+  {
+    name: 'url',
+    type: PropertyType.STRING,
+    allowNull: false,
+  },
+  // 短名称
+  {
+    name: 'name',
+    type: PropertyType.STRING,
+    allowNull: false,
+    retainForOutput: true,
+  },
+  // 海报 url
+  {
+    name: 'posterURL',
+    type: PropertyType.STRING,
+    allowNull: false,
+    retainForOutput: true,
+  },
+  // 海报主导色
+  {
+    name: 'color',
+    type: PropertyType.STRING,
+    allowNull: false,
+    retainForOutput: true,
+  },
+  // 海报宽度
+  {
+    name: 'w',
+    type: PropertyType.NUMBER,
+    allowNull: false,
+    retainForOutput: true,
+  },
+  // 海报高度
+  {
+    name: 'h',
+    type: PropertyType.NUMBER,
+    allowNull: false,
+    retainForOutput: true,
+  },
+  // 用户打的标签
+  {
+    name: 'tags',
+    type: PropertyType.ARRAY,
+    allowNull: false,
+    allowEmptyArray: true,
+  },
+  // 用户评分
+  {
+    name: 'userScore',
+    type: PropertyType.NUMBER,
+    allowNull: false,
+  },
+  // 用户短评
+  {
+    name: 'userComment',
+    type: PropertyType.STRING,
+    allowNull: false,
+    allowEmptyString: true,
+  },
+  // 短评被赞数
+  {
+    name: 'commentLikes',
+    type: PropertyType.NUMBER,
+    allowNull: false,
+  },
+  // 用户标记日期
+  {
+    name: 'markDate',
+    type: PropertyType.STRING,
+    allowNull: false,
+  },
+  // 长名称，`/`分隔
+  {
+    name: 'multiName',
+    type: PropertyType.STRING,
+    allowNull: false,
+  },
+
+  // --------------- Detail Info ---------------
+  // 年份
+  {
+    name: 'year',
+    type: PropertyType.STRING,
+    allowNull: false,
+    retainForOutput: true,
+  },
+  // 导演
+  {
+    name: 'director',
+    type: PropertyType.ARRAY,
+    allowNull: false,
+  },
+  // 类别
+  {
+    name: 'category',
+    type: PropertyType.ARRAY,
+    allowNull: false,
+  },
+  // 制片国家/地区
+  {
+    name: 'country',
+    type: PropertyType.ARRAY,
+    allowNull: false,
+  },
+  // 上映日期
+  {
+    name: 'releaseDate',
+    type: PropertyType.ARRAY,
+    allowNull: true,
+    allowEmptyArray: true,
+  },
+  // 豆瓣评分
+  {
+    name: 'score',
+    type: PropertyType.NUMBER,
+    allowNull: false,
+  },
+  // 评分人数
+  {
+    name: 'numberOfScore',
+    type: PropertyType.NUMBER,
+    allowNull: false,
+  },
+  // 看过的人数
+  {
+    name: 'numberOfWatched',
+    type: PropertyType.NUMBER,
+    allowNull: false,
+  },
+  // 想看的人数
+  {
+    name: 'numberOfWanted',
+    type: PropertyType.NUMBER,
+    allowNull: false,
+  },
+  // 友邻评分
+  {
+    name: 'friendsScore',
+    type: PropertyType.NUMBER,
+    allowNull: false,
+  },
+  // 友邻评分人数
+  {
+    name: 'friendsNoS',
+    type: PropertyType.NUMBER,
+    allowNull: false,
+  },
+  // 相关影片
+  {
+    name: 'refFilms',
+    type: PropertyType.ARRAY,
+    allowNull: true,
+    allowEmptyArray: true,
+  },
+
+  // --------------- Detail Info Validator ---------------
+  {
+    name: 'posterError',
+    type: PropertyType.BOOLEAN,
+  },
+  {
+    name: 'yearError',
+    type: PropertyType.BOOLEAN,
+  },
+  {
+    name: 'directorError',
+    type: PropertyType.BOOLEAN,
+  },
+  {
+    name: 'categoryError',
+    type: PropertyType.BOOLEAN,
+  },
+  {
+    name: 'scoreError',
+    type: PropertyType.BOOLEAN,
+  },
+  {
+    name: 'numberOfScoreError',
+    type: PropertyType.BOOLEAN,
+  },
+  {
+    name: 'refFilmsError',
+    type: PropertyType.BOOLEAN,
+  },
+];
+
 
 const mkdirForFilePath = (filePath) => {
   path.dirname(filePath).split(path.sep).reduce((parentDir, childDir) => {
@@ -86,146 +260,77 @@ const objectToJSONPath = (object, filePath) => {
   fs.writeFileSync(filePath, JSON.stringify(object), 'utf8');
 };
 
-const checkProperty = (obj, ignoreTags) => {
+const checkProperty = (obj) => {
   if (obj.isManual) {
     return { isCorrect: true, errorMessages: [] };
   }
-  const arr = Object.keys(propertyPreset);
   const errorMessages = [];
-  let flag = true;
-  for (let i = 0, l = arr.length; i < l; i++) {
-    if (ignoreTags && arr[i] === 'tags') {
-      continue; // eslint-disable-line no-continue
-    }
-    if (obj.isManual) continue; // eslint-disable-line
-    if (!Object.prototype.hasOwnProperty.call(obj, arr[i]) || obj[arr[i]] === undefined) {
-      errorMessages.push(`${obj.name} 缺少属性 ${arr[i]}`);
-      flag = false;
-    } else if (typeof obj[arr[i]] !== propertyPreset[arr[i]]) { // eslint-disable-line
-      errorMessages.push(`${obj.name} 属性 ${arr[i]} 类型不正确`);
-      flag = false;
-    } else if (arr[i] === 'director' || arr[i] === 'tags' || arr[i] === 'category'
-      || arr[i] === 'refFilms' || arr[i] === 'country') {  // 应是数组类型的属性
-      if (!_.isArray(obj[arr[i]])) {
-        errorMessages.push(`${obj.name} 属性 ${arr[i]} 类型不正确`);
-        flag = false;
-      } else if (obj[arr[i]].length === 0) {
-        errorMessages.push(`${obj.name} 属性 ${arr[i]} 值为空数组`);
-        flag = false;
+  // 推测
+  if (obj.yearError && obj.directorError && obj.categoryError
+    && obj.scoreError && obj.numberOfScoreError && obj.refFilmsError) {
+    errorMessages.push(`${obj.name}(${obj.url}) 有很大可能404了`);
+    return { isCorrect: errorMessages.length === 0, errorMessages };
+  }
+
+  for (let i = 0, l = PropertyPreset.length; i < l; i++) {
+    if (!_.isNull(obj[PropertyPreset[i].name])) {
+      const pn = PropertyPreset[i].name;
+      const property = obj[pn];
+      switch (PropertyPreset[i].type) {
+        case PropertyType.ARRAY:
+          if (_.isArray(property)) {
+            if (!PropertyPreset[i].allowEmptyArray && property.length === 0) {
+              errorMessages.push(`${obj.name} 属性 ${pn} 值为空数组`);
+            }
+          } else {
+            errorMessages.push(`${obj.name} 属性 ${pn} 值类型不正确`);
+          }
+          break;
+        case PropertyType.BOOLEAN:
+          if (_.isBoolean(property)) {
+            if (property === true) {
+              errorMessages.push(`${obj.name} 属性 ${pn} 为 true`);
+            }
+          } else {
+            errorMessages.push(`${obj.name} 属性 ${pn} 值类型不正确`);
+          }
+          break;
+        case PropertyType.STRING:
+          if (_.isString(property)) {
+            if (property.indexOf('�') !== -1) {
+              errorMessages.push(`${obj.name} 属性 ${pn} 包含未识别的字符`);
+            }
+            if (property.indexOf('\n') !== -1) {
+              errorMessages.push(`${obj.name} 属性 ${pn} 包含换行符`);
+            }
+            if (!PropertyPreset[i].allowEmptyString && property === '') {
+              errorMessages.push(`${obj.name} 属性 ${pn} 值为空字符串`);
+            }
+          } else {
+            errorMessages.push(`${obj.name} 属性 ${pn} 值类型不正确`);
+          }
+          break;
+        case PropertyType.NUMBER:
+          if (!_.isNumber(property)) {
+            errorMessages.push(`${obj.name} 属性 ${pn} 类型不正确`);
+          }
+          break;
+        case PropertyType.OBJECT:
+          if (!_.isObject(property)) {
+            errorMessages.push(`${obj.name} 属性 ${pn} 类型不正确`);
+          }
+          break;
+        default:
+          errorMessages.push('未知错误');
       }
-    }
-    if (typeof obj[arr[i]] === 'string') {
-      if (obj[arr[i]] === '' && arr[i] !== 'userComment') { // 用户短评可以为空
-        errorMessages.push(`${obj.name} 属性 ${arr[i]} 值为空字符串`);
-        flag = false;
-      } else if (obj[arr[i]].indexOf('\n') !== -1) {
-        errorMessages.push(`${obj.name} 属性 ${arr[i]} 包含换行符`);
-        flag = false;
-      }
-      if (obj[arr[i]].indexOf('�') !== -1) {
-        errorMessages.push(`${obj.name} 属性 ${arr[i]} 包含不识别的字符`);
-        flag = false;
-      }
-    }
-    if (propertyPreset[arr[i]] === 'boolean' && obj[arr[i]]) {
-      errorMessages.push(`${obj.name} 属性 ${arr[i]} 为 true`);
-      flag = false;
-    }
-    if (((arr[i] === 'w' || arr[i] === 'h') && obj[arr[i]] === 0)) {
-      errorMessages.push(`${obj.name} 海报解析不正确`);
+    } else if (!PropertyPreset[i].allowNull) {
+      errorMessages.push(`${obj.name} 缺少属性 ${PropertyPreset[i].name}`);
     }
   }
-  return { isCorrect: flag, errorMessages };
-};
-
-const genOutput = () => {
-  let flag = true;
-  let emptyObjFlag = false;
-  const config = JSON.parse(fs.readFileSync(path.join(__dirname, '..', '..', 'config.json'), 'utf8'));
-
-  const fullOutputPath = path.join(__dirname, '..', '..', 'output', 'full_output.json');
-  const outputPath = path.join(__dirname, '..', '..', 'output', 'output.json');
-  if (!fs.existsSync(fullOutputPath)) return '';
-  let res = [];
-
-  const origin = JSON.parse(fs.readFileSync(fullOutputPath, 'utf8'));
-  origin.forEach(val => {
-    const _val = val;
-
-    if (_.isEmpty(_val)) {
-      emptyObjFlag = true;
-      flag = false;
-    }
-    if (!_val.year || _val.yearError || _val.year === '') {
-      res.push(`${_val.name} 年份信息出错  ${_val.url}`);
-      flag = false;
-    }
-    if (!_val.director || _val.directorError || _val.director.length === 0) {
-      res.push(`${_val.name} 导演信息出错  ${_val.url}`);
-      flag = false;
-    }
-    if (!_val.score || _val.scoreError) {
-      res.push(`${_val.name} 评分信息出错 ${_val.url}`);
-      flag = false;
-    }
-    if (!_val.numberOfScore || _val.numberOfScoreError) {
-      res.push(`${_val.name} 评分人数出错 ${_val.url}`);
-      flag = false;
-    }
-    if (!_val.category || _val.categoryError || _val.category.length === 0) {
-      res.push(`${_val.name} 类别信息出错 ${_val.url}`);
-      flag = false;
-    }
-    if (!_val.refFilms || _val.refFilmsError || _val.refFilms.length === 0) {
-      res.push(`${_val.name} 相关推荐影片出错 ${_val.url}`);
-      flag = false;
-    }
-
-    const checked = checkProperty(_val, config.ignoreTags);
-    res = res.concat(checked.errorMessages);
-    flag = flag && checked.isCorrect;
-
-    delete _val.id;
-    delete _val.multiName;
-    delete _val.posterError;
-    delete _val.yearError;
-    delete _val.directorError;
-    delete _val.url;
-    delete _val.director;
-    delete _val.tags;
-    delete _val.userScore;
-    delete _val.userComment;
-    delete _val.commentLikes;
-    delete _val.markDate;
-    delete _val.score;
-    delete _val.numberOfScore;
-    delete _val.category;
-    delete _val.country;
-    delete _val.releaseDate;
-    delete _val.numberOfWatched;
-    delete _val.numberOfWanted;
-    delete _val.friendsScore;
-    delete _val.friendsNoS;
-    delete _val.refFilms;
-  });
-
-  if (config.outputAsJS) {
-    fs.writeFileSync(outputPath, objectToText(origin), 'utf8');
-  } else {
-    fs.writeFileSync(outputPath, JSON.stringify(origin), 'utf8');
-  }
-
-  if (emptyObjFlag) {
-    res.push('');
-    res.push('存在空的条目');
-  }
-  if (flag) {
-    return `没有发现异常，共 ${origin.length} 项`;
-  }
-  return res.join('\n');
+  return { isCorrect: errorMessages.length === 0, errorMessages };
 };
 
 export {
-  textToObject, textPathToObject, objectToText, genOutput, objectToTextPath,
-  objectToJSONPath, propertyPreset, checkProperty, JSONPathToObject,
+  textToObject, textPathToObject, objectToText, objectToTextPath,
+  objectToJSONPath, checkProperty, JSONPathToObject,
 };
