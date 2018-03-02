@@ -11,6 +11,7 @@ import _ from 'lodash';
 import {
   header, bold, disorderItem, italic, separator,
 } from '../src/logger/markdown';
+import { getDirectorResult } from './gendirector';
 
 // -- Macro
 const gapThreshold = 2.1;
@@ -34,10 +35,25 @@ const getLatestMarkDate = (str1, str2) => {
   return str2;
 };
 
+const randomFilmName = (arr, num) => {
+  if (arr.length < num) {
+    return arr.map(obj => `《${obj.name}》(${obj.director.join('、')}, ${obj.year})`).join('、');
+  }
+  const rns = [];
+  while (rns.length < num) {
+    const rn = Math.floor(Math.random() * arr.length);
+    if (rns.indexOf(rn) === -1) rns.push(rn);
+  }
+
+  const res = [];
+  rns.forEach(index => res.push(`《${arr[index].name}》(${arr[index].director.join('、')}, ${arr[index].year})`));
+  return res.join('、');
+};
+
 (async () => {
   const fullOutputPath = path.join(__dirname, '..', 'output', 'full_output.json');
   const outputPath = path.join(__dirname, '..', 'output', 'user.md');
-  const origin = JSON.parse(fs.readFileSync(fullOutputPath, 'utf8')).filter(o => !o.isManual && o.score >= 0);
+  const origin = JSON.parse(fs.readFileSync(fullOutputPath, 'utf8')).filter(o => !o.isManual);
   const category = [];  // 类型分布统计
   let totalScored = 0;  // 共为几部片打分
   const score = [0, 0, 0, 0, 0, 0]; // 打分0（未打分）~5星分布数量
@@ -49,10 +65,20 @@ const getLatestMarkDate = (str1, str2) => {
   const goodGapWithFriends = [];  // 好评低分片（和友邻比）
   const friendsGoodGap = [];  // 友邻评分和豆瓣均分的差距
   const friendsBadGap = [];
+  const watchedRuler = [5000, 50000, 100000, 200000]; // 依次为 小众、较为小众、普通、较为大众、大众
+  const watchedDist = [[], [], [], [], []];
+  let minScorePercFilm = { numberOfWatched: 1, numberOfScore: 1 };
+  let maxScorePercFilm = { numberOfWatched: 1, numberOfScore: 0 };
+  const directorRes = getDirectorResult()
+    .filter(o => o.origFormat.length > 3)
+    .map(o => ({
+      ...o,
+      avgScore: (o.origFormat.reduce((total, f) => total + f.userScore, 0) / o.origFormat.length * 2).toFixed(2),
+    }));
 
   let latestMarkDate;
 
-  origin.forEach((obj) => {
+  origin.filter(o => o.score >= 0).forEach((obj) => {
     // 【统计看片类别】
     if (obj.category) {
       obj.category.forEach((c) => {
@@ -79,6 +105,16 @@ const getLatestMarkDate = (str1, str2) => {
           director: obj.director.join('、'),
         });
       }
+    }
+
+    // 找到打分人数占比最大和最小的电影
+    if (obj.numberOfScore / obj.numberOfWatched >
+      maxScorePercFilm.numberOfScore / maxScorePercFilm.numberOfWatched) {
+      maxScorePercFilm = obj;
+    }
+    if (obj.numberOfScore / obj.numberOfWatched <
+      minScorePercFilm.numberOfScore / minScorePercFilm.numberOfWatched) {
+      minScorePercFilm = obj;
     }
 
     // 恶评高分影片，取7.5分以上的电影
@@ -162,6 +198,14 @@ const getLatestMarkDate = (str1, str2) => {
     }
   });
 
+  origin.forEach(obj => {
+    let i = 0;
+    for (let l = watchedRuler.length; i < l; i++) {
+      if (obj.numberOfWatched < watchedRuler[i]) break;
+    }
+    watchedDist[i].push(obj);
+  });
+
   // 输出
   text.push(h2('概况\n'));
   text.push(italic(`数据统计来自 ${origin.length} 部影片`));
@@ -191,6 +235,48 @@ const getLatestMarkDate = (str1, str2) => {
       text.push(`${index + 1}. ${obj.director} 执导的 《${obj.name}》(${obj.year})`);
     });
   }
+  text.push(separator());
+
+  text.push(h2('这些导演你看的最多'));
+  text.push(disorderItem(`${directorRes[0].name} 共看过 ${directorRes[0].long.length} 部长片`));
+  text.push(disorderItem(`${directorRes[1].name} 共看过 ${directorRes[1].long.length} 部长片`));
+  text.push(disorderItem(`${directorRes[2].name} 共看过 ${directorRes[2].long.length} 部长片`));
+  text.push(disorderItem(`${directorRes[3].name} 共看过 ${directorRes[3].long.length} 部长片`));
+  text.push(disorderItem(`${directorRes[4].name} 共看过 ${directorRes[4].long.length} 部长片`));
+  text.push(separator());
+
+  let sortedDirectors = directorRes.sort((a, b) => b.avgScore - a.avgScore);
+  text.push(h2('这些导演你很偏爱'));
+  text.push(italic('仅统计你看过的作品数量多于三部的导演'));
+  text.push(disorderItem(`${sortedDirectors[0].name} ${sortedDirectors[0].origFormat.length} 部作品，你平均打出了 ${sortedDirectors[0].avgScore} 分`));
+  text.push(disorderItem(`${sortedDirectors[1].name} ${sortedDirectors[1].origFormat.length} 部作品，你平均打出了 ${sortedDirectors[1].avgScore} 分`));
+  text.push(disorderItem(`${sortedDirectors[2].name} ${sortedDirectors[2].origFormat.length} 部作品，你平均打出了 ${sortedDirectors[2].avgScore} 分`));
+  text.push(disorderItem(`${sortedDirectors[3].name} ${sortedDirectors[3].origFormat.length} 部作品，你平均打出了 ${sortedDirectors[3].avgScore} 分`));
+  text.push(disorderItem(`${sortedDirectors[4].name} ${sortedDirectors[4].origFormat.length} 部作品，你平均打出了 ${sortedDirectors[4].avgScore} 分`));
+  text.push(separator());
+
+  sortedDirectors = directorRes.sort((a, b) => a.avgScore - b.avgScore);
+  text.push(h2('你对这些导演翻白眼'));
+  text.push(italic('仅统计你看过的作品数量多于三部的导演'));
+  text.push(disorderItem(`${sortedDirectors[0].name} ${sortedDirectors[0].origFormat.length} 部作品，你平均打出了 ${sortedDirectors[0].avgScore} 分`));
+  text.push(disorderItem(`${sortedDirectors[1].name} ${sortedDirectors[1].origFormat.length} 部作品，你平均打出了 ${sortedDirectors[1].avgScore} 分`));
+  text.push(disorderItem(`${sortedDirectors[2].name} ${sortedDirectors[2].origFormat.length} 部作品，你平均打出了 ${sortedDirectors[2].avgScore} 分`));
+  text.push(disorderItem(`${sortedDirectors[3].name} ${sortedDirectors[3].origFormat.length} 部作品，你平均打出了 ${sortedDirectors[3].avgScore} 分`));
+  text.push(disorderItem(`${sortedDirectors[4].name} ${sortedDirectors[4].origFormat.length} 部作品，你平均打出了 ${sortedDirectors[4].avgScore} 分`));
+  text.push(separator());
+
+  text.push(h2('打分人数占比'));
+  text.push(`在你看过的电影里面，${maxScorePercFilm.director.join('、')} 执导的 《${maxScorePercFilm.name}》(${maxScorePercFilm.year}) 打分人数在看过人数中的占比最高（${(maxScorePercFilm.numberOfScore / maxScorePercFilm.numberOfWatched * 100).toFixed(2)}%）`);
+  text.push(`在你看过的电影里面，${minScorePercFilm.director.join('、')} 执导的 《${minScorePercFilm.name}》(${minScorePercFilm.year}) 打分人数在看过人数中的占比最低（${(minScorePercFilm.numberOfScore / minScorePercFilm.numberOfWatched * 100).toFixed(2)}%）`);
+  text.push(separator());
+
+  text.push(h2('大众、小众分布'));
+  text.push(italic('按照影片看过的人数将影片分为“大众”和“小众”：'));
+  text.push(disorderItem(`小众（看过人数 < ${watchedRuler[0]}）：${(watchedDist[0].length / origin.length * 100).toFixed(2)}%（${randomFilmName(watchedDist[0], 3)} 等）`));
+  text.push(disorderItem(`较为小众（看过人数 ${watchedRuler[0]} ~ ${watchedRuler[1]}）：${(watchedDist[1].length / origin.length * 100).toFixed(2)}%（${randomFilmName(watchedDist[1], 3)} 等）`));
+  text.push(disorderItem(`一般（看过人数 ${watchedRuler[1]} ~ ${watchedRuler[2]}）：${(watchedDist[2].length / origin.length * 100).toFixed(2)}%（${randomFilmName(watchedDist[2], 3)} 等）`));
+  text.push(disorderItem(`较为大众（看过人数 ${watchedRuler[2]} ~ ${watchedRuler[3]}）：${(watchedDist[3].length / origin.length * 100).toFixed(2)}%（${randomFilmName(watchedDist[3], 3)} 等）`));
+  text.push(disorderItem(`大众（看过人数 > ${watchedRuler[3]}）：${(watchedDist[4].length / origin.length * 100).toFixed(2)}%（${randomFilmName(watchedDist[4], 3)} 等）`));
   text.push(separator());
 
   if (badGap.length > 0) {

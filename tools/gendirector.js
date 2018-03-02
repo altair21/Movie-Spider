@@ -86,6 +86,7 @@ const getResult = () => {
           findObj.other.push(item);
         }
         findObj.films.push(item);
+        findObj.origFormat.push(obj);
       } else {
         const newObj = {
           ...objPrototype,
@@ -94,6 +95,7 @@ const getResult = () => {
           short: [],
           other: [],
           films: [],
+          origFormat: [],
         };
         if (item.tag === '长片') {
           newObj.long.push(item);
@@ -103,6 +105,7 @@ const getResult = () => {
           newObj.other.push(item);
         }
         newObj.films.push(item);
+        newObj.origFormat.push(obj);
         res.push(newObj);
       }
     });
@@ -144,3 +147,5 @@ const genDirector = () => {
 };
 
 genDirector();
+
+export { getResult as getDirectorResult };
