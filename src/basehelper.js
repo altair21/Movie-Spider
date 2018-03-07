@@ -220,12 +220,12 @@ const mergeObject = (oldObj, newObj) => {
   const res = {
     ...oldObj,
     name: newObj.name || oldObj.name,
-    tags: (newObj.tags && newObj.tags.length > 0) ? _.cloneDeep(newObj.tags) : _.cloneDeep(oldObj.tags),
+    tags: (newObj.tags && newObj.tags.length >= 0) ? _.cloneDeep(newObj.tags) : _.cloneDeep(oldObj.tags),
     multiName: newObj.multiName && newObj.multiName.indexOf('�') === -1 ?
       newObj.multiName : oldObj.multiName,
-    userScore: newObj.userScore > 0 ? newObj.userScore : oldObj.userScore,
-    userComment: newObj.userComment || oldObj.userComment || '',
-    commentLikes: newObj.commentLikes != undefined ? newObj.commentLikes : oldObj.commentLikes, // eslint-disable-line
+    userScore: newObj.userScore != undefined ? newObj.userScore : oldObj.userScore, // eslint-disable-line eqeqeq
+    userComment: (!_.isNull(newObj.userComment) ? newObj.userComment : oldObj.userComment) || '',
+    commentLikes: newObj.commentLikes != undefined ? newObj.commentLikes : oldObj.commentLikes, // eslint-disable-line eqeqeq
     markDate: newObj.markDate || oldObj.markDate,
     country: newObj.country && newObj.country.length > 0 ? newObj.country : oldObj.country,
     releaseDate: newObj.releaseDate && newObj.releaseDate.length > 0 ? newObj.releaseDate : oldObj.releaseDate,

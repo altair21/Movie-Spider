@@ -332,5 +332,5 @@ const checkProperty = (obj) => {
 
 export {
   textToObject, textPathToObject, objectToText, objectToTextPath,
-  objectToJSONPath, checkProperty, JSONPathToObject,
+  objectToJSONPath, checkProperty, JSONPathToObject, PropertyPreset,
 };
