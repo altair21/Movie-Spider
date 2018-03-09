@@ -243,12 +243,12 @@ const mergeObject = (oldObj, newObj) => {
     refFilmsError: (oldObj.refFilmsError || oldObj.refFilmsError == undefined) && newObj.refFilmsError, // eslint-disable-line eqeqeq
   };
 
-  if (newObj.name !== oldObj.name && oldObj.name) messages.push(`${oldObj.name} 片名修改：${oldObj.name} ---> ${newObj.name}`);
+  if (newObj.name !== oldObj.name && oldObj.name != null) messages.push(`${oldObj.name} 片名修改：${oldObj.name} ---> ${newObj.name}`);
   if (!_.isEqual(newObj.tags, oldObj.tags && oldObj.tags) && newObj.tags && newObj.tags.length > 0 && oldObj.tags) messages.push(`${newObj.name} 标签修改： ${oldObj.tags} ---> ${newObj.tags}`);
   if (newObj.multiName !== oldObj.multiName && newObj.multiName.indexOf('�') === -1 && oldObj.multiName) messages.push(`${newObj.name} 长片名修改：${oldObj.multiName} ---> ${newObj.multiName}`);
-  if (newObj.userScore !== oldObj.userScore && oldObj.userScore) messages.push(`${newObj.name} 用户评分修改：${oldObj.userScore} ---> ${newObj.userScore}`);
-  if (newObj.userComment !== oldObj.userComment && oldObj.userComment) messages.push(`${newObj.name} 用户短评修改：${oldObj.userComment} ---> ${newObj.userComment}`);
-  if (newObj.commentLikes !== oldObj.commentLikes && oldObj.commentLikes) {
+  if (newObj.userScore !== oldObj.userScore && oldObj.userScore != null) messages.push(`${newObj.name} 用户评分修改：${oldObj.userScore} ---> ${newObj.userScore}`);
+  if (newObj.userComment !== oldObj.userComment && oldObj.userComment != null) messages.push(`${newObj.name} 用户短评修改：${oldObj.userComment} ---> ${newObj.userComment}`);
+  if (newObj.commentLikes !== oldObj.commentLikes && oldObj.commentLikes != null) {
     if (process.env.NODE_ENV === NodeEnvDefinition.development) {
       messages.push(changesColored(`${newObj.name} 用户短评被赞：${oldObj.commentLikes} ---> ${newObj.commentLikes}`));
     } else {
