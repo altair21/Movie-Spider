@@ -18,6 +18,7 @@ const keywords = ['电影', '短片'];
 const startTime = new Date();
 const todayDate = getTodayDate();
 
+const newFilmColored = colored(ColorType.foreground)(Color.green);
 const progressColored = colored(ColorType.foreground)(Color.cyan);
 const statColored = (text) => colored(ColorType.background)(Color.blue)(colored(ColorType.foreground)(Color.black)(text));
 const errorColored = colored(ColorType.foreground)(Color.red);
@@ -93,6 +94,8 @@ const analyzeAll = async (nightmare) => {
       if (findIndex !== -1 && newAnalyzed.messages.length !== 0) {
         console.log(newAnalyzed.messages.map(str => `[更新] ${str}`).join('\n'));
         allMessages = allMessages.concat(newAnalyzed.messages);
+      } else if (findIndex === -1) {
+        console.log(newFilmColored(`[新增影片] ${newInfo.name}（${(newInfo.director || []).join('、')}, ${newInfo.year}）`));
       }
 
       if (logCheckResult) {
