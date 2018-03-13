@@ -1,15 +1,16 @@
 import fs from 'fs';
 import path from 'path';
+import _ from 'lodash';
 
 const year = (new Date()).getFullYear();
 
-const sortFun = (a, b) => {
+const sortFun = (key) => (a, b) => {
   const month = (str) => str.substr(5, 2);
   const day = (str) => str.substr(8, 2);
-  if (month(a.releaseDate) === month(b.releaseDate)) {
-    return day(a.releaseDate) - day(b.releaseDate);
+  if (month(a[key]) === month(b[key])) {
+    return day(a[key]) - day(b[key]);
   }
-  return month(a.releaseDate) - month(b.releaseDate);
+  return month(a[key]) - month(b[key]);
 };
 
 (async () => {
@@ -18,6 +19,7 @@ const sortFun = (a, b) => {
   const origin = JSON.parse(fs.readFileSync(fullOutputPath, 'utf8')).filter(o => !o.isManual && o.releaseDate && o.releaseDate.length > 0);
   const domestic = [];  // 国产片
   const introduced = [];  // 引进片
+  const nonCinema = []; // 非院线片
 
   origin.forEach((obj) => {
     // 下面这个正则不起作用，不知何故
@@ -39,15 +41,28 @@ const sortFun = (a, b) => {
       }
     }
   });
+  origin.forEach((obj) => {
+    if (!_.find(domestic, (o) => o.id === obj.id)
+      && !_.find(introduced, (o) => o.id === obj.id)
+      && obj.markDate && obj.markDate.startsWith(year)
+      && (obj.year === year || +obj.year + 1 === +year)
+      && !_.find(obj.releaseDate, (r) => r.indexOf('中国大陆') !== -1)) {
+      nonCinema.push(obj);
+    }
+  });
 
   const text = [];
   text.push(`${year} 年的院线片`);
   text.push(`国产片共 ${domestic.length} 部：`);
-  domestic.sort(sortFun).forEach(obj => text.push(`《${obj.name}》 上映时间：${obj.releaseDate} 导演：${obj.director.join('、')} 标记日期：${obj.markDate}`));
+  domestic.sort(sortFun('releaseDate')).forEach(obj => text.push(`《${obj.name}》 上映时间：${obj.releaseDate} 导演：${obj.director.join('、')} 标记日期：${obj.markDate}`));
   text.push('');
 
   text.push(`引进片共 ${introduced.length} 部：`);
-  introduced.sort(sortFun).forEach(obj => text.push(`《${obj.name}》 上映时间：${obj.releaseDate} 导演：${obj.director.join('、')} 标记日期：${obj.markDate}`));
+  introduced.sort(sortFun('releaseDate')).forEach(obj => text.push(`《${obj.name}》 上映时间：${obj.releaseDate} 导演：${obj.director.join('、')} 标记日期：${obj.markDate}`));
+  text.push('');
+
+  text.push(`推测的非院线片共 ${nonCinema.length} 部：`);
+  nonCinema.sort(sortFun('markDate')).forEach(obj => text.push(`《${obj.name}》(${obj.year}) 导演：${obj.director.join('、')} 标记日期：${obj.markDate}`));
 
   fs.writeFileSync(outputPath, text.join('\n'), 'utf8');
 })();
