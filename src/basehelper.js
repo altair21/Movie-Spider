@@ -16,7 +16,8 @@ import {
   extractDetailCategory, extractDetailCountry, extractDetailNumOfScore,
   extractDetailScore, extractDetailRefFilms, extractDetailReleaseDate,
   extractDetailNumberOfWatched, extractDetailNumberOfWanted,
-  extractDetailFriendsNoS, extractDetailFriendsScore,
+  extractDetailFriendsNoS, extractDetailFriendsScore, extractDetailAwards,
+  hasAwards,
 } from './xpath';
 import { colored, Color, ColorType } from './logger/';
 
@@ -75,6 +76,8 @@ const carveDetailInfo = {
   friendsNoS: ($) => extractDetailFriendsNoS($),
   refFilms: ($) => extractDetailRefFilms($)
     .map(val => ({ ...val, name: removeLF(val.name) })),
+  hasAwards: ($) => hasAwards($),
+  extractDetailAwards: ($) => extractDetailAwards($),
 };
 
 const getRoughInfo = (content) => {
@@ -143,6 +146,12 @@ const getDetailInfo = async (info, len) => {
     const friendsScore = carveDetailInfo.friendsScore($);
     const friendsNoS = carveDetailInfo.friendsNoS($);
 
+    let awards = [];
+    if (carveDetailInfo.hasAwards($)) {
+      const awardContent = await getText(`${info.url}/awards`);
+      awards = carveDetailInfo.extractDetailAwards(cheerio.load(awardContent));
+    }
+
     let imgInfo = { width: 0, height: 0, color: 'white' };
     try {
       imgInfo = await getPosterInfo(posterURL || info.posterURL);
@@ -191,6 +200,7 @@ const getDetailInfo = async (info, len) => {
       friendsNoS,
       friendsScore,
       refFilms,
+      awards,
 
       posterError: !checkStringLegal(posterURL) && !checkStringLegal(info.posterURL)
       && imgInfo.width > 0 && imgInfo.height > 0,
@@ -233,6 +243,7 @@ const mergeObject = (oldObj, newObj) => {
     numberOfWanted: !_.isNull(newObj.numberOfWanted) ? newObj.numberOfWanted : oldObj.numberOfWanted,
     friendsScore: !_.isNull(newObj.friendsScore) ? newObj.friendsScore : oldObj.friendsScore,
     friendsNoS: !_.isNull(newObj.friendsNoS) ? newObj.friendsNoS : oldObj.friendsNoS,
+    awards: newObj.awards != null ? newObj.awards : oldObj.awards,
 
     yearError: (oldObj.yearError || oldObj.yearError == undefined) && newObj.yearError, // eslint-disable-line eqeqeq
     posterError: (oldObj.posterError || oldObj.posterError == undefined) && newObj.posterError,  // eslint-disable-line eqeqeq
@@ -285,6 +296,7 @@ const mergeObject = (oldObj, newObj) => {
       }
     }
   }
+  // TODO: 新增奖项
   if (newObj.numberOfScoreError === false) {
     res.numberOfScore = newObj.numberOfScore;
   }

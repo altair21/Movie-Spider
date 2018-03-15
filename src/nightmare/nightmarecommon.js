@@ -91,6 +91,7 @@ const getDetailInfoExceptPoster = async (info, content, len) => {
       friendsScore,
       friendsNoS,
       refFilms,
+      hasAwards: carveDetailInfo.hasAwards($),
 
       posterError: info.posterError,
       yearError: !checkStringLegal(year),
@@ -106,13 +107,30 @@ const getDetailInfoExceptPoster = async (info, content, len) => {
   }
 };
 
-const analyze = (nightmare = Nightmare({ show: true }), url, newObj, oldObj, len = 0) => new Promise((resolve, reject) => {
+const retryTimes = 10;
+
+const analyzeAward = async (nightmare, url) => new Promise((resolve) => {
+  nightmare
+    .goto(url)
+    .wait('.nav-user-account')
+    .evaluate(() => document.body.innerHTML)
+    .then(async (content) => {
+      const awards = carveDetailInfo.extractDetailAwards(cheerio.load(content));
+      resolve(awards);
+    });
+});
+
+const analyze = (nightmare = Nightmare({ show: true }), url, newObj, oldObj, len = 0, times = 0) => new Promise((resolve, reject) => {
   nightmare
     .goto(url)
     .wait('.nav-user-account')
     .evaluate(() => document.body.innerHTML)
     .then(async (content) => {
       const newInfo = await getDetailInfoExceptPoster(newObj, content, len);
+      if (newInfo.hasAwards) {
+        newInfo.awards = await analyzeAward(nightmare, `${url}/awards`);
+        delete newInfo.hasAwards;
+      }
       let resInfo = newInfo;
       let messages = [];
       if (oldObj) {
@@ -122,7 +140,13 @@ const analyze = (nightmare = Nightmare({ show: true }), url, newObj, oldObj, len
       }
       resolve({ resInfo, messages });
     })
-    .catch(reject);
+    .catch((e) => {
+      if (times >= retryTimes) {
+        reject(e);
+      }
+      console.log(errorColored(`[分析失败]: ${e}, 开始重试，第 ${times + 1} 次`));
+      analyze(nightmare, url, newObj, oldObj, len, times + 1);
+    });
 });
 
 export { getDetailInfoExceptPoster, analyze };

@@ -1,3 +1,4 @@
+import cheerio from 'cheerio';
 import ErrorMessage from './preset/errormessage';
 import { ScoreDefinition } from './preset/valueDef';
 
@@ -224,6 +225,54 @@ const extractDetailRefFilms = ($) => {
   return res;
 };
 
+const hasAwards = ($) => {
+  const modEle = $('.mod .hd a')[0];
+  if (modEle && modEle.children[0]) {
+    return true;
+  }
+  return false;
+};
+
+const extractDetailAwards = ($) => {
+  const awards = $('.awards');
+  const res = [];
+
+  const extractAward = ($$) => {
+    const obj = { name: 'GetCeremonyNameFailed', year: 'GetYearFailed', awards: [] };
+    const nameEle = $$('.hd h2 a')[0];
+    const yearEle = $$('.hd h2 span')[0];
+    const awardEle = $$('.award');
+    if (nameEle && nameEle.children[0]) obj.name = nameEle.children[0].data || obj.name;
+    if (yearEle && yearEle.children[0] && yearEle.children[0].data) {
+      const year = yearEle.children[0].data;
+      obj.year = +year.trim().substr(1, 4);
+    }
+    awardEle.each((index, element) => {
+      const liEle = $$(element).children('li');
+      const award = { name: 'GetAwardNameFailure', honoree: [] };
+      liEle.each((idx, li) => {
+        if (idx === 0) {
+          if (li && li.children[0]) award.name = li.children[0].data || award.name;
+        } else {
+          const honoreeEle = $$(li).children('a');
+          honoreeEle.each((id, aEle) => {
+            if (aEle && aEle.children[0] && aEle.children[0].data) {
+              award.honoree.push(aEle.children[0].data);
+            }
+          });
+        }
+      });
+      obj.awards.push(award);
+    });
+    res.push(obj);
+  };
+  awards.each((index, element) => {
+    const $$ = cheerio.load($(element).html());
+    extractAward($$);
+  });
+  return res;
+};
+
 export {
   extractTotal, extractDetailURL, extractRoughName, extractRoughPoster,
   extractRoughTags, extractRoughInfos, extractDetailName, extractDetailPoster,
@@ -232,5 +281,6 @@ export {
   extractDetailCategory, extractDetailScore, extractDetailNumOfScore,
   extractDetailRefFilms, extractDetailCountry, extractDetailReleaseDate,
   extractDetailNumberOfWatched, extractDetailNumberOfWanted,
-  extractDetailFriendsScore, extractDetailFriendsNoS,
+  extractDetailFriendsScore, extractDetailFriendsNoS, extractDetailAwards,
+  hasAwards,
 };

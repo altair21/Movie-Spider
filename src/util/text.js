@@ -183,6 +183,12 @@ const PropertyPreset = [
     allowNull: true,
     allowEmptyArray: true,
   },
+  {
+    name: 'awards',
+    type: PropertyType.ARRAY,
+    allowNull: true,
+    allowEmptyArray: true,
+  },
 
   // --------------- Detail Info Validator ---------------
   {
@@ -282,7 +288,7 @@ const checkProperty = (obj) => {
             if (!PropertyPreset[i].allowEmptyArray && property.length === 0) {
               errorMessages.push(`${obj.name} 属性 ${pn} 值为空数组`);
             }
-          } else {
+          } else if (!PropertyPreset[i].allowNull) {
             errorMessages.push(`${obj.name} 属性 ${pn} 值类型不正确`);
           }
           break;
@@ -291,7 +297,7 @@ const checkProperty = (obj) => {
             if (property === true) {
               errorMessages.push(`${obj.name} 属性 ${pn} 为 true`);
             }
-          } else {
+          } else if (!PropertyPreset[i].allowNull) {
             errorMessages.push(`${obj.name} 属性 ${pn} 值类型不正确`);
           }
           break;
@@ -306,7 +312,7 @@ const checkProperty = (obj) => {
             if (!PropertyPreset[i].allowEmptyString && property === '') {
               errorMessages.push(`${obj.name} 属性 ${pn} 值为空字符串`);
             }
-          } else {
+          } else if (!PropertyPreset[i].allowNull) {
             errorMessages.push(`${obj.name} 属性 ${pn} 值类型不正确`);
           }
           break;
