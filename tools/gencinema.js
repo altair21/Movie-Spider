@@ -24,10 +24,10 @@ const sortFun = (key) => (a, b) => {
   origin.forEach((obj) => {
     // 下面这个正则不起作用，不知何故
     // const reg = new RegExp(`${year}-\\d{2}-\\d{2}(\\u4e2d\\u56fd\\u5927\\u9646)`, 'u');
+    const reg = new RegExp(`${year}-\\d{2}-\\d{2}`, 'u');
     for (let i = 0, l = obj.releaseDate.length; i < l; i++) {
-      if (obj.releaseDate[i].indexOf(year) !== -1
-        && obj.releaseDate[i].indexOf('中国大陆') !== -1
-        && obj.releaseDate[i].length === 16) {
+      if (reg.test(obj.releaseDate[i])
+        && obj.releaseDate[i].indexOf('中国大陆') !== -1) {
         const newObj = {
           ...obj,
           releaseDate: obj.releaseDate[i].substr(0, 10),

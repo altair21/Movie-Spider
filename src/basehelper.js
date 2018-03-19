@@ -120,6 +120,7 @@ const getDetailInfo = async (info, len) => {
     numberOfScoreError: true,
     refFilmsError: true,
   };
+  const currentYear = (new Date()).getFullYear();
 
   if (!info || !info.url) {
     return fallbackRes;
@@ -147,7 +148,7 @@ const getDetailInfo = async (info, len) => {
     const friendsNoS = carveDetailInfo.friendsNoS($);
 
     let awards = [];
-    if (carveDetailInfo.hasAwards($)) {
+    if (currentYear - year <= 3 && carveDetailInfo.hasAwards($)) {
       const awardContent = await getText(`${info.url}/awards`);
       awards = carveDetailInfo.extractDetailAwards(cheerio.load(awardContent));
     }

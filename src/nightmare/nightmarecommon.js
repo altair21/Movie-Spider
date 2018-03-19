@@ -34,6 +34,7 @@ const getDetailInfoExceptPoster = async (info, content, len) => {
     numberOfScoreError: true,
     refFilmsError: true,
   };
+  const currentYear = (new Date()).getFullYear();
 
   try {
     const $ = cheerio.load(content);
@@ -91,7 +92,7 @@ const getDetailInfoExceptPoster = async (info, content, len) => {
       friendsScore,
       friendsNoS,
       refFilms,
-      hasAwards: carveDetailInfo.hasAwards($),
+      hasAwards: (currentYear - year <= 3) && carveDetailInfo.hasAwards($),
 
       posterError: info.posterError,
       yearError: !checkStringLegal(year),
@@ -144,7 +145,7 @@ const analyze = (nightmare = Nightmare({ show: true }), url, newObj, oldObj, len
       if (times >= retryTimes) {
         reject(e);
       }
-      console.log(errorColored(`[分析失败]: ${e}, 开始重试，第 ${times + 1} 次`));
+      console.log(errorColored('[分析失败]:', e, `开始重试，第 ${times + 1} 次`));
       analyze(nightmare, url, newObj, oldObj, len, times + 1);
     });
 });
