@@ -163,7 +163,7 @@ const main = () => {
     .wait('.nav-user-account')
 
     .goto(`https://movie.douban.com/people/${targetId}/collect`)
-    // .goto('https://movie.douban.com/people/4513116/collect?start=45&sort=time&rating=all&filter=all&mode=grid')
+    // .goto(`https://movie.douban.com/people/${targetId}/collect?start=140&sort=time&rating=all&filter=all&mode=grid`)
     .wait('.nav-user-account')
     .evaluate(() => document.body.innerHTML)
     .then(async (content) => {
