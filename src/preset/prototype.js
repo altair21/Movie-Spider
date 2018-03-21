@@ -1,3 +1,4 @@
+
 const initialConfig = {
   id: undefined,
   ssh: {
@@ -14,26 +15,26 @@ const initialConfig = {
   concurrency: undefined,
   ignoreTags: true,
   cookie: undefined,
+  ignoreFriends: false,
 };
 
 const initialState = {
-  fullOutputPath: null,
+  origin: [],
   outputPath: null,
-  manualPath: null,
+  manual: [],
   config: initialConfig,
   startTime: new Date(),
   total: -1,
   actualTotal: 0,
+  sent: false,
+  page: null,
   infos: [],
   ruleoutItems: [],
   appendedItem: [],
-  errorItem: {
-    poster: [],
-    year: [],
-    director: [],
-  },
   logs: [],
+  errorMessages: [],
   changes: [],
+  getText: () => '',
 };
 
 export { initialState };

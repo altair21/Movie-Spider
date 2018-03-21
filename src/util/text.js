@@ -273,7 +273,7 @@ const checkProperty = (obj) => {
   const errorMessages = [];
   // 推测
   if (obj.yearError && obj.directorError && obj.categoryError
-    && obj.scoreError && obj.numberOfScoreError && obj.refFilmsError) {
+    && obj.scoreError && obj.numberOfScoreError) {
     errorMessages.push(`${obj.name}(${obj.url}) 有很大可能404了`);
     return { isCorrect: errorMessages.length === 0, errorMessages };
   }

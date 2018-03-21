@@ -8,7 +8,7 @@ import {
   writeToDisk, genLogMessage, filterResult, mergeManualItem, finishResult,
   checkResult, sendToServer,
 } from './helper';
-import { getTodayDate } from './util/';
+import { getTodayDate, getText, JSONPathToObject } from './util/';
 import { initialState } from './preset/prototype';
 import { cookieMgr } from './cookiemgr';
 
@@ -27,12 +27,14 @@ const main = () => {
   const config = JSON.parse(fs.readFileSync(configPath, 'utf8'));
   const _initialState = {
     ...initialState,
-    ruleoutItems: fs.existsSync(filterPath) ? JSON.parse(fs.readFileSync(filterPath, 'utf8')) : [],
     fullOutputPath,
     outputPath,
-    manualPath,
+    ruleoutItems: JSONPathToObject(filterPath),
+    origin: JSONPathToObject(fullOutputPath),
+    manual: JSONPathToObject(manualPath),
     config,
     startTime: new Date(),
+    getText,
   };
   cookieMgr.setCookie(config.cookie);
 

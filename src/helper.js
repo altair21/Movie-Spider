@@ -2,21 +2,24 @@ import _ from 'lodash';
 import cheerio from 'cheerio';
 
 import {
-  getText, objectToJSONPath, JSONPathToObject,
-  checkProperty, objectToTextPath, scp, getDuration, sleep,
+  objectToJSONPath, checkProperty, objectToTextPath, scp, getDuration, sleep,
 } from './util/';
 import { extractTotal } from './xpath';
 import {
-  genOffsetStep15, getURLs, concurrentGetDetailInfo, mergeObject,
+  genOffsetStep15, concurrentGetDetailInfo, mergeObject, getRoughInfos,
 } from './basehelper';
+import { colored, Color, ColorType } from './logger';
 import { initialState } from './preset/prototype';
+import { NodeEnvDefinition } from './preset/valueDef';
+
+const errorColored = colored(ColorType.foreground)(Color.red);
 
 const getTotal = async (state = initialState) => {
-  const content = await getText(`/people/${state.config.id}/`);
+  const content = await state.getText(`/people/${state.config.id}/`);
   const totalStr = extractTotal(cheerio.load(content));
   return {
     ...state,
-    total: Number.parseInt(totalStr, 10),
+    total: 15 || Number.parseInt(totalStr, 10),
   };
 };
 
@@ -25,8 +28,15 @@ const genRoughInfos = async (state = initialState) => {
 
   const res = await offsets.reduce((promise, curOffset) =>
     promise.then(async arr => {
-      await sleep(Math.random() * 1500 + 1500); // IP 保护
-      return arr.concat(await getURLs(state.config.id, curOffset));
+      // await sleep(Math.random() * 1500 + 1500); // IP 保护
+      const content = await state.getText(`/people/${state.config.id}/collect`, {
+        start: curOffset,
+        sort: 'time',
+        rating: 'all',
+        filter: 'all',
+        mode: 'grid',
+      });
+      return arr.concat(getRoughInfos(content));
     }), Promise.resolve([]));
   return {
     ...state,
@@ -43,34 +53,52 @@ const filterKeywords = (state = initialState) => ({
   ) : state.infos,
 });
 
-const genDetailInfos = async (state = initialState) => ({
-  ...state,
-  infos: await _.chunk(state.infos.filter(info =>
+const genDetailInfos = async (state = initialState) => {
+  let _404Times = 0;
+  let logs = [];
+  const infos = await _.chunk(state.infos.filter(info =>
     !_.find(state.ruleoutItems, (ruleoutItem) => ruleoutItem.url === info.url || ruleoutItem.id === info.id)),
     state.config.concurrency || 1)
     .reduce((promise, infoArr) =>
-      promise.then(async arr =>
-        arr.concat(await concurrentGetDetailInfo(infoArr, arr.length))),
-      Promise.resolve([])),
-});
+      promise.then(async arr => {
+        const data = await concurrentGetDetailInfo(infoArr, state.getText, arr.length + 1);
+        data.forEach(obj => {
+          const result = checkProperty(obj);
+          if (result.isCorrect) _404Times = 0;
+          else _404Times++;
+          logs = logs.concat(result.errorMessages);
+          if (process.env.NODE_ENV === NodeEnvDefinition.development && !result.isCorrect) {
+            console.log(errorColored(result.errorMessages.join('\n')));
+          }
+        });
+        if (_404Times > 10) {
+          throw new Error('无法继续执行爬虫，需要手动检验是否 IP 被封、账号被锁');
+        }
+        return arr.concat(data);
+      }), Promise.resolve([]));
+  return {
+    ...state,
+    infos,
+    errorMessages: logs,
+  };
+};
 
 const mergeResult = (state = initialState) => {
   const appendedItem = [];
-  const origin = JSONPathToObject(state.fullOutputPath);
 
-  const res = _.cloneDeep(origin);
+  const res = _.cloneDeep(state.origin);
   let changes = [];
 
   state.infos.filter(info => info.id && info.id !== '').forEach(info => {
     const isItemEqual = (item) => item.id === info.id || item.url === info.url;
     const findIndex = _.findIndex(res, isItemEqual);
     if (findIndex === -1) {
-      appendedItem.push({ name: info.name, id: info.id });
+      appendedItem.push({ name: info.name, year: info.year, director: info.director });
       res.push(info);
     } else {
       const merged = mergeObject(res[findIndex], info);
       res[findIndex] = merged.newObject;
-      changes = merged.messages;
+      changes = changes.concat(merged.messages);
     }
   });
 
@@ -83,40 +111,22 @@ const mergeResult = (state = initialState) => {
 };
 
 const filterResult = (state = initialState) => {
-  const errorItem = {
-    poster: [],
-    year: [],
-    director: [],
-  };
   const res = state.infos.filter(info => {
     if (_.isEmpty(info) || info == null || !info.name || !info.id) return false;
-    if (info.posterError) {
-      errorItem.poster.push({ id: info.id, name: info.name });
-    }
-    if (info.yearError) {
-      errorItem.year.push({ id: info.id, name: info.name });
-    }
-    if (info.directorError) {
-      errorItem.director.push({ id: info.id, name: info.name });
-    }
     return true;
   });
 
   return {
     ...state,
     infos: res,
-    errorItem,
   };
 };
 
-const mergeManualItem = (state = initialState) => {
-  const manualItem = JSONPathToObject(state.manualPath);
-
-  return {
+const mergeManualItem = (state = initialState) =>
+  ({
     ...state,
-    infos: state.infos.concat(manualItem),
-  };
-};
+    infos: state.infos.concat(state.manual),
+  });
 
 const finishResult = (state = initialState) => {
   let res = _.cloneDeep(state.infos);
@@ -156,29 +166,30 @@ const writeToDisk = (state = initialState) => {
 };
 
 const sendToServer = async (state = initialState) => {
-  await scp(state.outputPath, state.config.ssh);
-  return state;
+  let sent = true;
+  try {
+    await scp(state.outputPath, state.config.ssh);
+  } catch (e) {
+    state.logs.push(`sendToServer() error: ${e}`);
+    sent = false;
+  }
+  return {
+    ...state,
+    sent,
+  };
 };
 
 const genLogMessage = (state = initialState) => {
   const logs = [];
   logs.push('爬取成功：');
-  logs.push(`数量：${state.actualTotal}/${state.total}`);
+  logs.push(`数量：${state.actualTotal}/(${state.total} + ${state.manual.length})`);
   logs.push(`耗时：${getDuration(state.startTime)}`);
-  logs.push('结果文件已通过 scp 发送到目标服务器\n');
+  if (state.sent) logs.push('结果文件已通过 scp 发送到目标服务器\n');
   if (state.appendedItem.length > 0) {
-    logs.push(`新增 ${state.appendedItem.length} 部影片：\n${JSON.stringify(state.appendedItem)}\n`);
+    logs.push(`新增 ${state.appendedItem.length} 部影片：\n${state.appendedItem.map(obj =>
+      `《${obj.name}》(${(obj.director || []).join('、')}, ${obj.year})`).join('\n')}\n`);
   } else {
     logs.push('无新增影片\n');
-  }
-  if (state.errorItem.poster.length > 0) {
-    logs.push(`有 ${state.errorItem.poster.length} 部影片未获取到正确的海报：\n${JSON.stringify(state.errorItem.poster)}\n`);
-  }
-  if (state.errorItem.year.length > 0) {
-    logs.push(`有 ${state.errorItem.year.length} 部影片未获取到正确的年份：\n${JSON.stringify(state.errorItem.year)}\n`);
-  }
-  if (state.errorItem.director.length > 0) {
-    logs.push(`有 ${state.errorItem.director.length} 部影片未获取到正确的导演：\n${JSON.stringify(state.errorItem.director)}\n`);
   }
 
   return {
@@ -190,7 +201,7 @@ const genLogMessage = (state = initialState) => {
 const checkResult = (state = initialState) => {
   let flag = true;
   let emptyObjFlag = false;
-  let logs = [];
+  const logs = [];
 
   logs.push('自检模块：');
   state.infos.forEach(info => {
@@ -198,18 +209,16 @@ const checkResult = (state = initialState) => {
       emptyObjFlag = true;
       flag = false;
     }
-
-    const checked = checkProperty(info, state.config.ignoreTags);
-    logs = logs.concat(checked.errorMessages);
-    flag = flag && checked.isCorrect;
   });
 
   if (emptyObjFlag) logs.push('\n存在空的条目\n');
-  if (flag) logs.push(`没有发现异常，共 ${state.infos.length} 项`);
+  if (flag && state.errorMessages.length === 0) {
+    logs.push(`没有发现异常，共 ${state.infos.length} 项`);
+  }
 
   return {
     ...state,
-    logs: state.logs.concat(logs),
+    logs: state.logs.concat(logs).concat(state.errorMessages),
   };
 };
 

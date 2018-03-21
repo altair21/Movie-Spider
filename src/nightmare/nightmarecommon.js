@@ -13,8 +13,8 @@ const statColored = (text) => colored(ColorType.foreground)(Color.blue)(`[${getT
 const errorColored = (text) => colored(ColorType.foreground)(Color.red)(`[${getTimeByHMS()}]: ${text}`);
 const terribleErrorColored = (text) => colored(ColorType.background)(Color.red)(`[${getTimeByHMS()}]: ${text}`);
 
-// 和 `basehelper.js` 里的同名函数相比，使用了原始 `info` 中的海报信息
-const getDetailInfoExceptPoster = async (info, content, len) => {
+// 和 `basehelper.js` 里的同名函数相比，没有获取 award 信息
+const getDetailInfoExceptAward = async (info, content, len) => {
   const fallbackRes = {
     ...info,
     year: '',
@@ -34,7 +34,7 @@ const getDetailInfoExceptPoster = async (info, content, len) => {
     numberOfScoreError: true,
     refFilmsError: true,
   };
-  const currentYear = (new Date()).getFullYear();
+  // const currentYear = (new Date()).getFullYear();
 
   try {
     const $ = cheerio.load(content);
@@ -92,7 +92,8 @@ const getDetailInfoExceptPoster = async (info, content, len) => {
       friendsScore,
       friendsNoS,
       refFilms,
-      hasAwards: (currentYear - year <= 3) && carveDetailInfo.hasAwards($),
+      // hasAwards: (currentYear - year <= 3) && carveDetailInfo.hasAwards($),
+      hasAwards: carveDetailInfo.hasAwards($),
 
       posterError: info.posterError,
       yearError: !checkStringLegal(year),
@@ -103,7 +104,7 @@ const getDetailInfoExceptPoster = async (info, content, len) => {
       refFilmsError: !refFilms || refFilms.length === 0,
     };
   } catch (e) {
-    console.log(terribleErrorColored(`function 'getDetailInfoExceptPoster' error: ${e}`));
+    console.log(terribleErrorColored(`function 'getDetailInfoExceptAward' error: ${e}`));
     return fallbackRes;
   }
 };
@@ -127,11 +128,11 @@ const analyze = (nightmare = Nightmare({ show: true }), url, newObj, oldObj, len
     .wait('.nav-user-account')
     .evaluate(() => document.body.innerHTML)
     .then(async (content) => {
-      const newInfo = await getDetailInfoExceptPoster(newObj, content, len);
+      const newInfo = await getDetailInfoExceptAward(newObj, content, len);
       if (newInfo.hasAwards) {
         newInfo.awards = await analyzeAward(nightmare, `${url}/awards`);
-        delete newInfo.hasAwards;
       }
+      delete newInfo.hasAwards;
       let resInfo = newInfo;
       let messages = [];
       if (oldObj) {
@@ -150,4 +151,4 @@ const analyze = (nightmare = Nightmare({ show: true }), url, newObj, oldObj, len
     });
 });
 
-export { getDetailInfoExceptPoster, analyze };
+export { getDetailInfoExceptAward, analyze };

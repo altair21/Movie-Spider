@@ -7,6 +7,7 @@
     "start": "NODE_ENV=production REQUEST_ENV=shell babel-node src/index.js",
     "dev": "NODE_ENV=development REQUEST_ENV=shell babel-node src/index.js",
     "build": "babel src -d dist",
+    "puppeteer": "NODE_ENV=development REQUEST_ENV=shell babel-node src/puppeteer/index.js",
     "nightmare": "NODE_ENV=development REQUEST_ENV=nightmare babel-node src/nightmare/nightmare.js",
     "nightmarefull": "NODE_ENV=development REQUEST_ENV=nightmare babel-node src/nightmare/nightmarefull.js",
     "complete": "babel-node src/nightmare/completeinfo.js",
@@ -44,6 +45,7 @@
     "image-size": "^0.6.1",
     "lodash": "^4.17.4",
     "nightmare": "^2.10.0",
+    "puppeteer": "^1.2.0",
     "webp-converter": "^2.1.6"
   }
 }

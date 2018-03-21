@@ -3,10 +3,10 @@ import _ from 'lodash';
 import cheerio from 'cheerio';
 
 import {
-  ScoreDefinition, NodeEnvDefinition, RequestEnvDefinition,
+  ScoreDefinition, NodeEnvDefinition,
 } from './preset/valueDef';
 import {
-  getPosterInfo, getText, hdThumbPoster, JSONPathToObject, sleep, getTimeByHMS,
+  getPosterInfo, hdThumbPoster, JSONPathToObject, sleep, getTimeByHMS,
 } from './util/';
 import {
   extractDetailURL, extractRoughName, extractRoughPoster,
@@ -20,10 +20,11 @@ import {
   hasAwards,
 } from './xpath';
 import { colored, Color, ColorType } from './logger/';
+import { config } from './config';
 
 const createStepRange = (step) => (end) => _.range(0, end, step);
 const changesColored = colored(ColorType.foreground)(Color.green);
-const statColored = (text) => colored(ColorType.background)(Color.blue)(colored(ColorType.foreground)(Color.black)(text));
+const statColored = (text) => colored(ColorType.foreground)(Color.blue)(`[${getTimeByHMS()}]: ${text}`);
 const errorColored = (text) => colored(ColorType.foreground)(Color.red)(`[${getTimeByHMS()}]: ${text}`);
 const terribleErrorColored = (text) => colored(ColorType.background)(Color.red)(`[${getTimeByHMS()}]: ${text}`);
 
@@ -100,7 +101,7 @@ const getRoughInfo = (content) => {
 const getRoughInfos = (content) =>
   extractRoughInfos(cheerio.load(content)).map(getRoughInfo);
 
-const getDetailInfo = async (info, len) => {
+const getDetailInfo = async (info, getContent, len) => {
   const fallbackRes = {
     ...info,
     year: '',
@@ -120,14 +121,13 @@ const getDetailInfo = async (info, len) => {
     numberOfScoreError: true,
     refFilmsError: true,
   };
-  const currentYear = (new Date()).getFullYear();
 
   if (!info || !info.url) {
     return fallbackRes;
   }
 
   try {
-    const content = await getText(info.url);
+    const content = await getContent(info.url);
     if (process.env.NODE_ENV === NodeEnvDefinition.development) {
       process.stdout.write(statColored(`${len}. ${info.name}(${info.url}) 爬取完成，正在分析...`));
     }
@@ -139,17 +139,19 @@ const getDetailInfo = async (info, len) => {
     const score = carveDetailInfo.score($);
     const numberOfScore = carveDetailInfo.numberOfScore($);
     const category = carveDetailInfo.category($);
-    const refFilms = carveDetailInfo.refFilms($);
     const country = carveDetailInfo.country($);
     const releaseDate = carveDetailInfo.releaseDate($);
     const numberOfWatched = carveDetailInfo.numberOfWatched($);
     const numberOfWanted = carveDetailInfo.numberOfWanted($);
     const friendsScore = carveDetailInfo.friendsScore($);
     const friendsNoS = carveDetailInfo.friendsNoS($);
+    const refFilms = carveDetailInfo.refFilms($);
 
     let awards = [];
-    if (currentYear - year <= 3 && carveDetailInfo.hasAwards($)) {
-      const awardContent = await getText(`${info.url}/awards`);
+    // const currentYear = (new Date()).getFullYear();
+    // if (currentYear - year <= 3 && carveDetailInfo.hasAwards($)) {
+    if (carveDetailInfo.hasAwards($)) {
+      const awardContent = await getContent(`${info.url}awards`);
       awards = carveDetailInfo.extractDetailAwards(cheerio.load(awardContent));
     }
 
@@ -198,8 +200,8 @@ const getDetailInfo = async (info, len) => {
       releaseDate,
       numberOfWatched,
       numberOfWanted,
-      friendsNoS,
-      friendsScore,
+      friendsNoS: config.ignoreFriends ? 0 : friendsNoS,
+      friendsScore: config.ignoreFriends ? 0 : friendsScore,
       refFilms,
       awards,
 
@@ -218,9 +220,9 @@ const getDetailInfo = async (info, len) => {
   }
 };
 
-const concurrentGetDetailInfo = async (infoArr, len) => {
+const concurrentGetDetailInfo = async (infoArr, getContent, len) => {
   const res = await Promise.all(infoArr.map(async info => {
-    const ret = await getDetailInfo(info, len);
+    const ret = await getDetailInfo(info, getContent, len);
     return ret;
   }));
   return res;
@@ -315,24 +317,8 @@ const filterRuleOutItem = (array, filterPath) => {
 
 const genOffsetStep15 = createStepRange(15);
 
-const getURLs = async (id, offset) => {
-  const content = await getText(`/people/${id}/collect`, {
-    start: offset,
-    sort: 'time',
-    rating: 'all',
-    filter: 'all',
-    mode: 'grid',
-  });
-
-  if (process.env.NODE_ENV === NodeEnvDefinition.development
-    && process.env.REQUEST_ENV === RequestEnvDefinition.shell) {
-    console.log(statColored(`已爬取 ${offset} 个简要信息`));
-  }
-  return getRoughInfos(content);
-};
-
 export {
-  createStepRange, carveRoughInfo, carveDetailInfo, getURLs, genOffsetStep15,
+  createStepRange, carveRoughInfo, carveDetailInfo, genOffsetStep15,
   getDetailInfo, mergeObject, removeLF, concurrentGetDetailInfo,
   filterRuleOutItem, getRoughInfos,
 };

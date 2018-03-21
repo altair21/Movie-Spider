@@ -5,7 +5,7 @@ import _ from 'lodash';
 import { getText } from '../src/util/';
 import { mergeObject } from '../src/basehelper';
 import { checkProperty } from '../src/util/text';
-import { getDetailInfoExceptPoster } from '../src/nightmare/nightmarecommon';
+import { getDetailInfoExceptAward } from '../src/nightmare/nightmarecommon';
 import { cookieMgr } from '../src/cookiemgr';
 
 const url = 'https://movie.douban.com/subject/1294240/';
@@ -24,7 +24,7 @@ const doAnalyze = async () => {
     process.exit(0);
   }
 
-  const newInfo = await getDetailInfoExceptPoster(origin[infoIndex], await getText(url));
+  const newInfo = await getDetailInfoExceptAward(origin[infoIndex], await getText(url));
   const resInfo = mergeObject(origin[infoIndex], newInfo).newObject;
   origin[infoIndex] = resInfo;
   fs.writeFileSync(fullOutputPath, JSON.stringify(origin), 'utf8');
