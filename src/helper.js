@@ -13,20 +13,21 @@ import { initialState } from './preset/prototype';
 import { NodeEnvDefinition } from './preset/valueDef';
 
 const errorColored = colored(ColorType.foreground)(Color.red);
+const progressColored = colored(ColorType.foreground)(Color.cyan);
 
 const getTotal = async (state = initialState) => {
   const content = await state.getText(`/people/${state.config.id}/`);
   const totalStr = extractTotal(cheerio.load(content));
   return {
     ...state,
-    total: 15 || Number.parseInt(totalStr, 10),
+    total: Number.parseInt(totalStr, 10),
   };
 };
 
 const genRoughInfos = async (state = initialState) => {
   const offsets = genOffsetStep15(state.total);
 
-  const res = await offsets.reduce((promise, curOffset) =>
+  const res = await offsets.reduce((promise, curOffset, index) =>
     promise.then(async arr => {
       // await sleep(Math.random() * 1500 + 1500); // IP 保护
       const content = await state.getText(`/people/${state.config.id}/collect`, {
@@ -36,8 +37,14 @@ const genRoughInfos = async (state = initialState) => {
         filter: 'all',
         mode: 'grid',
       });
+      if (process.env.NODE_ENV === NodeEnvDefinition.development) {
+        console.log(progressColored(`[进度] ${index + 1} 完成`));
+      }
       return arr.concat(getRoughInfos(content));
     }), Promise.resolve([]));
+  if (process.env.NODE_ENV === NodeEnvDefinition.development) {
+    console.log(progressColored('[进度] 简要信息提取完毕'));
+  }
   return {
     ...state,
     infos: res,

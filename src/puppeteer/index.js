@@ -19,8 +19,12 @@ const fullOutputPath = path.join(outputDir, 'full_output.json');
 const manualPath = path.join(outputDir, 'manual.json');
 const filterPath = path.join(outputDir, 'filter.json');
 
-const getTextInPage = async (page, url) => {
-  await page.goto(`https://movie.douban.com${url}`);
+const getTextInPage = async (page, url, param = {}) => {
+  const paramStr = Object.keys(param).map(key => `${key}=${param[key]}`).join('&');
+  const seprator = paramStr.length > 0 ? '?' : '';
+  const reqStr = `${url}${seprator}${paramStr}`;
+
+  await page.goto(`https://movie.douban.com${reqStr}`);
   const htmlHandle = await page.evaluateHandle(() => document.body.innerHTML);
   const text = await htmlHandle.jsonValue();
   await htmlHandle.dispose();
@@ -91,3 +95,4 @@ const main = async () => {
 setInterval(() => {
   main().catch(console.log);
 }, 24 * 60 * 60 * 1000);
+main().catch(console.log);
