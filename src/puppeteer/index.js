@@ -88,4 +88,6 @@ const main = async () => {
   }
 };
 
-main().catch(console.log);
+setInterval(() => {
+  main().catch(console.log);
+}, 24 * 60 * 60 * 1000);
