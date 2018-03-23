@@ -53,7 +53,7 @@ const keyAwards = [
         if (!findedAw) return;
         const newObj = {
           name: obj.name,
-          director: obj.director,
+          director: obj.director.map(o => o.name),
           ceremony: finded.name,
           year: finded.year,
           award: findedAw.name,

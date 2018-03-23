@@ -100,18 +100,45 @@ const extractDetailYear = ($) => {
 };
 
 const extractDetailDirector = ($) => {
-  const directorEle = $('#wrapper #content #info span .attrs')[0];
-  if (directorEle) {
-    const director = [];
-    const children = directorEle.children;
-    for (let i = 0, l = children.length; i < l; i++) {
-      if (children[i].type === 'tag') {
-        director.push(children[i].children[0].data);
+  const elements = $('#wrapper #content #info a[rel=v\\:directedBy]');
+  const res = [];
+  elements.each((index, element) => {
+    if (element && element.children[0]) {
+      if (element.attribs.href && element.attribs.href.indexOf('celebrity') !== -1) {
+        res.push({
+          id: element.attribs.href.slice(11, -1),
+          name: element.children[0].data,
+        });
+      } else {
+        res.push({
+          id: '',
+          name: element.children[0].data,
+        });
       }
     }
-    return director;
-  }
-  return [];
+  });
+  return res;
+};
+
+const extractDetailActor = ($) => {
+  const elements = $('#info a[rel=v\\:starring]');
+  const res = [];
+  elements.each((index, element) => {
+    if (element && element.children[0]) {
+      if (element.attribs.href && element.attribs.href.indexOf('celebrity') !== -1) {
+        res.push({
+          id: element.attribs.href.slice(11, -1),
+          name: element.children[0].data,
+        });
+      } else {
+        res.push({
+          id: '',
+          name: element.children[0].data,
+        });
+      }
+    }
+  });
+  return res;
 };
 
 const extractDetailScore = ($) => {
@@ -149,6 +176,46 @@ const extractDetailCountry = ($) => {
     }
   });
   return res;
+};
+
+const extractDetailRuntime = ($) => {
+  const element = $('#info span[property=v\\:runtime]')[0];
+  let res = [];
+  if (element == null) {
+    const elements = $('#info span');
+    elements.each((index, ele) => {
+      if (ele && ele.children[0] && typeof ele.children[0].data === 'string'
+        && ele.children[0].data.startsWith('片长')) {
+        res.push((ele.next.data || '').trim());
+      }
+    });
+    return res;
+  }
+
+  if (element && element.children[0]) res.push(element.children[0].data || '');
+  if (element && element.children[0] && typeof element.children[0].data === 'string' && element.next.data) {
+    res = res.concat(element.next.data.split('/').map(c => (c || '').trim()).slice(1));
+  }
+  return res;
+};
+
+const extractDetailClassify = ($) => {
+  const elements = $('#info span');
+  const episodeEle = $('#content .episode_list');
+  if (episodeEle.length > 0) return 'teleplay';
+
+  let isTeleplay = false;
+  elements.each((index, element) => {
+    if (element && element.children[0] && typeof element.children[0].data === 'string'
+      && (element.children[0].data.startsWith('首播')
+        || element.children[0].data.startsWith('集数')
+        || element.children[0].data.startsWith('季数')
+        || element.children[0].data.startsWith('单集片长'))) isTeleplay = true;
+  });
+  if (isTeleplay) {
+    return 'teleplay';
+  }
+  return 'film';
 };
 
 const extractDetailReleaseDate = ($) => {
@@ -282,5 +349,5 @@ export {
   extractDetailRefFilms, extractDetailCountry, extractDetailReleaseDate,
   extractDetailNumberOfWatched, extractDetailNumberOfWanted,
   extractDetailFriendsScore, extractDetailFriendsNoS, extractDetailAwards,
-  hasAwards,
+  hasAwards, extractDetailRuntime, extractDetailActor, extractDetailClassify,
 };

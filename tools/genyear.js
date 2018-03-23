@@ -23,7 +23,8 @@ const processResult = (res) => {
 
 const getResult = () => {
   const fullOutputPath = path.join(__dirname, '..', 'output', 'full_output.json');
-  const origin = JSON.parse(fs.readFileSync(fullOutputPath, 'utf8'));
+  const origin = JSON.parse(fs.readFileSync(fullOutputPath, 'utf8'))
+    .map(o => ({ ...o, director: o.director.map(d => d.name) }));
   const res = [];
 
   origin.forEach((obj) => {

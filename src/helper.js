@@ -2,7 +2,7 @@ import _ from 'lodash';
 import cheerio from 'cheerio';
 
 import {
-  objectToJSONPath, checkProperty, objectToTextPath, scp, getDuration, sleep,
+  objectToJSONPath, checkProperty, objectToTextPath, scp, getDuration, sleep, PropertyPreset
 } from './util/';
 import { extractTotal } from './xpath';
 import {
@@ -100,7 +100,7 @@ const mergeResult = (state = initialState) => {
     const isItemEqual = (item) => item.id === info.id || item.url === info.url;
     const findIndex = _.findIndex(res, isItemEqual);
     if (findIndex === -1) {
-      appendedItem.push({ name: info.name, year: info.year, director: info.director });
+      appendedItem.push({ name: info.name, year: info.year, director: info.director.map(o => o.name) });
       res.push(info);
     } else {
       const merged = mergeObject(res[findIndex], info);
@@ -151,17 +151,14 @@ const finishResult = (state = initialState) => {
 const writeToDisk = (state = initialState) => {
   objectToJSONPath(state.infos, state.fullOutputPath);
 
-  const simpleInfos = state.infos.map(_info => {
-    const info = _.clone(_info);
-    delete info.id;
-    delete info.url;
-    delete info.director;
-    delete info.tags;
-    delete info.multiName;
-    delete info.posterError;
-    delete info.yearError;
-    delete info.directorError;
-    return info;
+  const simpleInfos = state.infos.map(obj => {
+    const res = obj;
+    PropertyPreset.forEach(property => {
+      if (!property.retainForOutput) {
+        delete res[property.name];
+      }
+    });
+    return res;
   });
 
   if (state.config.outputAsJS) {

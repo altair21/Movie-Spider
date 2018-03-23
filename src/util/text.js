@@ -121,6 +121,13 @@ const PropertyPreset = [
     type: PropertyType.ARRAY,
     allowNull: false,
   },
+  // 演员
+  {
+    name: 'actor',
+    type: PropertyType.ARRAY,
+    allowNull: false,
+    allowEmptyArray: true,
+  },
   // 类别
   {
     name: 'category',
@@ -139,6 +146,19 @@ const PropertyPreset = [
     type: PropertyType.ARRAY,
     allowNull: true,
     allowEmptyArray: true,
+  },
+  // 片长
+  {
+    name: 'runtime',
+    type: PropertyType.ARRAY,
+    allowNull: false,
+    allowEmptyArray: true,
+  },
+  // 类别
+  {
+    name: 'classify',
+    type: PropertyType.STRING,
+    allowNull: false,
   },
   // 豆瓣评分
   {

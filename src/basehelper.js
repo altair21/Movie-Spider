@@ -17,7 +17,7 @@ import {
   extractDetailScore, extractDetailRefFilms, extractDetailReleaseDate,
   extractDetailNumberOfWatched, extractDetailNumberOfWanted,
   extractDetailFriendsNoS, extractDetailFriendsScore, extractDetailAwards,
-  hasAwards,
+  hasAwards, extractDetailRuntime, extractDetailActor, extractDetailClassify,
 } from './xpath';
 import { colored, Color, ColorType } from './logger/';
 import { config } from './config';
@@ -65,12 +65,15 @@ const carveDetailInfo = {
     return removeLF(posterURL);
   },
   year: ($) => removeLF(extractDetailYear($)),
-  director: ($) => extractDetailDirector($).map(director => removeLF(director)),
+  director: ($) => extractDetailDirector($),
+  actor: ($) => extractDetailActor($),
   category: ($) => extractDetailCategory($).map(val => removeLF(val)),
   score: ($) => extractDetailScore($),
   numberOfScore: ($) => extractDetailNumOfScore($),
   country: ($) => extractDetailCountry($),
   releaseDate: ($) => extractDetailReleaseDate($),
+  runtime: ($) => extractDetailRuntime($),
+  classify: ($) => extractDetailClassify($),
   numberOfWatched: ($) => extractDetailNumberOfWatched($),
   numberOfWanted: ($) => extractDetailNumberOfWanted($),
   friendsScore: ($) => extractDetailFriendsScore($),
@@ -136,11 +139,14 @@ const getDetailInfo = async (info, getContent, len) => {
     const posterURL = carveDetailInfo.poster($);
     const year = carveDetailInfo.year($);
     const director = carveDetailInfo.director($);
+    const actor = carveDetailInfo.actor($);
     const score = carveDetailInfo.score($);
     const numberOfScore = carveDetailInfo.numberOfScore($);
     const category = carveDetailInfo.category($);
     const country = carveDetailInfo.country($);
     const releaseDate = carveDetailInfo.releaseDate($);
+    const runtime = carveDetailInfo.runtime($);
+    const classify = carveDetailInfo.classify($);
     const numberOfWatched = carveDetailInfo.numberOfWatched($);
     const numberOfWanted = carveDetailInfo.numberOfWanted($);
     const friendsScore = carveDetailInfo.friendsScore($);
@@ -193,11 +199,14 @@ const getDetailInfo = async (info, getContent, len) => {
 
       year,
       director,
+      actor,
       score: score || ScoreDefinition.GetFailure,
       numberOfScore: numberOfScore || ScoreDefinition.GetFailure,
       category,
       country,
       releaseDate,
+      runtime,
+      classify,
       numberOfWatched,
       numberOfWanted,
       friendsNoS: config.ignoreFriends ? 0 : friendsNoS,
@@ -242,6 +251,7 @@ const mergeObject = (oldObj, newObj) => {
     markDate: newObj.markDate || oldObj.markDate,
     country: newObj.country && newObj.country.length > 0 ? newObj.country : oldObj.country,
     releaseDate: newObj.releaseDate && newObj.releaseDate.length > 0 ? newObj.releaseDate : oldObj.releaseDate,
+    classify: newObj.classify || oldObj.classify,
     numberOfWatched: !_.isNull(newObj.numberOfWatched) ? newObj.numberOfWatched : oldObj.numberOfWatched,
     numberOfWanted: !_.isNull(newObj.numberOfWanted) ? newObj.numberOfWanted : oldObj.numberOfWanted,
     friendsScore: !_.isNull(newObj.friendsScore) ? newObj.friendsScore : oldObj.friendsScore,
@@ -269,6 +279,7 @@ const mergeObject = (oldObj, newObj) => {
       messages.push(`${oldObj.name} 用户短评被赞：${oldObj.commentLikes} ---> ${newObj.commentLikes}`);
     }
   }
+  if (newObj.classify !== oldObj.classify && oldObj.classify != null) messages.push(`${oldObj.name} 类型修改：${oldObj.classify} ---> ${newObj.classify}，这个行为非常奇怪！！！`);
 
   if (newObj.posterError === false) {
     res.posterURL = newObj.posterURL || oldObj.posterURL;
@@ -283,7 +294,15 @@ const mergeObject = (oldObj, newObj) => {
   }
   if (newObj.directorError === false) {
     res.director = (newObj.director && newObj.director.length) ? _.cloneDeep(newObj.director) : _.cloneDeep(oldObj.director);
-    if (!_.isEqual(newObj.director, oldObj.director && oldObj.director) && newObj.director && newObj.director.length) messages.push(`${oldObj.name} 导演信息修改：${oldObj.director} ---> ${newObj.director}`);
+    if (!_.isEqual(newObj.director, oldObj.director) && oldObj.director && newObj.director && newObj.director.length) messages.push(`${oldObj.name} 导演信息修改：${JSON.stringify(oldObj.director)} ---> ${JSON.stringify(newObj.director)}`);
+  }
+  if (newObj.actor != null && newObj.actor.length > 0) {
+    res.actor = _.cloneDeep(newObj.actor);
+    if (!_.isEqual(newObj.actor, oldObj.actor) && oldObj.actor) messages.push(`${oldObj.name} 演员信息修改：${JSON.stringify(oldObj.actor)} ---> ${JSON.stringify(newObj.actor)}`);
+  }
+  if (newObj.runtime != null && newObj.runtime.length > 0) {
+    res.runtime = _.cloneDeep(newObj.runtime);
+    if (!_.isEqual(newObj.runtime, oldObj.runtime) && oldObj.runtime) messages.push(`${oldObj.name} 片长修改：${JSON.stringify(oldObj.runtime)} ---> ${JSON.stringify(newObj.runtime)}`);
   }
   if (newObj.categoryError === false) {
     res.category = (newObj.category && newObj.category.length) ? _.cloneDeep(newObj.category) : _.cloneDeep(oldObj.category);

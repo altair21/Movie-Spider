@@ -16,7 +16,9 @@ const sortFun = (key) => (a, b) => {
 (async () => {
   const fullOutputPath = path.join(__dirname, '..', 'output', 'full_output.json');
   const outputPath = path.join(__dirname, '..', 'output', 'cinemafilm.txt');
-  const origin = JSON.parse(fs.readFileSync(fullOutputPath, 'utf8')).filter(o => !o.isManual && o.releaseDate && o.releaseDate.length > 0);
+  const origin = JSON.parse(fs.readFileSync(fullOutputPath, 'utf8'))
+    .filter(o => !o.isManual && o.releaseDate && o.releaseDate.length > 0)
+    .map(o => ({ ...o, director: o.director.map(d => d.name) }));
   const domestic = [];  // 国产片
   const introduced = [];  // 引进片
   const nonCinema = []; // 非院线片

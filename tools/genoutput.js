@@ -1,17 +1,31 @@
 import fs from 'fs';
 import path from 'path';
 
-import { checkResult } from '../src/helper';
-import { initialState } from '../src/preset/prototype';
+import { objectToTextPath, checkProperty, PropertyPreset } from '../src/util';
 
 const genOutput = () => {
   const fullOutputPath = path.join(__dirname, '..', 'output', 'full_output.json');
-  const _initialState = {
-    ...initialState,
-    infos: JSON.parse(fs.readFileSync(fullOutputPath, 'utf8')),
+  const outputPath = path.join(__dirname, '..', 'output', 'output.json');
+  const origin = JSON.parse(fs.readFileSync(fullOutputPath, 'utf8'));
+
+  origin.forEach(obj => {
+    const res = checkProperty(obj);
+    if (!res.isCorrect) {
+      console.log(res.errorMessages.join('\n'));
+    }
+  });
+
+  const deleteProperty = (obj) => {
+    const res = obj;
+    PropertyPreset.forEach(property => {
+      if (!property.retainForOutput) {
+        delete res[property.name];
+      }
+    });
+    return res;
   };
-  const finalState = checkResult(_initialState);
-  console.log(finalState.logs.join('\n'));
+
+  objectToTextPath(origin.map(deleteProperty), outputPath);
 };
 
 genOutput();

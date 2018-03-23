@@ -44,11 +44,14 @@ const getDetailInfoExceptAward = async (info, content, len) => {
 
     const year = carveDetailInfo.year($);
     const director = carveDetailInfo.director($);
+    const actor = carveDetailInfo.actor($);
     const score = carveDetailInfo.score($);
     const numberOfScore = carveDetailInfo.numberOfScore($);
     const category = carveDetailInfo.category($);
     const country = carveDetailInfo.country($);
     const releaseDate = carveDetailInfo.releaseDate($);
+    const runtime = carveDetailInfo.runtime($);
+    const classify = carveDetailInfo.classify($);
     const numberOfWatched = carveDetailInfo.numberOfWatched($);
     const numberOfWanted = carveDetailInfo.numberOfWanted($);
     const friendsScore = carveDetailInfo.friendsScore($);
@@ -82,11 +85,14 @@ const getDetailInfoExceptAward = async (info, content, len) => {
 
       year,
       director,
+      actor,
       score: score || ScoreDefinition.GetFailure,
       numberOfScore: numberOfScore || ScoreDefinition.GetFailure,
       category,
       country,
       releaseDate,
+      runtime,
+      classify,
       numberOfWatched,
       numberOfWanted,
       friendsScore,
