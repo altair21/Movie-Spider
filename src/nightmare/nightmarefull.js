@@ -72,65 +72,70 @@ const initialize = () => {
 };
 
 const analyzeAll = async (nightmare) => {
-  const arr = _.range(res.length);
-  console.log(statColored(`[统计] ${arr.length}`));
-  let allMessages = [];
+  try {
+    const arr = _.range(res.length);
+    console.log(statColored(`[统计] ${arr.length}`));
+    let allMessages = [];
 
-  // TODO: 输出新增影片
-  // const newItems = [];
-  let statLen = 0;
-  const newOrigin = await arr.reduce((promise, index) =>
-    promise.then(async (ret) => {
-      if (index % 250 === 0) console.log(progressColored(`[进度] ${index}`)); // 进度
-      if (res[index].isManual
-        || _.find(ruleoutItems, (ruleoutItem) =>  // 手动过滤项不需要进入详细页
-          (ruleoutItem.url && res[index].url && ruleoutItem.url === res[index].url)
-          || (ruleoutItem.id && res[index].id && ruleoutItem.id === res[index].id))) {
-        return ret.concat([res[index]]);
-      }
-      const findIndex = _.findIndex(origin, (o) => o.id === res[index].id);
-      const newAnalyzed = await analyze(nightmare, `https://movie.douban.com${res[index].url}`, res[index], findIndex !== -1 ? origin[findIndex] : undefined, ++statLen);
-      const newInfo = newAnalyzed.resInfo;
-      if (findIndex !== -1 && newAnalyzed.messages.length !== 0) {
-        console.log(newAnalyzed.messages.map(str => `[更新] ${str}`).join('\n'));
-        allMessages = allMessages.concat(newAnalyzed.messages);
-      } else if (findIndex === -1) {
-        console.log(newFilmColored(`[新增影片] ${newInfo.name}（${(newInfo.director || []).join('、')}, ${newInfo.year}）`));
-      }
-
-      if (logCheckResult) {
-        const checked = checkProperty(newInfo, ignoreTags);
-        if (checked.errorMessages.length !== 0) {
-          console.log(errorColored(checked.errorMessages.map(str => `[检测] ${str}`).join('\n')));
+    // TODO: 输出新增影片
+    // const newItems = [];
+    let statLen = 0;
+    const newOrigin = await arr.reduce((promise, index) =>
+      promise.then(async (ret) => {
+        if (index % 250 === 0) console.log(progressColored(`[进度] ${index}`)); // 进度
+        if (res[index].isManual
+          || _.find(ruleoutItems, (ruleoutItem) =>  // 手动过滤项不需要进入详细页
+            (ruleoutItem.url && res[index].url && ruleoutItem.url === res[index].url)
+            || (ruleoutItem.id && res[index].id && ruleoutItem.id === res[index].id))) {
+          return ret.concat([res[index]]);
         }
-      }
-      if (findIndex === -1) {
-        origin.push(newInfo);
-      } else {
-        origin[findIndex] = newInfo;
-      }
-      writeResult(origin);
-      return ret.concat([newInfo]);
-    }), Promise.resolve([]));
-  nightmare.end().then(() => console.log(statColored('[进度] 完成！')));
+        const findIndex = _.findIndex(origin, (o) => o.id === res[index].id);
+        const newAnalyzed = await analyze(nightmare, `https://movie.douban.com${res[index].url}`, res[index], findIndex !== -1 ? origin[findIndex] : undefined, ++statLen);
+        const newInfo = newAnalyzed.resInfo;
+        if (findIndex !== -1 && newAnalyzed.messages.length !== 0) {
+          console.log(newAnalyzed.messages.map(str => `[更新] ${str}`).join('\n'));
+          allMessages = allMessages.concat(newAnalyzed.messages);
+        } else if (findIndex === -1) {
+          console.log(newFilmColored(`[新增影片] ${newInfo.name}（${(newInfo.director.map(o => o.name) || []).join('、')}, ${newInfo.year}）`));
+        }
 
-  const changesDir = path.join(__dirname, '..', '..', 'output', 'changes');
-  const changesPath = path.join(changesDir, `${targetId}-${todayDate}-changes.txt`);
-  if (!fs.existsSync(changesDir)) {
-    fs.mkdirSync(changesDir);
+        if (logCheckResult) {
+          const checked = checkProperty(newInfo, ignoreTags);
+          if (checked.errorMessages.length !== 0) {
+            console.log(errorColored(checked.errorMessages.map(str => `[检测] ${str}`).join('\n')));
+          }
+        }
+        if (findIndex === -1) {
+          origin.push(newInfo);
+        } else {
+          origin[findIndex] = newInfo;
+        }
+        writeResult(origin);
+        return ret.concat([newInfo]);
+      }), Promise.resolve([]));
+    nightmare.end().then(() => console.log(statColored('[进度] 完成！')));
+
+    const changesDir = path.join(__dirname, '..', '..', 'output', 'changes');
+    const changesPath = path.join(changesDir, `${targetId}-${todayDate}-changes.txt`);
+    if (!fs.existsSync(changesDir)) {
+      fs.mkdirSync(changesDir);
+    }
+    fs.writeFileSync(changesPath, allMessages.join('\n'), 'utf8');
+
+    const origin2 = JSON.parse(fs.readFileSync(fullOutputPath, 'utf8'))
+    .filter(obj => !_.find(ruleoutItems, (ruleoutItem) =>
+    (ruleoutItem.url && obj.url && ruleoutItem.url === obj.url)
+    || (ruleoutItem.id && obj.id && ruleoutItem.id === obj.id))); // 过滤手动排除的内容
+    fs.writeFileSync(fullOutputPath, JSON.stringify(origin2), 'utf8');
+    fs.writeFileSync(hardFullOutputPath, JSON.stringify(origin2), 'utf8');
+    console.log(statColored(`[统计] 总计 ${origin2.length} 部，再接再厉！`));
+    console.log(statColored(`[统计] 运行时间：${getDuration(startTime)}`));
+
+    return newOrigin;
+  } catch (e) {
+    console.log('[analyzeAll error]:', e);
+    throw new Error(e);
   }
-  fs.writeFileSync(changesPath, allMessages.join('\n'), 'utf8');
-
-  const origin2 = JSON.parse(fs.readFileSync(fullOutputPath, 'utf8'))
-  .filter(obj => !_.find(ruleoutItems, (ruleoutItem) =>
-  (ruleoutItem.url && obj.url && ruleoutItem.url === obj.url)
-  || (ruleoutItem.id && obj.id && ruleoutItem.id === obj.id))); // 过滤手动排除的内容
-  fs.writeFileSync(fullOutputPath, JSON.stringify(origin2), 'utf8');
-  fs.writeFileSync(hardFullOutputPath, JSON.stringify(origin2), 'utf8');
-  console.log(statColored(`[统计] 总计 ${origin2.length} 部，再接再厉！`));
-  console.log(statColored(`[统计] 运行时间：${getDuration(startTime)}`));
-
-  return newOrigin;
 };
 
 const nightmareDo = (nightmare) => {

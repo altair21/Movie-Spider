@@ -128,7 +128,7 @@ const analyzeAward = async (nightmare, url) => new Promise((resolve) => {
     });
 });
 
-const analyze = (nightmare = Nightmare({ show: true }), url, newObj, oldObj, len = 0, times = 0) => new Promise((resolve, reject) => {
+const doAnalyze = (nightmare = Nightmare({ show: true }), url, newObj, oldObj, len = 0) => new Promise((resolve) => {
   nightmare
     .goto(url)
     .wait('.nav-user-account')
@@ -147,14 +147,21 @@ const analyze = (nightmare = Nightmare({ show: true }), url, newObj, oldObj, len
         messages = merged.messages;
       }
       resolve({ resInfo, messages });
-    })
-    .catch((e) => {
-      if (times >= retryTimes) {
-        reject(e);
-      }
-      console.log(errorColored('[分析失败]:', e, `开始重试，第 ${times + 1} 次`));
-      analyze(nightmare, url, newObj, oldObj, len, times + 1);
     });
 });
+
+const analyze = async (nightmare = Nightmare({ show: true }), url, newObj, oldObj, len = 0, times = 0) => {
+  try {
+    const res = await doAnalyze(nightmare, url, newObj, oldObj, len);
+    return res;
+  } catch (e) {
+    if (times >= retryTimes) {
+      console.log(errorColored('[彻底分析失败]：', e));
+      return { resInfo: {}, messages: [] };
+    }
+    console.log(errorColored('[分析失败]：', e, `开始重试，第 ${times + 1} 次`));
+    return analyze(nightmare, url, newObj, oldObj, len, times + 1);
+  }
+};
 
 export { getDetailInfoExceptAward, analyze };
