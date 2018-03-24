@@ -1,4 +1,5 @@
 import cheerio from 'cheerio';
+import _ from 'lodash';
 import ErrorMessage from './preset/errormessage';
 import { ScoreDefinition } from './preset/valueDef';
 
@@ -194,7 +195,7 @@ const extractDetailRuntime = ($) => {
 
   if (element && element.children[0]) res.push(element.children[0].data || '');
   if (element && element.children[0] && typeof element.children[0].data === 'string' && element.next.data) {
-    res = res.concat(element.next.data.split('/').map(c => (c || '').trim()).slice(1));
+    res = res.concat(element.next.data.split(' / ').map(c => (c || '').trim()).slice(1));
   }
   return res;
 };
@@ -265,30 +266,18 @@ const extractDetailFriendsNoS = ($) => {  // Friends Number of Score
 
 const extractDetailRefFilms = ($) => {
   const aEles = $('.recommendations-bd dl dd a');
-  const imgEles = $('.recommendations-bd dl dt img');
-  const aArr = aEles.map((index, aEle) => {
+  const res = _.map(aEles, (aEle) => {
     if (!aEle || !aEle.children[0]) {
       return { id: null, name: null };
     }
     const href = aEle.attribs.href || '';
     const name = aEle.children[0].data;
     const hrefPart = href.replace('https://movie.douban.com/subject/', '')
-                      .replace('http://movie.douban.com/subject/', '');
+      .replace('http://movie.douban.com/subject/', '');
     const id = `${Number.parseInt(hrefPart, 10)}`;
     return { id, name };
   });
 
-  const imgArr = imgEles.map((index, imgEle) => {
-    if (!imgEle || !imgEle.children[0]) {
-      return '';
-    }
-    return imgEle.attribs.src || '';
-  });
-
-  const res = [];
-  for (let i = 0, l = aArr.length; i < l; i++) {
-    res.push({ id: aArr[i].id, name: aArr[i].name, posterURL: imgArr[i] });
-  }
   return res;
 };
 

@@ -7,7 +7,6 @@ const presetWeights = [0, -3, -1, 2, 4, 7];
 const filmPrototype = {
   id: '',
   name: '',
-  posterURL: '',
   fromId: '',
   fromName: '',
   weight: 0,
@@ -16,7 +15,6 @@ const filmPrototype = {
 const resPrototype = {
   id: '',
   name: '',
-  posterURL: '',
   weights: 0,
   normalizedWeights: 0,
   fromObj: [],
@@ -85,7 +83,6 @@ const doRecommand = () => {
         ...resPrototype,
         id: film.id,
         name: film.name,
-        posterURL: film.posterURL,
         weights: film.weight,
         fromObj: [{ fromObjPrototype, id: film.fromId, name: film.fromName, userScore: film.fromScore }],
       });
