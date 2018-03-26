@@ -2,6 +2,8 @@ import fs from 'fs';
 import path from 'path';
 import _ from 'lodash';
 
+import { mkdir } from '../src/util/';
+
 const filmPrototype = {
   name: '',
   year: '',
@@ -45,7 +47,8 @@ const processResult = (res) => {
 const getResult = () => {
   const fullOutputPath = path.join(__dirname, '..', 'output', 'full_output.json');
   const origin = JSON.parse(fs.readFileSync(fullOutputPath, 'utf8'))
-    .map(o => ({ ...o, director: o.director.map(d => d.name) }));
+    .map(o => ({ ...o, director: o.director.map(d => d.name) }))
+    .filter(o => o.classify === 'film');
   const res = [];
 
   origin.forEach((obj) => {
@@ -60,12 +63,10 @@ const getResult = () => {
       }
 
       let tag;
-      if (!obj.tags || obj.tags.length === 1) {
-        tag = '其它';
-      } else if (obj.tags.indexOf('电影') !== -1) {
-        tag = '长片';
-      } else if (obj.tags.indexOf('短片') !== -1) {
+      if (_.indexOf(obj.category, '短片') !== -1) {
         tag = '短片';
+      } else if (obj.classify === 'film') {
+        tag = '长片';
       } else {
         tag = '其它';
       }
@@ -141,9 +142,11 @@ const getStatisticsText = (res) => {
 };
 
 const genDirector = () => {
+  const outputDir = path.join(__dirname, '..', 'output', 'stat');
+  mkdir(outputDir);
   const text = getStatisticsText(getResult());
 
-  const filePath = process.argv[2] ? path.join(process.argv[2], 'directors.txt') : path.join(__dirname, '..', 'output', 'directors.txt');
+  const filePath = process.argv[2] ? path.join(process.argv[2], 'directors.txt') : path.join(outputDir, 'directors.txt');
   fs.writeFileSync(filePath, text, 'utf8');
 };
 

@@ -2,6 +2,8 @@ import fs from 'fs';
 import path from 'path';
 import _ from 'lodash';
 
+import { mkdir } from '../src/util/';
+
 const filmPrototype = {
   name: '',
   director: [],
@@ -67,9 +69,11 @@ const getStatisticsText = (res) => {
 };
 
 const genYear = () => {
+  const outputDir = path.join(__dirname, '..', 'output', 'stat');
+  mkdir(outputDir);
   const text = getStatisticsText(getResult());
 
-  const filePath = process.argv[2] ? path.join(process.argv[2], 'years.txt') : path.join(__dirname, '..', 'output', 'years.txt');
+  const filePath = process.argv[2] ? path.join(process.argv[2], 'years.txt') : path.join(outputDir, 'years.txt');
   fs.writeFileSync(filePath, text, 'utf8');
 };
 

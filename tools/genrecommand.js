@@ -2,7 +2,12 @@ import fs from 'fs';
 import path from 'path';
 import _ from 'lodash';
 
-const presetWeights = [0, -3, -1, 2, 4, 7];
+import { mkdir } from '../src/util/';
+
+const presetWeights = [0, -3, -1, 2, 8, 40];
+const shortPresetWeights = [0, -5, -3, 1, 5, 25];
+const punishment = [100, 20, 15, 10, 5, 0];
+const proportion = [0.8, 0.2];
 
 const filmPrototype = {
   id: '',
@@ -28,21 +33,35 @@ const fromObjPrototype = {
 
 const normalizeWeight = (_res, padding) => {
   let res = _.cloneDeep(_res);
-  res = res.sort((a, b) => b.weights - a.weights);
 
   let minVal = Number.MAX_SAFE_INTEGER;
   let maxVal = Number.MIN_SAFE_INTEGER;
+  let oMinVal = Number.MAX_SAFE_INTEGER;
+  let oMaxVal = Number.MIN_SAFE_INTEGER;
+
   res.forEach((obj) => {
+    obj.weights /= obj.fromObj.length; // eslint-disable-line no-param-reassign
+    if (obj.fromObj.length < 5) {
+      obj.weights -= punishment[obj.fromObj.length];  // eslint-disable-line no-param-reassign
+    }
     if (obj.weights < minVal) minVal = obj.weights;
     if (obj.weights > maxVal) maxVal = obj.weights;
+    if (obj.oldWeights < oMinVal) oMinVal = obj.oldWeights;
+    if (obj.oldWeights > oMaxVal) oMaxVal = obj.oldWeights;
   });
 
   const range = maxVal - minVal + 2 * padding;
+  const oRange = oMaxVal - oMinVal + 2 * padding;
   minVal -= padding;
-  res.forEach((obj) => {
+  oMinVal -= padding;
+  res = res.map(_obj => {
+    const obj = _obj;
     const val = (obj.weights - minVal) / range * 100.0;
-    obj.normalizedWeights = Number.parseFloat(val.toFixed(2), 10);  // eslint-disable-line no-param-reassign
-  });
+    const oVal = (obj.oldWeights - oMinVal) / oRange * 100.0;
+    obj.avgVal = val * proportion[0] + oVal * proportion[1];
+    obj.normalizedWeights = Number.parseFloat(obj.avgVal.toFixed(2), 10);
+    return obj;
+  }).sort((a, b) => b.avgVal - a.avgVal);
   return res;
 };
 
@@ -56,6 +75,8 @@ const getStatisticsText = (res) => {
 };
 
 const doRecommand = () => {
+  const outputDir = path.join(__dirname, '..', 'output', 'stat');
+  mkdir(outputDir);
   const fullOutputPath = path.join(__dirname, '..', 'output', 'full_output.json');
   const origin = JSON.parse(fs.readFileSync(fullOutputPath, 'utf8')).filter(o => !o.isManual);
 
@@ -70,7 +91,7 @@ const doRecommand = () => {
         fromId: obj.id,
         fromName: obj.name,
         fromScore: obj.userScore,
-        weight: presetWeights[obj.userScore],
+        weight: _.indexOf(obj.category, '短片') === -1 ? presetWeights[obj.userScore] : shortPresetWeights[obj.userScore],
       })));
   });
   films.forEach((film) => {
@@ -90,14 +111,17 @@ const doRecommand = () => {
   });
 
   res = res.filter((obj) => !_.find(origin, (o) => o.id === obj.id));  // 过滤标记过的影片
-  res.forEach((obj) => {
-    obj.fromObj = obj.fromObj.sort((a, b) => b.userScore - a.userScore);  // eslint-disable-line no-param-reassign
+  res = res.map(_obj => {
+    const obj = _obj;
+    obj.fromObj = obj.fromObj.sort((a, b) => b.userScore - a.userScore);
+    obj.oldWeights = obj.weights;
+    return obj;
   });
 
   res = normalizeWeight(res, res.length / origin.length);
 
   const text = getStatisticsText(res);
-  const outputPath = path.join(__dirname, '..', 'output', 'recommand.txt');
+  const outputPath = path.join(outputDir, 'recommand.txt');
   fs.writeFileSync(outputPath, text, 'utf8');
 };
 

@@ -12,6 +12,7 @@ import {
   header, bold, disorderItem, italic, separator,
 } from '../src/logger/markdown';
 import { getDirectorResult } from './gendirector';
+import { mkdir } from '../src/util';
 
 // -- Macro
 const gapThreshold = 2.1;
@@ -52,7 +53,9 @@ const randomFilmName = (arr, num) => {
 
 (async () => {
   const fullOutputPath = path.join(__dirname, '..', 'output', 'full_output.json');
-  const outputPath = path.join(__dirname, '..', 'output', 'user.md');
+  const outputDir = path.join(__dirname, '..', 'output', 'stat');
+  mkdir(outputDir);
+  const outputPath = path.join(outputDir, 'user.md');
   const origin = JSON.parse(fs.readFileSync(fullOutputPath, 'utf8'))
     .filter(o => !o.isManual && o.classify === 'film')
     .map(o => ({ ...o, director: o.director.map(d => d.name) }));

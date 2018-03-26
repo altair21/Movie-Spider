@@ -17,8 +17,10 @@
     "sortcomment": "babel-node tools/sortcommentlikes.js",
     "userreport": "babel-node tools/genuserreport.js",
     "cinema": "babel-node tools/gencinema.js",
+    "award": "babel-node tools/genawards.js",
+    "actor": "babel-node tools/genactor.js",
     "single": "babel-node tools/analyzesingle.js",
-    "stat": "npm run director && npm run year && npm run recommand && npm run sortcomment && npm run userreport && npm run cinema",
+    "stat": "npm run director && npm run year && npm run recommand && npm run sortcomment && npm run userreport && npm run cinema && npm run actor && npm run award",
     "verify": "babel-node tools/verifycookie.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },

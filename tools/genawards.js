@@ -2,6 +2,8 @@ import fs from 'fs';
 import path from 'path';
 import _ from 'lodash';
 
+import { mkdir } from '../src/util/';
+
 const keyAwards = [
   {
     name: '戛纳电影节',
@@ -31,7 +33,9 @@ const keyAwards = [
 
 (async () => {
   const fullOutputPath = path.join(__dirname, '..', 'output', 'full_output.json');
-  const outputPath = path.join(__dirname, '..', 'output', 'award.txt');
+  const outputDir = path.join(__dirname, '..', 'output', 'stat');
+  mkdir(outputDir);
+  const outputPath = path.join(outputDir, 'award.txt');
   const origin = JSON.parse(fs.readFileSync(fullOutputPath, 'utf8'))
     .filter(obj => obj.awards && obj.awards.length > 0);
 

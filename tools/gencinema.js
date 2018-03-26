@@ -2,6 +2,8 @@ import fs from 'fs';
 import path from 'path';
 import _ from 'lodash';
 
+import { mkdir } from '../src/util/';
+
 const year = (new Date()).getFullYear();
 
 const sortFun = (key) => (a, b) => {
@@ -15,7 +17,9 @@ const sortFun = (key) => (a, b) => {
 
 (async () => {
   const fullOutputPath = path.join(__dirname, '..', 'output', 'full_output.json');
-  const outputPath = path.join(__dirname, '..', 'output', 'cinemafilm.txt');
+  const outputDir = path.join(__dirname, '..', 'output', 'stat');
+  mkdir(outputDir);
+  const outputPath = path.join(outputDir, 'cinemafilm.txt');
   const origin = JSON.parse(fs.readFileSync(fullOutputPath, 'utf8'))
     .filter(o => !o.isManual && o.releaseDate && o.releaseDate.length > 0)
     .map(o => ({ ...o, director: o.director.map(d => d.name) }));

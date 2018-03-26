@@ -2,8 +2,12 @@ import fs from 'fs';
 import path from 'path';
 import _ from 'lodash';
 
+import { mkdir } from '../src/util';
+
 const fullOutputPath = path.join(__dirname, '..', 'output', 'full_output.json');
-const outputPath = path.join(__dirname, '..', 'output', 'actors.txt');
+const outputDir = path.join(__dirname, '..', 'output', 'stat');
+mkdir(outputDir);
+const outputPath = path.join(outputDir, 'actors.txt');
 const origin = JSON.parse(fs.readFileSync(fullOutputPath, 'utf8'))
   .filter(obj => obj.classify === 'film')
   .map(obj => ({

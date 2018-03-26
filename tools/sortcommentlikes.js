@@ -1,9 +1,13 @@
 import fs from 'fs';
 import path from 'path';
 
+import { mkdir } from '../src/util/';
+
 const sortLikes = () => {
   const fullOutputPath = path.join(__dirname, '..', 'output', 'full_output.json');
-  const outPath = path.join(__dirname, '..', 'output', 'sortedComments.txt');
+  const outputDir = path.join(__dirname, '..', 'output', 'stat');
+  mkdir(outputDir);
+  const outPath = path.join(outputDir, 'sortedComments.txt');
   const origin = JSON.parse(fs.readFileSync(fullOutputPath, 'utf8'));
 
   // let res = origin.filter((obj) => obj.commentLikes > 0);
