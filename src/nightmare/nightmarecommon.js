@@ -107,7 +107,7 @@ const getDetailInfoExceptAward = async (info, content, len) => {
       scoreError: !score || score === ScoreDefinition.GetFailure,
       numberOfScoreError: !numberOfScore || numberOfScore === ScoreDefinition.GetFailure,
       categoryError: !category || category.length === 0,
-      refFilmsError: !refFilms || refFilms.length === 0,
+      refFilmsError: refFilms == null,
     };
   } catch (e) {
     console.log(terribleErrorColored(`function 'getDetailInfoExceptAward' error: ${e}`));
