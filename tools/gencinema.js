@@ -33,7 +33,8 @@ const sortFun = (key) => (a, b) => {
     const reg = new RegExp(`${year}-\\d{2}-\\d{2}`, 'u');
     for (let i = 0, l = obj.releaseDate.length; i < l; i++) {
       if (reg.test(obj.releaseDate[i])
-        && obj.releaseDate[i].indexOf('中国大陆') !== -1) {
+        && obj.releaseDate[i].indexOf('中国大陆') !== -1
+        && obj.releaseDate[i].indexOf('重映') === -1) {
         const newObj = {
           ...obj,
           releaseDate: obj.releaseDate[i].substr(0, 10),
