@@ -106,7 +106,7 @@ const getDetailInfoExceptAward = async (info, content, len) => {
       directorError: !director || director.length === 0,
       scoreError: !score || score === ScoreDefinition.GetFailure,
       numberOfScoreError: !numberOfScore || numberOfScore === ScoreDefinition.GetFailure,
-      categoryError: !category || category.length === 0,
+      categoryError: category == null,
       refFilmsError: refFilms == null,
     };
   } catch (e) {

@@ -4,7 +4,7 @@ import _ from 'lodash';
 
 import { mkdir } from '../src/util/';
 
-const year = (new Date()).getFullYear();
+const year = `${(new Date()).getFullYear()}`;
 
 const sortFun = (key) => (a, b) => {
   const month = (str) => str.substr(5, 2);
