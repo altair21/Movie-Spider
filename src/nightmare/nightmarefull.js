@@ -30,6 +30,7 @@ const ruleoutItems = fs.existsSync(ruleoutPath) ? JSON.parse(fs.readFileSync(rul
 const origin = fs.existsSync(hardFullOutputPath) ? JSON.parse(fs.readFileSync(hardFullOutputPath, 'utf8')) : [];
 const nightmareConfig = JSON.parse(fs.readFileSync(path.join(__dirname, '..', '..', 'nightmare-config.json'), 'utf8'));
 let res = [];
+let statLen = 0;
 
 let page = 1;
 const extractFilmName = async (content) => {
@@ -55,8 +56,11 @@ const extractFilmName = async (content) => {
     resObj.filter(obj => _.find((obj.tags || []),
       (tag) => _.find((keywords || []),
         (keyword) => keyword === tag)))); // 过滤关键字之外的内容
-  console.log(progressColored(`[进度] ${page++} 完成`));
-  return !!$('.next a')[0];
+  console.log(progressColored(`[进度] 第 ${page++} 页完成（${res.length} 部）`));
+  const element = $('.next a')[0];
+  const hasNext = !!element;
+  const href = hasNext ? element.attribs.href : '';
+  return { hasNext, href };
 };
 
 const writeResult = (newOrigin) => {
@@ -71,18 +75,20 @@ const initialize = () => {
   res = [];
 };
 
-const analyzeAll = async (nightmare) => {
-  try {
+const analyzeAll = (nightmare, url) => {
+  nightmare
+  .goto(url)
+  .wait('.nav-user-account')
+  .evaluate(() => document.body.innerHTML)
+  .then(async (content) => {
+    const { hasNext, href } = await extractFilmName(content);
     const arr = _.range(res.length);
-    console.log(statColored(`[统计] ${arr.length}`));
     let allMessages = [];
 
     // TODO: 输出新增影片
     // const newItems = [];
-    let statLen = 0;
-    const newOrigin = await arr.reduce((promise, index) =>
+    await arr.reduce((promise, index) =>
       promise.then(async (ret) => {
-        if (index % 250 === 0) console.log(progressColored(`[进度] ${index}`)); // 进度
         if (res[index].isManual
           || _.find(ruleoutItems, (ruleoutItem) =>  // 手动过滤项不需要进入详细页
             (ruleoutItem.url && res[index].url && ruleoutItem.url === res[index].url)
@@ -113,7 +119,6 @@ const analyzeAll = async (nightmare) => {
         writeResult(origin);
         return ret.concat([newInfo]);
       }), Promise.resolve([]));
-    nightmare.end().then(() => console.log(statColored('[进度] 完成！')));
 
     const changesDir = path.join(__dirname, '..', '..', 'output', 'changes');
     const changesPath = path.join(changesDir, `${targetId}-${todayDate}-changes.txt`);
@@ -128,31 +133,23 @@ const analyzeAll = async (nightmare) => {
     || (ruleoutItem.id && obj.id && ruleoutItem.id === obj.id))); // 过滤手动排除的内容
     fs.writeFileSync(fullOutputPath, JSON.stringify(origin2), 'utf8');
     fs.writeFileSync(hardFullOutputPath, JSON.stringify(origin2), 'utf8');
-    console.log(statColored(`[统计] 总计 ${origin2.length} 部，再接再厉！`));
-    console.log(statColored(`[统计] 运行时间：${getDuration(startTime)}`));
 
-    return newOrigin;
-  } catch (e) {
-    console.log('[analyzeAll error]:', e);
-    throw new Error(e);
-  }
-};
-
-const nightmareDo = (nightmare) => {
-  nightmare
-    .click('.next a')
-    .wait('.nav-user-account')
-    .evaluate(() => document.body.innerHTML)
-    .then(async (content) => {
-      const flag = await extractFilmName(content);
-      if (flag) {
-        return nightmareDo(nightmare);
-      }
-      return analyzeAll(nightmare);
-    })
-    .catch((error) => {
-      console.log(errorColored('[nightmare do error]: ', error));
-    });
+    if (!hasNext) {
+      nightmare.end().then(() => console.log(statColored('[进度] 完成！')));
+      const len = (JSON.parse(fs.readFileSync(fullOutputPath, 'utf8'))
+        .filter(obj => !_.find(ruleoutItems, (ruleoutItem) =>
+          (ruleoutItem.url && obj.url && ruleoutItem.url === obj.url)
+          || (ruleoutItem.id && obj.id && ruleoutItem.id === obj.id)))).length;
+      console.log(statColored(`[统计] 本次分析 ${statLen} 部，总计 ${len} 部，再接再厉！`));
+      console.log(statColored(`[统计] 运行时间：${getDuration(startTime)}`));
+      return 0;
+    }
+    res = [];
+    return analyzeAll(nightmare, `https://movie.douban.com${href}`);
+  })
+  .catch((error) => {
+    console.log(errorColored('[nightmare do error]: ', error));
+  });
 };
 
 const main = () => {
@@ -167,17 +164,8 @@ const main = () => {
     .click('.btn-submit')
     .wait('.nav-user-account')
 
-    .goto(`https://movie.douban.com/people/${targetId}/collect`)
-    // .goto(`https://movie.douban.com/people/${targetId}/collect?start=140&sort=time&rating=all&filter=all&mode=grid`)
-    .wait('.nav-user-account')
     .evaluate(() => document.body.innerHTML)
-    .then(async (content) => {
-      const flag = await extractFilmName(content);
-      if (flag) {
-        return nightmareDo(nightmare);
-      }
-      return analyzeAll(nightmare);
-    })
+    .then(() => analyzeAll(nightmare, `https://movie.douban.com/people/${targetId}/collect`))
     .catch((error) => {
       console.log(errorColored('[nightmare error]: ', error));
     });
