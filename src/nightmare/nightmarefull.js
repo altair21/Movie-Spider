@@ -165,7 +165,8 @@ const main = () => {
     .wait('.nav-user-account')
 
     .evaluate(() => document.body.innerHTML)
-    .then(() => analyzeAll(nightmare, `https://movie.douban.com/people/${targetId}/collect`))
+    // .then(() => analyzeAll(nightmare, `https://movie.douban.com/people/${targetId}/collect`))
+    .then(() => analyzeAll(nightmare, 'https://movie.douban.com/people/4513116/collect?start=1455&sort=time&rating=all&filter=all&mode=grid'))
     .catch((error) => {
       console.log(errorColored('[nightmare error]: ', error));
     });

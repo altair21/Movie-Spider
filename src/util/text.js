@@ -133,6 +133,7 @@ const PropertyPreset = [
     name: 'category',
     type: PropertyType.ARRAY,
     allowNull: false,
+    allowEmptyArray: true,
   },
   // 制片国家/地区
   {
@@ -292,7 +293,7 @@ const checkProperty = (obj) => {
   }
   const errorMessages = [];
   // 推测
-  if (obj.yearError && obj.directorError && obj.categoryError
+  if (obj.yearError && obj.directorError
     && obj.scoreError && obj.numberOfScoreError) {
     errorMessages.push(`${obj.name}(${obj.url}) 有很大可能404了`);
     return { isCorrect: errorMessages.length === 0, errorMessages };
