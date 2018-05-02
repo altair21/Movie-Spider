@@ -45,4 +45,18 @@ const colored = (type) => (color) => (text) => {
   return `${_color}${text}\x1b[0m`;
 };
 
-export { Color, ColorType, colored };
+const stripColor = (str = '') => {
+  let res = str;
+  const keys1 = Object.keys(ForeColor);
+  for (let i = 0, l = keys1.length; i < l; i++) {
+    res = res.split(ForeColor[keys1[i]]).join('');
+  }
+  const keys2 = Object.keys(BackColor);
+  for (let i = 0, l = keys2.length; i < l; i++) {
+    res = res.split(BackColor[keys2[i]]).join('');
+  }
+  res = res.split('\x1b[0m').join('');
+  return res;
+};
+
+export { Color, ColorType, colored, stripColor };

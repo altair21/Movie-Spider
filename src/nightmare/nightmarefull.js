@@ -8,7 +8,7 @@ import _ from 'lodash';
 import { checkProperty, getPosterInfo, getTodayDate, getDuration } from '../util/';
 import { analyze } from './nightmarecommon';
 import { getRoughInfos } from '../basehelper';
-import { colored, Color, ColorType } from '../logger/';
+import { colored, Color, ColorType, stripColor } from '../logger/';
 
 let currentPage = 1;
 
@@ -101,7 +101,7 @@ const analyzeAll = (nightmare, url) => {
         const newInfo = newAnalyzed.resInfo;
         if (findIndex !== -1 && newAnalyzed.messages.length !== 0) {
           console.log(newAnalyzed.messages.map(str => `[更新] ${str}`).join('\n'));
-          allMessages = allMessages.concat(newAnalyzed.messages);
+          allMessages = allMessages.concat(newAnalyzed.messages.map(stripColor));
         } else if (findIndex === -1) {
           console.log(newFilmColored(`[新增影片] ${newInfo.name}（${(newInfo.director.map(o => o.name) || []).join('、')}, ${newInfo.year}）`));
         }
