@@ -97,7 +97,7 @@ const analyzeAll = (nightmare, url) => {
           return ret.concat([res[index]]);
         }
         const findIndex = _.findIndex(origin, (o) => o.id === res[index].id);
-        const newAnalyzed = await analyze(nightmare, `https://movie.douban.com${res[index].url}`, res[index], findIndex !== -1 ? origin[findIndex] : undefined, ++statLen);
+        const newAnalyzed = await analyze(nightmare, `https://movie.douban.com${res[index].url}`, res[index], findIndex !== -1 ? origin[findIndex] : undefined, (currentPage - 1) * 15 + (++statLen));
         const newInfo = newAnalyzed.resInfo;
         if (findIndex !== -1 && newAnalyzed.messages.length !== 0) {
           console.log(newAnalyzed.messages.map(str => `[更新] ${str}`).join('\n'));
