@@ -78,7 +78,8 @@ const doRecommand = () => {
   const outputDir = path.join(__dirname, '..', 'output', 'stat');
   mkdir(outputDir);
   const fullOutputPath = path.join(__dirname, '..', 'output', 'full_output.json');
-  const origin = JSON.parse(fs.readFileSync(fullOutputPath, 'utf8')).filter(o => !o.isManual);
+  const origin = JSON.parse(fs.readFileSync(fullOutputPath, 'utf8'))
+    .filter(o => !o.isManual && o.classify === 'film' && o.userScore > 0);
 
   let films = [];
   let res = [];

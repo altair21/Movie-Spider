@@ -26,6 +26,7 @@ const processResult = (res) => {
 const getResult = () => {
   const fullOutputPath = path.join(__dirname, '..', 'output', 'full_output.json');
   const origin = JSON.parse(fs.readFileSync(fullOutputPath, 'utf8'))
+    .filter(o => !o.isManual && o.classify === 'film')
     .map(o => ({ ...o, director: o.director.map(d => d.name) }));
   const res = [];
 

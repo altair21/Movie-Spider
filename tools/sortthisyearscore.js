@@ -69,7 +69,7 @@ const extractScore = (obj) => {
   mkdir(outputDir);
   const outPath = path.join(outputDir, 'sortThisYearScore.txt');
   const origin = JSON.parse(fs.readFileSync(fullOutputPath, 'utf8'))
-    .filter(o => !o.isManual)
+    .filter(o => !o.isManual && !_.find(o.category, c => c === '短片') && o.classify === 'film')
     .map(o => ({ ...o, director: o.director.map(d => d.name) }));
 
   let res = origin.filter((obj) => isThisYearFilm(obj));

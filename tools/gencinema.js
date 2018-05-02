@@ -21,7 +21,8 @@ const sortFun = (key) => (a, b) => {
   mkdir(outputDir);
   const outputPath = path.join(outputDir, 'cinemafilm.txt');
   const origin = JSON.parse(fs.readFileSync(fullOutputPath, 'utf8'))
-    .filter(o => !o.isManual && o.releaseDate && o.releaseDate.length > 0)
+    .filter(o => !o.isManual && o.classify === 'film'
+      && o.releaseDate && o.releaseDate.length > 0)
     .map(o => ({ ...o, director: o.director.map(d => d.name) }));
   const domestic = [];  // 国产片
   const introduced = [];  // 引进片

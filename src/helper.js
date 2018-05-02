@@ -2,7 +2,7 @@ import _ from 'lodash';
 import cheerio from 'cheerio';
 
 import {
-  objectToJSONPath, checkProperty, objectToTextPath, scp, getDuration, sleep, PropertyPreset
+  objectToJSONPath, checkProperty, objectToTextPath, scp, getDuration, PropertyPreset,
 } from './util/';
 import { extractTotal } from './xpath';
 import {

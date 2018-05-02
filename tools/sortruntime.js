@@ -1,5 +1,6 @@
 import fs from 'fs';
 import path from 'path';
+import _ from 'lodash';
 
 import { mkdir } from '../src/util';
 
@@ -24,7 +25,7 @@ const getCorrectRuntime = (obj) => {
   mkdir(outputDir);
   const outPath = path.join(outputDir, 'sortRuntime.txt');
   const origin = JSON.parse(fs.readFileSync(fullOutputPath, 'utf8'))
-    .filter(o => !o.isManual)
+    .filter(o => !o.isManual && o.classify === 'film' && _.isArray(o.runtime))
     .map(o => ({ ...o, director: o.director.map(d => d.name) }));
 
   const text = origin

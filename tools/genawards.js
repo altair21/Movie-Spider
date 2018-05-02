@@ -37,7 +37,8 @@ const keyAwards = [
   mkdir(outputDir);
   const outputPath = path.join(outputDir, 'award.txt');
   const origin = JSON.parse(fs.readFileSync(fullOutputPath, 'utf8'))
-    .filter(obj => obj.awards && obj.awards.length > 0);
+    .filter(obj => obj.classify === 'film'
+      && obj.awards && obj.awards.length > 0);
 
   const text = [];
   const res = [];
