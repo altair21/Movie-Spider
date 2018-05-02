@@ -10,6 +10,8 @@ import { analyze } from './nightmarecommon';
 import { getRoughInfos } from '../basehelper';
 import { colored, Color, ColorType } from '../logger/';
 
+let currentPage = 1;
+
 const targetId = '4513116';
 const ignoreTags = true;
 const logCheckResult = true;
@@ -32,7 +34,6 @@ const nightmareConfig = JSON.parse(fs.readFileSync(path.join(__dirname, '..', '.
 let res = [];
 let statLen = 0;
 
-let page = 1;
 const extractFilmName = async (content) => {
   const $ = cheerio.load(content);
 
@@ -56,7 +57,7 @@ const extractFilmName = async (content) => {
     resObj.filter(obj => _.find((obj.tags || []),
       (tag) => _.find((keywords || []),
         (keyword) => keyword === tag)))); // 过滤关键字之外的内容
-  console.log(progressColored(`[进度] 第 ${page++} 页完成（${res.length} 部）`));
+  console.log(progressColored(`[进度] 第 ${currentPage++} 页提取完成（${res.length} 部），开始解析……`));
   const element = $('.next a')[0];
   const hasNext = !!element;
   const href = hasNext ? element.attribs.href : '';
@@ -125,7 +126,13 @@ const analyzeAll = (nightmare, url) => {
     if (!fs.existsSync(changesDir)) {
       fs.mkdirSync(changesDir);
     }
-    fs.writeFileSync(changesPath, allMessages.join('\n'), 'utf8');
+    if (allMessages.length > 0) {
+      let preContent = '';
+      if (fs.existsSync(changesPath)) {
+        preContent = fs.readFileSync(changesPath, 'utf8');
+      }
+      fs.writeFileSync(changesPath, `${preContent}\n${allMessages.join('\n')}`, 'utf8');
+    }
 
     const origin2 = JSON.parse(fs.readFileSync(fullOutputPath, 'utf8'))
     .filter(obj => !_.find(ruleoutItems, (ruleoutItem) =>
@@ -166,7 +173,7 @@ const main = () => {
 
     .evaluate(() => document.body.innerHTML)
     // .then(() => analyzeAll(nightmare, `https://movie.douban.com/people/${targetId}/collect`))
-    .then(() => analyzeAll(nightmare, 'https://movie.douban.com/people/4513116/collect?start=1455&sort=time&rating=all&filter=all&mode=grid'))
+    .then(() => analyzeAll(nightmare, `https://movie.douban.com/people/${targetId}/collect?start=${(currentPage - 1) * 15}&sort=time&rating=all&filter=all&mode=grid`))
     .catch((error) => {
       console.log(errorColored('[nightmare error]: ', error));
     });
