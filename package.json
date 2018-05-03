@@ -21,9 +21,7 @@
     "sortruntime": "babel-node tools/sortruntime.js",
     "award": "babel-node tools/genawards.js",
     "actor": "babel-node tools/genactor.js",
-    "single": "babel-node tools/analyzesingle.js",
     "stat": "npm run director && npm run year && npm run recommand && npm run sortcomment && npm run userreport && npm run cinema && npm run sortcinema && npm run sortruntime && npm run actor && npm run award",
-    "verify": "babel-node tools/verifycookie.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],

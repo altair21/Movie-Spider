@@ -15,6 +15,6 @@
   2. `director`：调用 `tools/gendirector.js`。
   3. `year`：调用 `tools/genyear.js`。
   4. `recommand`：调用 `tools/genrecommand.js`。
-  5. `single`：调用 `tools/analyzesingle.js`。
+  5. `single`：调用 `utility/analyzesingle.js`。
   6. `complete`：借助 nightmare 检查完整性，补全不完整项。
   7. `sortcomment`: 调用 `tools/sortcommentlikes`。

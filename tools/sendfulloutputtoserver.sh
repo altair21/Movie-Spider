@@ -1,4 +1,4 @@
-babel-node ./tools/genoutput.js
+babel-node ./utility/genoutput.js
 scp ./output/full_output.json arcn03:/root/
 scp ./output/output.json arcn03:/root/
 scp ./output/manual.json arcn03:/root/
