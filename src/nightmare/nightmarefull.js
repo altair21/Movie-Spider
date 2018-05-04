@@ -5,7 +5,7 @@ import Nightmare from 'nightmare';
 import cheerio from 'cheerio';
 import _ from 'lodash';
 
-import { checkProperty, getPosterInfo, getTodayDate, getDuration } from '../util/';
+import { checkProperty, getPosterInfo, getTodayDate, getDuration, mkdir } from '../util/';
 import { analyze } from './nightmarecommon';
 import { getRoughInfos } from '../basehelper';
 import { colored, Color, ColorType, stripColor } from '../logger/';
@@ -26,13 +26,16 @@ const statColored = (text) => colored(ColorType.background)(Color.blue)(colored(
 const errorColored = colored(ColorType.foreground)(Color.red);
 
 const hardFullOutputPath = path.join(__dirname, '..', '..', 'output', 'full_output.json');
-const fullOutputPath = path.join(__dirname, '..', '..', 'output', 'full', `${targetId}-${todayDate}-full_output.json`);
+const fullOutputDir = path.join(__dirname, '..', '..', 'output', 'full', `${targetId}`);
+const fullOutputPath = path.join(fullOutputDir, `${targetId}-${todayDate}-full_output.json`);
 const ruleoutPath = path.join(__dirname, '..', '..', 'output', 'filter.json');
 const ruleoutItems = fs.existsSync(ruleoutPath) ? JSON.parse(fs.readFileSync(ruleoutPath, 'utf8')) : [];
 const origin = fs.existsSync(hardFullOutputPath) ? JSON.parse(fs.readFileSync(hardFullOutputPath, 'utf8')) : [];
 const nightmareConfig = JSON.parse(fs.readFileSync(path.join(__dirname, '..', '..', 'nightmare-config.json'), 'utf8'));
 let res = [];
-let statLen = 0;
+let statLen = (currentPage - 1) * 15;
+
+mkdir(fullOutputDir);
 
 const extractFilmName = async (content) => {
   const $ = cheerio.load(content);
@@ -65,9 +68,6 @@ const extractFilmName = async (content) => {
 };
 
 const writeResult = (newOrigin) => {
-  if (!fs.existsSync(path.join(__dirname, '..', '..', 'output', 'full'))) {
-    fs.mkdirSync(path.join(__dirname, '..', '..', 'output', 'full'));
-  }
   fs.writeFileSync(fullOutputPath, JSON.stringify(newOrigin), 'utf8');
   return 0;
 };
@@ -97,7 +97,7 @@ const analyzeAll = (nightmare, url) => {
           return ret.concat([res[index]]);
         }
         const findIndex = _.findIndex(origin, (o) => o.id === res[index].id);
-        const newAnalyzed = await analyze(nightmare, `https://movie.douban.com${res[index].url}`, res[index], findIndex !== -1 ? origin[findIndex] : undefined, (currentPage - 1) * 15 + (++statLen));
+        const newAnalyzed = await analyze(nightmare, `https://movie.douban.com${res[index].url}`, res[index], findIndex !== -1 ? origin[findIndex] : undefined, ++statLen);
         const newInfo = newAnalyzed.resInfo;
         if (findIndex !== -1 && newAnalyzed.messages.length !== 0) {
           console.log(newAnalyzed.messages.map(str => `[更新] ${str}`).join('\n'));
@@ -121,7 +121,7 @@ const analyzeAll = (nightmare, url) => {
         return ret.concat([newInfo]);
       }), Promise.resolve([]));
 
-    const changesDir = path.join(__dirname, '..', '..', 'output', 'changes');
+    const changesDir = path.join(__dirname, '..', '..', 'output', 'changes', `${targetId}`);
     const changesPath = path.join(changesDir, `${targetId}-${todayDate}-changes.txt`);
     if (!fs.existsSync(changesDir)) {
       fs.mkdirSync(changesDir);
