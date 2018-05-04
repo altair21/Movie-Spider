@@ -78,6 +78,10 @@ const randomFilmName = (arr, num) => {
     .filter(o => o.origFormat.length > 3)
     .map(o => ({
       ...o,
+      origFormat: o.origFormat.filter(f => f.userScore > 0),
+    }))
+    .map(o => ({
+      ...o,
       avgScore: (o.origFormat.reduce((total, f) => total + f.userScore, 0) / o.origFormat.length * 2).toFixed(2),
     }));
 
@@ -113,11 +117,13 @@ const randomFilmName = (arr, num) => {
     }
 
     // 找到打分人数占比最大和最小的电影
-    if (obj.numberOfScore / obj.numberOfWatched >
+    if (obj.numberOfScore > 0 && obj.numberOfWatched > 0
+      && obj.numberOfScore / obj.numberOfWatched >
       maxScorePercFilm.numberOfScore / maxScorePercFilm.numberOfWatched) {
       maxScorePercFilm = obj;
     }
-    if (obj.numberOfScore / obj.numberOfWatched <
+    if (obj.numberOfScore > 0 && obj.numberOfWatched > 0
+      && obj.numberOfScore / obj.numberOfWatched <
       minScorePercFilm.numberOfScore / minScorePercFilm.numberOfWatched) {
       minScorePercFilm = obj;
     }
