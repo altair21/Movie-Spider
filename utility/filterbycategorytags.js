@@ -94,6 +94,6 @@ const outputPath = path.join(__dirname, `filterd${filterCategory ? `-category-${
     });
   }
 
-  const text = res.map((obj, index) => `${index + 1}. 《${obj.name}》（${obj.director.join('\n')} 执导，${obj.year}） ${sortMode}: ${obj[sortMode]}`);
+  const text = res.map((obj, index) => `${index + 1}. 《${obj.name}》（${obj.director.join('、')} 执导，${obj.year}） ${sortMode}: ${obj[sortMode]}`);
   fs.writeFileSync(outputPath, text.join('\n'), 'utf8');
 })();
