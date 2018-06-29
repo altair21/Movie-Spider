@@ -11,8 +11,12 @@ const isThisYearDomestic = (obj) => {
   for (let i = 0, l = obj.releaseDate.length; i < l; i++) {
     if (reg.test(obj.releaseDate[i])
       && obj.releaseDate[i].indexOf('中国大陆') !== -1
-      && obj.releaseDate[i].indexOf('重映') === -1) {
-      if (obj.country.indexOf('中国大陆') !== -1) {
+      && obj.releaseDate[i].indexOf('重映') === -1
+      && year - obj.year <= 5) {
+      if (obj.country.indexOf('中国大陆') !== -1
+        || obj.country.indexOf('香港') !== -1
+        || obj.country.indexOf('澳门') !== -1
+        || obj.country.indexOf('台湾') !== -1) {
         return true;
       }
       break;
@@ -26,8 +30,12 @@ const isThisYearIntroduced = (obj) => {
   for (let i = 0, l = obj.releaseDate.length; i < l; i++) {
     if (reg.test(obj.releaseDate[i])
       && obj.releaseDate[i].indexOf('中国大陆') !== -1
-      && obj.releaseDate[i].indexOf('重映') === -1) {
-      if (obj.country.indexOf('中国大陆') === -1) {
+      && obj.releaseDate[i].indexOf('重映') === -1
+      && year - obj.year <= 5) {
+      if (obj.country.indexOf('中国大陆') === -1
+        && obj.country.indexOf('香港') === -1
+        && obj.country.indexOf('澳门') === -1
+        && obj.country.indexOf('台湾') === -1) {
         return true;
       }
       break;
