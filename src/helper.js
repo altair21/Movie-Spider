@@ -25,7 +25,7 @@ const getTotal = async (state = initialState) => {
 };
 
 const genRoughInfos = async (state = initialState) => {
-  const offsets = genOffsetStep15(state.total);
+  const offsets = genOffsetStep15(Math.min(state.total, 30)); // FIXME: 最多更新30条，是为了增量更新，一周正常看片的话很难超过30部，这种姿势也能 work，但将来得改为正常姿势。
 
   const res = await offsets.reduce((promise, curOffset, index) =>
     promise.then(async arr => {

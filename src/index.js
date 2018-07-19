@@ -58,7 +58,7 @@ const main = () => {
           fs.mkdirSync(changesDir);
         }
         fs.writeFileSync(changesPath, finalState.changes.join('\n'), 'utf8');
-        console.log(finalState.changes.join('\n'));
+        // console.log(finalState.changes.join('\n'));
       }
       console.log(finalState.logs.join('\n'));
     })
@@ -69,5 +69,5 @@ const main = () => {
 
 setInterval(() => {
   main();
-}, 24 * 60 * 60 * 1000);
+}, 7 * 24 * 60 * 60 * 1000);
 main();
