@@ -120,6 +120,7 @@ const PropertyPreset = [
     name: 'director',
     type: PropertyType.ARRAY,
     allowNull: false,
+    retainForOutput: true,
   },
   // 演员
   {

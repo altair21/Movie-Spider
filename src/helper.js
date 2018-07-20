@@ -152,10 +152,13 @@ const writeToDisk = (state = initialState) => {
   objectToJSONPath(state.infos, state.fullOutputPath);
 
   const simpleInfos = state.infos.map(obj => {
+    if (obj.isManual) return obj;
     const res = obj;
     PropertyPreset.forEach(property => {
       if (!property.retainForOutput) {
         delete res[property.name];
+      } else if (property.name === 'director') {
+        res[property.name] = (obj.director || []).map(d => d.name);
       }
     });
     return res;

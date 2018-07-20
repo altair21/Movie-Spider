@@ -9,6 +9,7 @@ const genOutput = () => {
   const outputPath = path.join(__dirname, '..', 'output', 'output.json');
   const origin = JSON.parse(fs.readFileSync(fullOutputPath, 'utf8'))
     .filter((obj) => {
+      if (obj.isManual) return true;
       if (obj.classify === 'teleplay') return false;
       if (obj.category.indexOf('短片') !== -1) return false;
       return true;
@@ -26,6 +27,8 @@ const genOutput = () => {
     PropertyPreset.forEach(property => {
       if (!property.retainForOutput) {
         delete res[property.name];
+      } else if (property.name === 'director') {
+        res[property.name] = (obj.director || []).map(d => d.name);
       }
     });
     return res;
