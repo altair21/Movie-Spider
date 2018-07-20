@@ -151,7 +151,11 @@ const finishResult = (state = initialState) => {
 const writeToDisk = (state = initialState) => {
   objectToJSONPath(state.infos, state.fullOutputPath);
 
-  const simpleInfos = state.infos.map(obj => {
+  const simpleInfos = state.infos.filter(obj => {
+    if (obj.classify === 'teleplay') return false;
+    if (obj.category.indexOf('短片') !== -1) return false;
+    return true;
+  }).map(obj => {
     if (obj.isManual) return obj;
     const res = obj;
     PropertyPreset.forEach(property => {
