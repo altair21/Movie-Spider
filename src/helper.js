@@ -152,6 +152,7 @@ const writeToDisk = (state = initialState) => {
   objectToJSONPath(state.infos, state.fullOutputPath);
 
   const simpleInfos = state.infos.filter(obj => {
+    if (obj.isManual) return true;
     if (obj.classify === 'teleplay') return false;
     if (obj.category.indexOf('短片') !== -1) return false;
     return true;
