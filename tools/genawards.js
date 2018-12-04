@@ -2,7 +2,7 @@ import fs from 'fs';
 import path from 'path';
 import _ from 'lodash';
 
-import { mkdir } from '../src/util/';
+import { mkdir, openFilmOrigin } from '../src/util/';
 
 const keyAwards = [
   {
@@ -32,13 +32,10 @@ const keyAwards = [
 ];
 
 (async () => {
-  const fullOutputPath = path.join(__dirname, '..', 'output', 'full_output.json');
   const outputDir = path.join(__dirname, '..', 'output', 'stat');
   mkdir(outputDir);
   const outputPath = path.join(outputDir, 'award.txt');
-  const origin = JSON.parse(fs.readFileSync(fullOutputPath, 'utf8'))
-    .filter(obj => obj.classify === 'film'
-      && obj.awards && obj.awards.length > 0);
+  const origin = openFilmOrigin(true, o => o.awards && o.awards.length > 0);
 
   const text = [];
   const res = [];

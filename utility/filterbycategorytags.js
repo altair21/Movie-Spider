@@ -1,11 +1,13 @@
 import fs from 'fs';
 import path from 'path';
 import _ from 'lodash';
+import { openFilmOrigin } from '../src/util';
 
 const SortMode = {
   userScore: 'userScore',
   score: 'score',
   markDate: 'markDate',
+  year: 'year',
 };
 const Order = {
   ascending: 1,
@@ -26,13 +28,10 @@ const sortMode = SortMode.score;
 const order = Order.descending;
 const logical = Logical.join;
 
-const originPath = path.join(__dirname, '..', 'output', 'full_output.json');
 const outputPath = path.join(__dirname, `filterd${filterCategory ? `-category-${keywords.category.join('-')}` : ''}${filterCategory && filterTag ? `-${logical}` : ''}${filterTag ? `-tags-${keywords.tags.join('-')}` : ''}.txt`);
 
 (async () => {
-  let origin = JSON.parse(fs.readFileSync(originPath, 'utf8'))
-    .filter(o => !o.isManual && o.classify === 'film' && !_.isNull(o[sortMode]))
-    .map(o => ({ ...o, director: o.director.map(d => d.name) }));
+  let origin = openFilmOrigin(false, o => !_.isNull(o[sortMode]));
   if (filterCategory) {
     origin = origin.filter(obj => _.isArray(obj.category));
   }
@@ -64,6 +63,16 @@ const outputPath = path.join(__dirname, `filterd${filterCategory ? `-category-${
     res = res.sort((a, b) => {
       if (a[sortMode] === b[sortMode]) {
         return a.name < b.name;
+      }
+      if (order === Order.ascending) {
+        return a[sortMode] - b[sortMode];
+      }
+      return b[sortMode] - a[sortMode];
+    });
+  } else if (sortMode === SortMode.year) {
+    res = res.sort((a, b) => {
+      if (+a[sortMode] === +b[sortMode]) {
+        return b.score - a.score;
       }
       if (order === Order.ascending) {
         return a[sortMode] - b[sortMode];

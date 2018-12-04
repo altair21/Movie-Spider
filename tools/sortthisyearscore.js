@@ -2,7 +2,7 @@ import fs from 'fs';
 import path from 'path';
 import _ from 'lodash';
 
-import { mkdir } from '../src/util';
+import { mkdir, openFilmOrigin } from '../src/util';
 
 const year = `${(new Date()).getFullYear()}`;
 
@@ -72,13 +72,10 @@ const extractScore = (obj) => {
 };
 
 (async () => {
-  const fullOutputPath = path.join(__dirname, '..', 'output', 'full_output.json');
   const outputDir = path.join(__dirname, '..', 'output', 'stat');
   mkdir(outputDir);
   const outPath = path.join(outputDir, 'sortThisYearScore.txt');
-  const origin = JSON.parse(fs.readFileSync(fullOutputPath, 'utf8'))
-    .filter(o => !o.isManual && !_.find(o.category, c => c === '短片') && o.classify === 'film')
-    .map(o => ({ ...o, director: o.director.map(d => d.name) }));
+  const origin = openFilmOrigin();
 
   let res = origin.filter((obj) => isThisYearFilm(obj));
   res = res.sort((a, b) => {

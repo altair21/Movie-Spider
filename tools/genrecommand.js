@@ -2,7 +2,7 @@ import fs from 'fs';
 import path from 'path';
 import _ from 'lodash';
 
-import { mkdir } from '../src/util/';
+import { mkdir, openFilmOrigin } from '../src/util/';
 
 const presetWeights = [0, -3, -1, 2, 8, 40];
 const shortPresetWeights = [0, -5, -3, 1, 5, 25];
@@ -77,9 +77,7 @@ const getStatisticsText = (res) => {
 const doRecommand = () => {
   const outputDir = path.join(__dirname, '..', 'output', 'stat');
   mkdir(outputDir);
-  const fullOutputPath = path.join(__dirname, '..', 'output', 'full_output.json');
-  const origin = JSON.parse(fs.readFileSync(fullOutputPath, 'utf8'))
-    .filter(o => !o.isManual && o.classify === 'film' && o.userScore > 0);
+  const origin = openFilmOrigin(true, o => o.userScore > 0);
 
   let films = [];
   let res = [];

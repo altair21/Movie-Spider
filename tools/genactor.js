@@ -2,19 +2,15 @@ import fs from 'fs';
 import path from 'path';
 import _ from 'lodash';
 
-import { mkdir } from '../src/util';
+import { mkdir, openFilmOrigin } from '../src/util';
 
-const fullOutputPath = path.join(__dirname, '..', 'output', 'full_output.json');
 const outputDir = path.join(__dirname, '..', 'output', 'stat');
 mkdir(outputDir);
 const outputPath = path.join(outputDir, 'actors.txt');
-const origin = JSON.parse(fs.readFileSync(fullOutputPath, 'utf8'))
-  .filter(obj => obj.classify === 'film')
-  .map(obj => ({
-    ...obj,
-    director: obj.director.map(d => d.name),
-    actor: obj.actor ? obj.actor.filter(d => d.id !== '') : [],
-  }));
+const origin = openFilmOrigin(true).map(obj => ({
+  ...obj,
+  actor: obj.actor ? obj.actor.filter(d => d.id !== '') : [],
+}));
 
 const getResult = () => {
   const data = [];

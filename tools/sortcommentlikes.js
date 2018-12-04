@@ -27,7 +27,7 @@ const sortLikes = () => {
     total += obj.commentLikes || 0;
     messages.push(`${index + 1}. 《${obj.name}》（${obj.commentLikes} 个有用）：${obj.userComment}`);
   });
-  messages.push(`总计 ${total} 个赞！`);
+  messages.splice(0, 0, `总计 ${total} 个赞！`);
   fs.writeFileSync(outPath, messages.join('\n'));
 };
 

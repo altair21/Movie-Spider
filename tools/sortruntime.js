@@ -2,7 +2,7 @@ import fs from 'fs';
 import path from 'path';
 import _ from 'lodash';
 
-import { mkdir } from '../src/util';
+import { mkdir, openFilmOrigin } from '../src/util';
 
 const getCorrectRuntime = (obj) => {
   if (obj.runtime.length === 0) return 0;
@@ -20,13 +20,10 @@ const getCorrectRuntime = (obj) => {
 };
 
 (async () => {
-  const fullOutputPath = path.join(__dirname, '..', 'output', 'full_output.json');
   const outputDir = path.join(__dirname, '..', 'output', 'stat');
   mkdir(outputDir);
   const outPath = path.join(outputDir, 'sortRuntime.txt');
-  const origin = JSON.parse(fs.readFileSync(fullOutputPath, 'utf8'))
-    .filter(o => !o.isManual && o.classify === 'film' && _.isArray(o.runtime))
-    .map(o => ({ ...o, director: o.director.map(d => d.name) }));
+  const origin = openFilmOrigin(false, o => _.isArray(o.runtime));
 
   const text = origin
     .map(obj => {

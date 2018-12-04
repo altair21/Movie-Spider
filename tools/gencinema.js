@@ -2,7 +2,7 @@ import fs from 'fs';
 import path from 'path';
 import _ from 'lodash';
 
-import { mkdir } from '../src/util/';
+import { mkdir, openFilmOrigin } from '../src/util/';
 
 const year = `${(new Date()).getFullYear()}`;
 
@@ -16,14 +16,10 @@ const sortFun = (key) => (a, b) => {
 };
 
 (async () => {
-  const fullOutputPath = path.join(__dirname, '..', 'output', 'full_output.json');
   const outputDir = path.join(__dirname, '..', 'output', 'stat');
   mkdir(outputDir);
   const outputPath = path.join(outputDir, 'cinemafilm.txt');
-  const origin = JSON.parse(fs.readFileSync(fullOutputPath, 'utf8'))
-    .filter(o => !o.isManual && o.classify === 'film'
-      && o.releaseDate && o.releaseDate.length > 0)
-    .map(o => ({ ...o, director: o.director.map(d => d.name) }));
+  const origin = openFilmOrigin(false, o => o.releaseDate && o.releaseDate.length > 0);
   const domestic = [];  // 国产片
   const introduced = [];  // 引进片
   const nonCinema = []; // 非院线片
