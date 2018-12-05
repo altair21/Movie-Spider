@@ -5,10 +5,11 @@ import Nightmare from 'nightmare';
 import cheerio from 'cheerio';
 import _ from 'lodash';
 
-import { checkProperty, getPosterInfo, getTodayDate, getDuration, mkdir } from '../util/';
+import { checkProperty, getPosterInfo, getTodayDate, getDuration, mkdir, objectToTextPath, scp } from '../util/';
 import { analyze } from './nightmarecommon';
 import { getRoughInfos } from '../basehelper';
 import { colored, Color, ColorType, stripColor } from '../logger/';
+import { genOutputObject } from '../helper';
 
 let currentPage = 1;
 
@@ -26,6 +27,7 @@ const statColored = (text) => colored(ColorType.background)(Color.blue)(colored(
 const errorColored = colored(ColorType.foreground)(Color.red);
 
 const hardFullOutputPath = path.join(__dirname, '..', '..', 'output', 'full_output.json');
+const hardOutputPath = path.join(__dirname, '..', '..', 'output', 'output.json');
 const fullOutputDir = path.join(__dirname, '..', '..', 'output', 'full', `${targetId}`);
 const fullOutputPath = path.join(fullOutputDir, `${targetId}-${todayDate}-full_output.json`);
 const ruleoutPath = path.join(__dirname, '..', '..', 'output', 'filter.json');
@@ -65,6 +67,21 @@ const extractFilmName = async (content) => {
   const hasNext = !!element;
   const href = hasNext ? element.attribs.href : '';
   return { hasNext, href };
+};
+
+const sendToServer = async () => {
+  try {
+    console.log('\n', statColored('开始生成结果并发送给目标服务器'));
+    const configPath = path.join(__dirname, '..', '..', 'config.json');
+    const config = JSON.parse(fs.readFileSync(configPath, 'utf8'));
+    const _origin = JSON.parse(fs.readFileSync(fullOutputPath, 'utf8'));
+    const outputObj = genOutputObject(_.shuffle(_origin));
+    objectToTextPath(outputObj, hardOutputPath);
+    await scp(hardOutputPath, config.ssh);
+    console.log(statColored(`已发送到目标服务器：${config.ssh.host}:${config.ssh.path}`));
+  } catch (e) {
+    console.log(errorColored(`sendToServer() error: ${e}`));
+  }
 };
 
 const writeResult = (newOrigin) => {
@@ -142,13 +159,14 @@ const analyzeAll = (nightmare, url) => {
     fs.writeFileSync(hardFullOutputPath, JSON.stringify(origin2), 'utf8');
 
     if (!hasNext) {
-      nightmare.end().then(() => console.log(statColored('[进度] 完成！')));
+      nightmare.end().then(() => console.log(statColored('[进度] nightmare 实例已释放！')));
       const len = (JSON.parse(fs.readFileSync(fullOutputPath, 'utf8'))
         .filter(obj => !_.find(ruleoutItems, (ruleoutItem) =>
           (ruleoutItem.url && obj.url && ruleoutItem.url === obj.url)
           || (ruleoutItem.id && obj.id && ruleoutItem.id === obj.id)))).length;
       console.log(statColored(`[统计] 本次分析 ${statLen} 部，总计 ${len} 部，再接再厉！`));
       console.log(statColored(`[统计] 运行时间：${getDuration(startTime)}`));
+      await sendToServer();
       return 0;
     }
     res = [];

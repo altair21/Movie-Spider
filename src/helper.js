@@ -148,15 +148,23 @@ const finishResult = (state = initialState) => {
   };
 };
 
-const writeToDisk = (state = initialState) => {
-  objectToJSONPath(state.infos, state.fullOutputPath);
-
-  const simpleInfos = state.infos.filter(obj => {
+const genOutputObject = (origin, logError = true) => {
+  const _origin = origin.filter((obj) => {
     if (obj.isManual) return true;
     if (obj.classify === 'teleplay') return false;
     if (obj.category.indexOf('短片') !== -1) return false;
+    if (obj.category.indexOf('真人秀') !== -1 || obj.category.indexOf('脱口秀') !== -1) return false;
     return true;
-  }).map(obj => {
+  });
+
+  _origin.forEach(obj => {
+    const res = checkProperty(obj);
+    if (!res.isCorrect && logError) {
+      console.log(res.errorMessages.join('\n'));
+    }
+  });
+
+  const deleteProperty = (obj) => {
     if (obj.isManual) return obj;
     const res = obj;
     PropertyPreset.forEach(property => {
@@ -167,8 +175,15 @@ const writeToDisk = (state = initialState) => {
       }
     });
     return res;
-  });
+  };
 
+  return _origin.map(deleteProperty);
+};
+
+const writeToDisk = (state = initialState) => {
+  objectToJSONPath(state.infos, state.fullOutputPath);
+
+  const simpleInfos = genOutputObject(state.infos, false);
   if (state.config.outputAsJS) {
     objectToTextPath(simpleInfos, state.outputPath);
   } else {
@@ -237,5 +252,5 @@ const checkResult = (state = initialState) => {
 export {
   getTotal, genRoughInfos, filterKeywords, genDetailInfos, mergeResult,
   filterResult, mergeManualItem, finishResult, writeToDisk, genLogMessage,
-  checkResult, sendToServer,
+  checkResult, sendToServer, genOutputObject,
 };
