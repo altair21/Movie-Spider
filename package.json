@@ -48,6 +48,7 @@
     "lodash": "^4.17.4",
     "nightmare": "^2.10.0",
     "puppeteer": "^1.2.0",
+    "sequelize": "^4.37.8",
     "webp-converter": "^2.1.6"
   }
 }

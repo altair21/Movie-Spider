@@ -16,6 +16,14 @@ const initialConfig = {
   ignoreTags: true,
   cookie: undefined,
   ignoreFriends: false,
+  db: {
+    host: undefined,
+    port: 3306,
+    username: undefined,
+    password: undefined,
+    database: undefined,
+    dialet: 'mysql',
+  },
 };
 
 const initialState = {
