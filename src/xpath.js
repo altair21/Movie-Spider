@@ -121,6 +121,33 @@ const extractDetailDirector = ($) => {
   return res;
 };
 
+const extractDetailWriter = ($) => {
+  const elements = $('#info span');
+  const res = [];
+  elements.each((index, element) => {
+    if (element && element.children[0] && typeof element.children[0].data === 'string'
+      && element.children[0].data.startsWith('编剧') && element.next.data
+      && element.next.next && element.next.next.children) {
+      element.next.next.children.forEach(ele => {
+        if (!ele.data && ele.children && ele.children[0]) {
+          if (ele.attribs.href && ele.attribs.href.indexOf('celebrity') !== -1) {
+            res.push({
+              id: ele.attribs.href.slice(11, -1),
+              name: ele.children[0].data,
+            });
+          } else {
+            res.push({
+              id: '',
+              name: element.children[0].data,
+            });
+          }
+        }
+      });
+    }
+  });
+  return res;
+};
+
 const extractDetailActor = ($) => {
   const elements = $('#info a[rel=v\\:starring]');
   const res = [];
@@ -258,6 +285,17 @@ const extractDetailFriendsScore = ($) => {
   return 0;
 };
 
+const extractDetailSynopsis = ($) => {
+  const elements = $('.related-info span[property=v\\:summary]');
+  if (elements && elements[0]) {
+    const element = elements[0];
+    if (element && element.children[0] && element.children[0].data) {
+      return element.children[0].data.trim();
+    }
+  }
+  return '';
+};
+
 const extractDetailFriendsNoS = ($) => {  // Friends Number of Score
   const element = $('.friends_rating_wrap .friends_count')[0];
   if (element && element.children[0] && element.children[0].data) return Number.parseInt(element.children[0].data, 10);
@@ -332,11 +370,12 @@ const extractDetailAwards = ($) => {
 export {
   extractTotal, extractDetailURL, extractRoughName, extractRoughPoster,
   extractRoughTags, extractRoughInfos, extractDetailName, extractDetailPoster,
-  extractDetailYear, extractDetailDirector, extractRoughUserScore,
+  extractDetailYear, extractDetailDirector, extractDetailWriter, extractRoughUserScore,
   extractRoughUserComment, extractRoughCommentLikes, extractRoughMarkDate,
   extractDetailCategory, extractDetailScore, extractDetailNumOfScore,
   extractDetailRefFilms, extractDetailCountry, extractDetailReleaseDate,
   extractDetailNumberOfWatched, extractDetailNumberOfWanted,
-  extractDetailFriendsScore, extractDetailFriendsNoS, extractDetailAwards,
-  hasAwards, extractDetailRuntime, extractDetailActor, extractDetailClassify,
+  extractDetailFriendsScore, extractDetailFriendsNoS, extractDetailSynopsis,
+  extractDetailAwards, hasAwards, extractDetailRuntime, extractDetailActor,
+  extractDetailClassify,
 };

@@ -44,6 +44,7 @@ const getDetailInfoExceptAward = async (info, content, len) => {
 
     const year = carveDetailInfo.year($);
     const director = carveDetailInfo.director($);
+    const writer = carveDetailInfo.writer($);
     const actor = carveDetailInfo.actor($);
     const score = carveDetailInfo.score($);
     const numberOfScore = carveDetailInfo.numberOfScore($);
@@ -56,6 +57,7 @@ const getDetailInfoExceptAward = async (info, content, len) => {
     const numberOfWanted = carveDetailInfo.numberOfWanted($);
     const friendsScore = carveDetailInfo.friendsScore($);
     const friendsNoS = carveDetailInfo.friendsNoS($);
+    const synopsis = carveDetailInfo.synopsis($);
     const refFilms = carveDetailInfo.refFilms($);
 
     if (process.env.NODE_ENV === NodeEnvDefinition.development) {
@@ -85,6 +87,7 @@ const getDetailInfoExceptAward = async (info, content, len) => {
 
       year,
       director,
+      writer,
       actor,
       score: score || ScoreDefinition.GetFailure,
       numberOfScore: numberOfScore || ScoreDefinition.GetFailure,
@@ -97,6 +100,7 @@ const getDetailInfoExceptAward = async (info, content, len) => {
       numberOfWanted,
       friendsScore,
       friendsNoS,
+      synopsis,
       refFilms,
       // hasAwards: (currentYear - year <= 3) && carveDetailInfo.hasAwards($),
       hasAwards: carveDetailInfo.hasAwards($),
@@ -123,7 +127,7 @@ const analyzeAward = async (nightmare, url) => new Promise((resolve) => {
     .wait('.nav-user-account')
     .evaluate(() => document.body.innerHTML)
     .then(async (content) => {
-      const awards = carveDetailInfo.extractDetailAwards(cheerio.load(content));
+      const awards = carveDetailInfo.awards(cheerio.load(content));
       resolve(awards);
     });
 });

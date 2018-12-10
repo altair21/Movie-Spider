@@ -87,11 +87,13 @@ const getResult = () => {
 
       let tag;
       if (obj.classify === 'film') {
-        tag = '长片';
+        if (_.indexOf(obj.category, '短片') !== -1) {
+          tag = '短片';
+        } else {
+          tag = '长片';
+        }
       } else if (obj.classify === 'teleplay') {
         tag = '电视剧';
-      } else if (_.indexOf(obj.category, '短片') !== -1) {
-        tag = '短片';
       } else {
         tag = '其它';
       }

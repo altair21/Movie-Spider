@@ -129,6 +129,13 @@ const PropertyPreset = [
     allowNull: false,
     allowEmptyArray: true,
   },
+  // 编剧
+  {
+    name: 'writer',
+    type: PropertyType.ARRAY,
+    allowNull: false,
+    allowEmptyArray: true,
+  },
   // 类别
   {
     name: 'category',
@@ -196,6 +203,12 @@ const PropertyPreset = [
   {
     name: 'friendsNoS',
     type: PropertyType.NUMBER,
+    allowNull: false,
+  },
+  // 内容简介
+  {
+    name: 'synopsis',
+    type: PropertyType.STRING,
     allowNull: false,
   },
   // 相关影片

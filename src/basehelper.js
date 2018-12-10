@@ -18,6 +18,7 @@ import {
   extractDetailNumberOfWatched, extractDetailNumberOfWanted,
   extractDetailFriendsNoS, extractDetailFriendsScore, extractDetailAwards,
   hasAwards, extractDetailRuntime, extractDetailActor, extractDetailClassify,
+  extractDetailWriter, extractDetailSynopsis,
 } from './xpath';
 import { colored, Color, ColorType } from './logger/';
 import { config } from './config';
@@ -65,8 +66,9 @@ const carveDetailInfo = {
     return removeLF(posterURL);
   },
   year: ($) => removeLF(extractDetailYear($)),
-  director: ($) => extractDetailDirector($),
-  actor: ($) => extractDetailActor($),
+  director: ($) => extractDetailDirector($) || [],
+  writer: ($) => extractDetailWriter($) || [],
+  actor: ($) => extractDetailActor($) || [],
   category: ($) => extractDetailCategory($).map(val => removeLF(val)),
   score: ($) => extractDetailScore($),
   numberOfScore: ($) => extractDetailNumOfScore($),
@@ -78,10 +80,11 @@ const carveDetailInfo = {
   numberOfWanted: ($) => extractDetailNumberOfWanted($),
   friendsScore: ($) => extractDetailFriendsScore($),
   friendsNoS: ($) => extractDetailFriendsNoS($),
+  synopsis: ($) => extractDetailSynopsis($),
   refFilms: ($) => extractDetailRefFilms($)
     .map(val => ({ ...val, name: removeLF(val.name) })),
   hasAwards: ($) => hasAwards($),
-  extractDetailAwards: ($) => extractDetailAwards($),
+  awards: ($) => extractDetailAwards($),
 };
 
 const getRoughInfo = (content) => {
@@ -139,6 +142,7 @@ const getDetailInfo = async (info, getContent, len) => {
     const posterURL = carveDetailInfo.poster($);
     const year = carveDetailInfo.year($);
     const director = carveDetailInfo.director($);
+    const writer = carveDetailInfo.writer($);
     const actor = carveDetailInfo.actor($);
     const score = carveDetailInfo.score($);
     const numberOfScore = carveDetailInfo.numberOfScore($);
@@ -151,6 +155,7 @@ const getDetailInfo = async (info, getContent, len) => {
     const numberOfWanted = carveDetailInfo.numberOfWanted($);
     const friendsScore = carveDetailInfo.friendsScore($);
     const friendsNoS = carveDetailInfo.friendsNoS($);
+    const synopsis = carveDetailInfo.synopsis($);
     const refFilms = carveDetailInfo.refFilms($);
 
     let awards = [];
@@ -158,7 +163,7 @@ const getDetailInfo = async (info, getContent, len) => {
     // if (currentYear - year <= 3 && carveDetailInfo.hasAwards($)) {
     if (carveDetailInfo.hasAwards($)) {
       const awardContent = await getContent(`${info.url}awards`);
-      awards = carveDetailInfo.extractDetailAwards(cheerio.load(awardContent));
+      awards = carveDetailInfo.awards(cheerio.load(awardContent));
     }
 
     let imgInfo = { width: 0, height: 0, color: 'white' };
@@ -199,6 +204,7 @@ const getDetailInfo = async (info, getContent, len) => {
 
       year,
       director,
+      writer,
       actor,
       score: score || ScoreDefinition.GetFailure,
       numberOfScore: numberOfScore || ScoreDefinition.GetFailure,
@@ -211,6 +217,7 @@ const getDetailInfo = async (info, getContent, len) => {
       numberOfWanted,
       friendsNoS: config.ignoreFriends ? 0 : friendsNoS,
       friendsScore: config.ignoreFriends ? 0 : friendsScore,
+      synopsis,
       refFilms,
       awards,
 
@@ -279,7 +286,11 @@ const mergeObject = (oldObj, newObj) => {
       messages.push(`${oldObj.name} 用户短评被赞：${oldObj.commentLikes} ---> ${newObj.commentLikes}`);
     }
   }
-  if (newObj.classify !== oldObj.classify && oldObj.classify != null) messages.push(`${oldObj.name} 类型修改：${oldObj.classify} ---> ${newObj.classify}，这个行为非常奇怪！！！`);
+  if (newObj.classify !== oldObj.classify && oldObj.classify != null) messages.push(changesColored(`${oldObj.name} 类型修改：${oldObj.classify} ---> ${newObj.classify}，这个行为非常奇怪！！！`));
+  if (newObj.synopsis !== oldObj.synopsis && oldObj.synopsis && oldObj.synopsis !== '') {
+    messages.push(`${oldObj.name} 内容简介修改：${oldObj.synopsis} ---> ${newObj.synopsis}`);
+  }
+  res.synopsis = newObj.synopsis || '';
 
   if (newObj.posterError === false) {
     res.posterURL = newObj.posterURL || oldObj.posterURL;
@@ -295,6 +306,10 @@ const mergeObject = (oldObj, newObj) => {
   if (newObj.directorError === false) {
     res.director = (newObj.director && newObj.director.length) ? _.cloneDeep(newObj.director) : _.cloneDeep(oldObj.director);
     if (!_.isEqual(newObj.director, oldObj.director) && oldObj.director && newObj.director && newObj.director.length) messages.push(`${oldObj.name} 导演信息修改：${JSON.stringify(oldObj.director)} ---> ${JSON.stringify(newObj.director)}`);
+  }
+  if (newObj.writer != null && newObj.writer.length > 0) {
+    res.writer = _.cloneDeep(newObj.writer);
+    if (!_.isEqual(newObj.writer, oldObj.writer) && oldObj.writer) messages.push(`${oldObj.name} 编剧信息修改：${JSON.stringify(oldObj.writer)} ---> ${JSON.stringify(newObj.writer)}`);
   }
   if (newObj.actor != null && newObj.actor.length > 0) {
     res.actor = _.cloneDeep(newObj.actor);

@@ -4,10 +4,10 @@ import _ from 'lodash';
 
 import { mkdir, openFilmOrigin } from '../src/util/';
 
-const presetWeights = [0, -3, -1, 2, 8, 40];
-const shortPresetWeights = [0, -5, -3, 1, 5, 25];
-const punishment = [100, 20, 15, 10, 5, 0];
-const proportion = [0.8, 0.2];
+const presetWeights = [0, -3, -1, 2, 8, 40];  // 长片分数的影响力
+const shortPresetWeights = [0, -5, -3, 1, 5, 25]; // 短片分数的影响力
+const punishment = [100, 20, 15, 10, 5, 0]; // 相关影片数量不足时的惩罚力
+const proportion = [0.8, 0.2];  // 新旧计算方式对最终结果的影响力
 
 const filmPrototype = {
   id: '',
