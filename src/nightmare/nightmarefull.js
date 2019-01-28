@@ -183,11 +183,13 @@ const main = () => {
   const nightmare = Nightmare({ show: true });
 
   nightmare
-    .goto('https://www.douban.com/accounts/login?source=movie')
-    .type('#email', nightmareConfig.username)
+    .goto('https://accounts.douban.com/passport/login') // 登录页
+    .click('.account-tab-account')
+    .type('#username', nightmareConfig.username)
     .type('#password', nightmareConfig.password)
-    .click('.btn-submit')
-    .wait('.nav-user-account')
+    .click('.btn-account')
+    .wait(10000)
+    .goto('https://movie.douban.com/mine?status=collect') // 看过的电影
 
     .evaluate(() => document.body.innerHTML)
     // .then(() => analyzeAll(nightmare, `https://movie.douban.com/people/${targetId}/collect`))
