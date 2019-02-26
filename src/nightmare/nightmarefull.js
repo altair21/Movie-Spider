@@ -12,6 +12,13 @@ import { colored, Color, ColorType, stripColor } from '../logger/';
 import { genOutputObject } from '../helper';
 
 let currentPage = 1;
+const nightmareParams = {
+  show: true,
+//  switches: {
+//    'proxy-server': 'socks5://127.0.0.1:1234',
+//    'ignore-certificate-errors': true,
+//  },
+};
 
 const targetId = '4513116';
 const ignoreTags = true;
@@ -180,7 +187,7 @@ const analyzeAll = (nightmare, url) => {
 const main = () => {
   initialize();
 
-  const nightmare = Nightmare({ show: true });
+  const nightmare = Nightmare(nightmareParams);
 
   nightmare
     .goto('https://accounts.douban.com/passport/login') // 登录页
