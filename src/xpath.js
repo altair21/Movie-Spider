@@ -135,6 +135,11 @@ const extractDetailWriter = ($) => {
               id: ele.attribs.href.slice(11, -1),
               name: ele.children[0].data,
             });
+          } else if (ele.attribs.href && ele.attribs.href.indexOf('subject_search') !== -1) {
+            res.push({
+              id: '',
+              name: ele.children[0].data,
+            });
           } else {
             res.push({
               id: '',
