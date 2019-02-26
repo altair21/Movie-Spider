@@ -31,7 +31,7 @@ const logical = Logical.join;
 const outputPath = path.join(__dirname, `filterd${filterCategory ? `-category-${keywords.category.join('-')}` : ''}${filterCategory && filterTag ? `-${logical}` : ''}${filterTag ? `-tags-${keywords.tags.join('-')}` : ''}.txt`);
 
 (async () => {
-  let origin = openFilmOrigin(false, o => !_.isNull(o[sortMode]));
+  let origin = openFilmOrigin(false, true, o => !_.isNull(o[sortMode]));
   if (filterCategory) {
     origin = origin.filter(obj => _.isArray(obj.category));
   }

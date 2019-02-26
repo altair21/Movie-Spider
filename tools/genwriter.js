@@ -7,7 +7,7 @@ import { mkdir, openFilmOrigin } from '../src/util';
 const outputDir = path.join(__dirname, '..', 'output', 'stat');
 mkdir(outputDir);
 const outputPath = path.join(outputDir, 'writers.txt');
-const origin = openFilmOrigin(true).map(obj => ({
+const origin = openFilmOrigin(true, false).map(obj => ({
   ...obj,
   writer: obj.writer ? obj.writer.filter(w => w.id !== '') : [],
 }));
@@ -36,6 +36,10 @@ const getResult = () => {
 
   origin.forEach((obj) => {
     obj.writer.forEach((writ, index) => {
+      if ((obj.director || []).find(d => d.id === writ.id)) {
+        return;
+      }
+
       const collas = [];
       for (let i = 0, l = obj.writer.length || 0; i < l; i++) {
         if (obj.writer[i].id !== writ.id) {
@@ -45,7 +49,7 @@ const getResult = () => {
       const newObj = {
         name: obj.name,
         year: obj.year,
-        director: obj.director.join('、'),
+        director: obj.director.map(d => d.name).join('、'),
         collaborators: collas,
         writIndex: index + 1,
       };
