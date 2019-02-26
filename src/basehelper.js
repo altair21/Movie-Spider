@@ -244,6 +244,60 @@ const concurrentGetDetailInfo = async (infoArr, getContent, len) => {
   return res;
 };
 
+const optimizePropOrder = (obj) => ({
+  // 电影基础信息
+  id: obj.id,
+  url: obj.url,
+  name: obj.name,
+  multiName: obj.multiName,
+  classify: obj.classify,
+
+  // 豆瓣UGC
+  score: obj.score,
+  numberOfScore: obj.numberOfScore,
+  numberOfWatched: obj.numberOfWatched,
+  numberOfWanted: obj.numberOfWanted,
+
+  // 电影更多信息
+  year: obj.year,
+  director: obj.director,
+  category: obj.category,
+  country: obj.country,
+  releaseDate: obj.releaseDate,
+  runtime: obj.runtime,
+
+  // 用户UGC
+  tags: obj.tags,
+  userScore: obj.userScore,
+  userComment: obj.userComment,
+  commentLikes: obj.commentLikes,
+  markDate: obj.markDate,
+  friendsScore: obj.friendsScore,
+  friendsNoS: obj.friendsNoS,
+
+  // 电影更更多信息
+  synopsis: obj.synopsis,
+  posterURL: obj.posterURL,
+  color: obj.color,
+  w: obj.w,
+  h: obj.h,
+  writer: obj.writer,
+  actor: obj.actor,
+  refFilms: obj.refFilms,
+  awards: obj.awards,
+
+  // 错误
+  posterError: obj.posterError,
+  yearError: obj.yearError,
+  directorError: obj.directorError,
+  categoryError: obj.categoryError,
+  scoreError: obj.scoreError,
+  numberOfScoreError: obj.numberOfScoreError,
+  refFilmsError: obj.refFilmsError,
+
+  ...obj,
+});
+
 const mergeObject = (oldObj, newObj) => {
   const messages = [];
   const res = {
@@ -341,7 +395,7 @@ const mergeObject = (oldObj, newObj) => {
     res.refFilms = _.uniqWith((oldObj.refFilms || []).concat(newObj.refFilms), (a, b) => a.id === b.id);
   }
 
-  return { newObject: res, messages };
+  return { newObject: optimizePropOrder(res), messages };
 };
 
 const filterRuleOutItem = (array, filterPath) => {
