@@ -111,13 +111,9 @@ const keyAwards = [
   },
 ];
 
-(async () => {
-  const outputDir = path.join(__dirname, '..', 'output', 'stat');
-  mkdir(outputDir);
-  const outputPath = path.join(outputDir, 'award.txt');
+const findAwards = () => {
   const origin = openFilmOrigin(true, o => o.awards && o.awards.length > 0);
 
-  const text = [];
   const res = [];
   keyAwards.forEach(keyAward => {
     res[keyAward.name] = {};
@@ -145,6 +141,11 @@ const keyAwards = [
       });
     });
   });
+  return res;
+};
+
+const getStatisticsText = (res) => {
+  const text = [];
 
   keyAwards.forEach(keyAward => {
     text.push(`${keyAward.name}`);
@@ -168,6 +169,18 @@ const keyAwards = [
     });
     text.push('');
   });
+  return text.join('\n');
+};
 
-  fs.writeFileSync(outputPath, text.join('\n'), 'utf8');
-})();
+const doAwards = () => {
+  const outputDir = path.join(__dirname, '..', 'output', 'stat');
+  mkdir(outputDir);
+
+  const text = getStatisticsText(findAwards());
+  const outputPath = path.join(outputDir, 'award.txt');
+  fs.writeFileSync(outputPath, text, 'utf8');
+};
+
+doAwards();
+
+export { findAwards, keyAwards };

@@ -5,13 +5,14 @@ import { mkdir } from '../src/util/';
 
 const sortLikes = () => {
   const fullOutputPath = path.join(__dirname, '..', 'output', 'full_output.json');
-  const outputDir = path.join(__dirname, '..', 'output', 'stat');
-  mkdir(outputDir);
-  const outPath = path.join(outputDir, 'sortedComments.txt');
   const origin = JSON.parse(fs.readFileSync(fullOutputPath, 'utf8'));
 
   // let res = origin.filter((obj) => obj.commentLikes > 0);
   let res = origin.filter((obj) => obj.userComment !== '');
+  let total = 0;
+  res.forEach(obj => {
+    total += obj.commentLikes || 0;
+  });
   res = res.sort((a, b) => {
     if (a.commentLikes === b.commentLikes) {
       if (a.year === b.year) {
@@ -21,14 +22,27 @@ const sortLikes = () => {
     }
     return b.commentLikes - a.commentLikes;
   });
+  return { res, total };
+};
+
+const getStatisticsText = ({ res, total }) => {
   const messages = [];
-  let total = 0;
   res.forEach((obj, index) => {
-    total += obj.commentLikes || 0;
     messages.push(`${index + 1}. 《${obj.name}》（${obj.commentLikes} 个有用）：${obj.userComment}`);
   });
   messages.splice(0, 0, `总计 ${total} 个赞！`);
-  fs.writeFileSync(outPath, messages.join('\n'));
+  return messages.join('\n');
 };
 
-sortLikes();
+const doSort = () => {
+  const outputDir = path.join(__dirname, '..', 'output', 'stat');
+  mkdir(outputDir);
+
+  const text = getStatisticsText(sortLikes());
+  const outPath = path.join(outputDir, 'sortedComments.txt');
+  fs.writeFileSync(outPath, text, 'utf8');
+};
+
+doSort();
+
+export { sortLikes };

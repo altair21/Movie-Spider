@@ -74,9 +74,7 @@ const getStatisticsText = (res) => {
   return text.join('\n');
 };
 
-const doRecommand = () => {
-  const outputDir = path.join(__dirname, '..', 'output', 'stat');
-  mkdir(outputDir);
+const findRecommand = () => {
   const origin = openFilmOrigin(true, o => o.userScore > 0);
 
   let films = [];
@@ -118,10 +116,18 @@ const doRecommand = () => {
   });
 
   res = normalizeWeight(res, res.length / origin.length);
+  return res;
+};
 
-  const text = getStatisticsText(res);
+const doRecommand = () => {
+  const outputDir = path.join(__dirname, '..', 'output', 'stat');
+  mkdir(outputDir);
+
+  const text = getStatisticsText(findRecommand());
   const outputPath = path.join(outputDir, 'recommand.txt');
   fs.writeFileSync(outputPath, text, 'utf8');
 };
 
 doRecommand();
+
+export { findRecommand };

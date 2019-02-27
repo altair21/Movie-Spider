@@ -22,7 +22,7 @@
     "award": "babel-node tools/genawards.js",
     "actor": "babel-node tools/genactor.js",
     "writer": "babel-node tools/genwriter.js",
-    "stat": "npm run director && npm run year && npm run recommand && npm run sortcomment && npm run userreport && npm run cinema && npm run sortcinema && npm run sortruntime && npm run actor && npm run writer && npm run award",
+    "stat": "npm run year && npm run userreport && npm run cinema && npm run sortcinema && npm run sortruntime && npm run actor && npm run writer",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
