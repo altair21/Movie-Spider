@@ -103,7 +103,7 @@ const getTimesIndex = (year) => {
 
 // 计算占比
 const calcProportion = (numerator, denominator, fixedNum = 2) =>
-  `${+(numerator / denominator * 100).toFixed(fixedNum)}%`;
+  (numerator === 0 ? '0%' : `${+(numerator / denominator * 100).toFixed(fixedNum)}%`);
 
 (async () => {
   const outputDir = path.join(__dirname, '..', 'output', 'stat');
@@ -130,7 +130,8 @@ const calcProportion = (numerator, denominator, fixedNum = 2) =>
   const watchedDist = [[], [], [], [], []];
   let minScorePercFilm = { numberOfWatched: 1, numberOfScore: 1 };
   let maxScorePercFilm = { numberOfWatched: 1, numberOfScore: 0 };
-  const directorRes = getDirectorResult()
+  const directorRes = getDirectorResult().filter(o => o.origFormat.length > 3);
+  const directorScoreRes = getDirectorResult()
     .filter(o => o.origFormat.length > 3)
     .map(o => ({
       ...o,
@@ -413,32 +414,30 @@ const calcProportion = (numerator, denominator, fixedNum = 2) =>
   }
 
   text.push(h2('这些导演你看的最多'));
-  text.push(disorderItem(`${directorRes[0].name} 共看过 ${directorRes[0].long.length} 部长片`));
-  text.push(disorderItem(`${directorRes[1].name} 共看过 ${directorRes[1].long.length} 部长片`));
-  text.push(disorderItem(`${directorRes[2].name} 共看过 ${directorRes[2].long.length} 部长片`));
-  text.push(disorderItem(`${directorRes[3].name} 共看过 ${directorRes[3].long.length} 部长片`));
-  text.push(disorderItem(`${directorRes[4].name} 共看过 ${directorRes[4].long.length} 部长片`));
+  for (let i = 0, l = Math.min(directorRes.length, 5); i < l; i++) {
+    text.push(disorderItem(`${directorRes[i].name} 共看过 ${directorRes[i].origFormat.length} 部影片`));
+  }
   text.push(separator());
 
-  let sortedDirectors = directorRes.sort((a, b) => b.avgScore - a.avgScore);
-  text.push(h2('这些导演你很偏爱'));
-  text.push(italic('仅统计你看过的作品数量多于三部的导演'));
-  text.push(disorderItem(`${sortedDirectors[0].name} ${sortedDirectors[0].origFormat.length} 部作品，你平均打出了 ${sortedDirectors[0].avgScore} 分`));
-  text.push(disorderItem(`${sortedDirectors[1].name} ${sortedDirectors[1].origFormat.length} 部作品，你平均打出了 ${sortedDirectors[1].avgScore} 分`));
-  text.push(disorderItem(`${sortedDirectors[2].name} ${sortedDirectors[2].origFormat.length} 部作品，你平均打出了 ${sortedDirectors[2].avgScore} 分`));
-  text.push(disorderItem(`${sortedDirectors[3].name} ${sortedDirectors[3].origFormat.length} 部作品，你平均打出了 ${sortedDirectors[3].avgScore} 分`));
-  text.push(disorderItem(`${sortedDirectors[4].name} ${sortedDirectors[4].origFormat.length} 部作品，你平均打出了 ${sortedDirectors[4].avgScore} 分`));
-  text.push(separator());
+  let sortedDirectors = directorScoreRes.filter(o => !isNaN(o.avgScore)).sort((a, b) => b.avgScore - a.avgScore);
+  if (sortedDirectors.length > 0) {
+    text.push(h2('这些导演你很偏爱'));
+    text.push(italic('仅统计你看过的作品数量多于三部的导演'));
+    for (let i = 0, l = Math.min(sortedDirectors.length, 5); i < l; i++) {
+      text.push(disorderItem(`${sortedDirectors[i].name} ${sortedDirectors[i].origFormat.length} 部作品，你平均打出了 ${sortedDirectors[0].avgScore} 分`));
+    }
+    text.push(separator());
+  }
 
-  sortedDirectors = directorRes.sort((a, b) => a.avgScore - b.avgScore);
-  text.push(h2('你对这些导演翻白眼'));
-  text.push(italic('仅统计你看过的作品数量多于三部的导演'));
-  text.push(disorderItem(`${sortedDirectors[0].name} ${sortedDirectors[0].origFormat.length} 部作品，你平均打出了 ${sortedDirectors[0].avgScore} 分`));
-  text.push(disorderItem(`${sortedDirectors[1].name} ${sortedDirectors[1].origFormat.length} 部作品，你平均打出了 ${sortedDirectors[1].avgScore} 分`));
-  text.push(disorderItem(`${sortedDirectors[2].name} ${sortedDirectors[2].origFormat.length} 部作品，你平均打出了 ${sortedDirectors[2].avgScore} 分`));
-  text.push(disorderItem(`${sortedDirectors[3].name} ${sortedDirectors[3].origFormat.length} 部作品，你平均打出了 ${sortedDirectors[3].avgScore} 分`));
-  text.push(disorderItem(`${sortedDirectors[4].name} ${sortedDirectors[4].origFormat.length} 部作品，你平均打出了 ${sortedDirectors[4].avgScore} 分`));
-  text.push(separator());
+  sortedDirectors = directorScoreRes.filter(o => !isNaN(o.avgScore)).sort((a, b) => a.avgScore - b.avgScore);
+  if (sortedDirectors.length > 0) {
+    text.push(h2('你对这些导演翻白眼'));
+    text.push(italic('仅统计你看过的作品数量多于三部的导演'));
+    for (let i = 0, l = Math.min(sortedDirectors.length, 5); i < l; i++) {
+      text.push(disorderItem(`${sortedDirectors[i].name} ${sortedDirectors[i].origFormat.length} 部作品，你平均打出了 ${sortedDirectors[0].avgScore} 分`));
+    }
+    text.push(separator());
+  }
 
   text.push(h2('打分人数占比'));
   text.push(`在你看过的电影里面，${maxScorePercFilm.director.join('、')} 执导的 《${maxScorePercFilm.name}》(${maxScorePercFilm.year}) 打分人数在看过人数中的占比最高（${calcProportion(maxScorePercFilm.numberOfScore, maxScorePercFilm.numberOfWatched)}）`);
