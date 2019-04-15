@@ -28,6 +28,10 @@ const initialConfig = {
     sortMode: 'year',
     order: 'desc',
   },
+  noWatched: {
+    numberOfWatched: 0,
+    maxNumberOfWatched: 100000000,
+  },
 };
 
 const initialState = {

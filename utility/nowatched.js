@@ -3,12 +3,13 @@ import path from 'path';
 import _ from 'lodash';
 
 import { mkdir } from '../src/util';
+import { config } from '../src/config';
 
-const numberOfWatched = 200000;
-const maxNumberOfWatched = 300000;
+const numberOfWatched = config.noWatched.numberOfWatched;
+const maxNumberOfWatched = config.noWatched.maxNumberOfWatched;
 
 const myOriginPath = path.join(__dirname, '..', 'output', 'full_output.json');
-const ceOriginPath = path.join(__dirname, '..', 'output', 'full', 'luzhiyu-2018-03-25-full_output.json');
+const ceOriginPath = path.join(__dirname, '..', 'output', 'full', config.noWatched.ceOriginPath);
 
 const outputDir = path.join(__dirname, '..', 'output', 'stat', 'nowatched');
 const outputPath = path.join(outputDir, `${numberOfWatched}-nowatched.txt`);
