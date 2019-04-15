@@ -133,7 +133,7 @@ const PropertyPreset = [
   {
     name: 'writer',
     type: PropertyType.ARRAY,
-    allowNull: false,
+    allowNull: true,
     allowEmptyArray: true,
   },
   // 类别

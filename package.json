@@ -19,6 +19,7 @@
     "cinema": "babel-node tools/gencinema.js",
     "sortcinema": "babel-node tools/sortthisyearscore.js",
     "sortruntime": "babel-node tools/sortruntime.js",
+    "sortdirector": "babel-node tools/sortdirector.js",
     "award": "babel-node tools/genawards.js",
     "actor": "babel-node tools/genactor.js",
     "writer": "babel-node tools/genwriter.js",
