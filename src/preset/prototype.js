@@ -16,6 +16,18 @@ const initialConfig = {
   ignoreTags: true,
   cookie: undefined,
   ignoreFriends: false,
+  ignoreFriendsForOther: true,
+  filter: {
+    filterCategory: false,
+    filterTag: false,
+    keywords: {
+      category: [],
+      tags: [],
+    },
+    logical: 'or',
+    sortMode: 'year',
+    order: 'desc',
+  },
 };
 
 const initialState = {

@@ -2,6 +2,7 @@ import fs from 'fs';
 import path from 'path';
 import _ from 'lodash';
 import { openFilmOrigin } from '../src/util';
+import { config } from '../src/config';
 
 const SortMode = {
   userScore: 'userScore',
@@ -10,23 +11,17 @@ const SortMode = {
   year: 'year',
 };
 const Order = {
-  ascending: 1,
-  descending: 2,
+  ascending: 'asc',
+  descending: 'desc',
 };
 const Logical = {
   or: 'or',
   join: 'join',
 };
 
-const filterCategory = false;
-const filterTag = true;
-const keywords = {
-  category: ['爱情'],
-  tags: ['台湾', '爱情'],
-};
-const sortMode = SortMode.score;
-const order = Order.descending;
-const logical = Logical.join;
+const {
+  filterCategory, filterTag, keywords, sortMode, order, logical,
+} = config.filter;
 
 const outputPath = path.join(__dirname, `filterd${filterCategory ? `-category-${keywords.category.join('-')}` : ''}${filterCategory && filterTag ? `-${logical}` : ''}${filterTag ? `-tags-${keywords.tags.join('-')}` : ''}.txt`);
 
