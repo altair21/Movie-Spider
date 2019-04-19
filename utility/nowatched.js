@@ -5,8 +5,8 @@ import _ from 'lodash';
 import { mkdir } from '../src/util';
 import { config } from '../src/config';
 
-const numberOfWatched = config.noWatched.numberOfWatched;
-const maxNumberOfWatched = config.noWatched.maxNumberOfWatched;
+const numberOfWatched = config.tool.noWatched.numberOfWatched;
+const maxNumberOfWatched = config.tool.noWatched.maxNumberOfWatched;
 
 const myOriginPath = path.join(__dirname, '..', 'output', 'full_output.json');
 const ceOriginPath = path.join(__dirname, '..', 'output', 'full', config.noWatched.ceOriginPath);

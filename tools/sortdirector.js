@@ -139,7 +139,7 @@ const sortDirector = () => {
   mkdir(outputDir);
   const text = getStatisticsText(getResult());
 
-  const filePath = process.argv[2] ? path.join(process.argv[2], 'directors.txt') : path.join(outputDir, 'sortdirectors.txt');
+  const filePath = process.argv[2] ? path.join(process.argv[2], 'sortdirectors.txt') : path.join(outputDir, 'sortdirectors.txt');
   fs.writeFileSync(filePath, text, 'utf8');
 };
 

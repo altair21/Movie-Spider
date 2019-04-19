@@ -17,20 +17,25 @@ const initialConfig = {
   cookie: undefined,
   ignoreFriends: false,
   ignoreFriendsForOther: true,
-  filter: {
-    filterCategory: false,
-    filterTag: false,
-    keywords: {
-      category: [],
-      tags: [],
+  tool: {
+    filter: {
+      filterCategory: false,
+      filterTag: false,
+      keywords: {
+        category: [],
+        tags: [],
+      },
+      logical: 'or',
+      sortMode: 'year',
+      order: 'desc',
     },
-    logical: 'or',
-    sortMode: 'year',
-    order: 'desc',
-  },
-  noWatched: {
-    numberOfWatched: 0,
-    maxNumberOfWatched: 100000000,
+    noWatched: {
+      numberOfWatched: 0,
+      maxNumberOfWatched: 100000000,
+    },
+    sortUserScore: {
+      splitByYear: true,
+    },
   },
 };
 

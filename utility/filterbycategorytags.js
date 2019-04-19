@@ -21,7 +21,7 @@ const Logical = {
 
 const {
   filterCategory, filterTag, keywords, sortMode, order, logical,
-} = config.filter;
+} = config.tool.filter;
 
 const outputPath = path.join(__dirname, `filterd${filterCategory ? `-category-${keywords.category.join('-')}` : ''}${filterCategory && filterTag ? `-${logical}` : ''}${filterTag ? `-tags-${keywords.tags.join('-')}` : ''}.txt`);
 
