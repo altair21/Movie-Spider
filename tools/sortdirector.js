@@ -33,6 +33,8 @@ const processResult = (res) => {
   });
 
   return res.sort((a, b) => {
+    if (a.scoreCount === 0) return 1;
+    if (b.scoreCount === 0) return -1;
     const aScore = a.totalScore / a.scoreCount;
     const bScore = b.totalScore / b.scoreCount;
     if (aScore === bScore) {
