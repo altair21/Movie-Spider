@@ -367,7 +367,23 @@ const mergeObject = (oldObj, newObj) => {
   }
   if (newObj.actor != null && newObj.actor.length > 0) {
     res.actor = _.cloneDeep(newObj.actor);
-    if (!_.isEqual(newObj.actor, oldObj.actor) && oldObj.actor) messages.push(`${oldObj.name} 演员信息修改：${JSON.stringify(oldObj.actor)} ---> ${JSON.stringify(newObj.actor)}`);
+    if (!_.isEqual(newObj.actor, oldObj.actor) && oldObj.actor) {
+      for (let i = 0; i < newObj.actor.length; i++) {
+        const oldActor = _.find(oldObj.actor, (o) => o.id === newObj.actor[i].id);
+        if (oldActor === null) {
+          messages.push(`${oldObj.name} 新增演员：${JSON.stringify(newObj.actor)}`);
+        } else if (!_.isEqual(newObj.actor[i], oldActor)) {
+          messages.push(`${oldObj.name} 演员信息更新：${JSON.stringify(oldActor)} ---> ${JSON.stringify(newObj.actor[i])}`);
+        }
+      }
+      for (let i = 0; i < oldObj.actor.length; i++) {
+        const newActor = _.find(newObj.actor, (o) => o.id === oldObj.actor[i].id);
+        if (newActor === null) {
+          messages.push(`${oldObj.name} 减少演员：${JSON.stringify(oldObj.actor[i])}`);
+        }
+      }
+      // messages.push(`${oldObj.name} 演员信息修改：${JSON.stringify(oldObj.actor)} ---> ${JSON.stringify(newObj.actor)}`);
+    }
   }
   if (newObj.runtime != null && newObj.runtime.length > 0) {
     res.runtime = _.cloneDeep(newObj.runtime);
