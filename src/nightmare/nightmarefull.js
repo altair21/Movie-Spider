@@ -5,13 +5,18 @@ import Nightmare from 'nightmare';
 import cheerio from 'cheerio';
 import _ from 'lodash';
 
+import { initialConfig } from '../preset/prototype';
 import { checkProperty, getPosterInfo, getTodayDate, getDuration, mkdir, objectToTextPath, scp } from '../util/';
 import { analyze } from './nightmarecommon';
 import { getRoughInfos } from '../basehelper';
 import { colored, Color, ColorType, stripColor } from '../logger/';
 import { genOutputObject } from '../helper';
 
-let currentPage = 1;
+const configPath = path.join(__dirname, '..', '..', 'config.json');
+const config = { ...initialConfig, ...JSON.parse(fs.readFileSync(configPath, 'utf8')) };
+
+let currentPage = config.startPage;
+
 const nightmareParams = {
   show: true,
 //  switches: {
@@ -20,10 +25,10 @@ const nightmareParams = {
 //  },
 };
 
-const targetId = '4513116';
-const ignoreTags = true;
-const logCheckResult = true;
-const keywords = ['电影', '短片'];
+const targetId = `${config.id}`;
+const ignoreTags = config.ignoreTags;
+const logCheckResult = config.logCheckResult;
+const keywords = config.keywords;
 
 const startTime = new Date();
 const todayDate = getTodayDate();
@@ -79,8 +84,6 @@ const extractFilmName = async (content) => {
 const sendToServer = async () => {
   try {
     console.log('\n', statColored('开始生成结果并发送给目标服务器'));
-    const configPath = path.join(__dirname, '..', '..', 'config.json');
-    const config = JSON.parse(fs.readFileSync(configPath, 'utf8'));
     const _origin = JSON.parse(fs.readFileSync(fullOutputPath, 'utf8'));
     const outputObj = genOutputObject(_.shuffle(_origin));
     objectToTextPath(outputObj, hardOutputPath);

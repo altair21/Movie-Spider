@@ -1,6 +1,7 @@
 
 const initialConfig = {
   id: undefined,
+  startPage: 1,
   ssh: {
     user: undefined,
     host: undefined,
@@ -14,6 +15,7 @@ const initialConfig = {
   password: undefined,
   concurrency: undefined,
   ignoreTags: true,
+  logCheckResult: true,
   cookie: undefined,
   ignoreFriends: false,
   ignoreFriendsForOther: true,
@@ -58,4 +60,4 @@ const initialState = {
   getText: () => '',
 };
 
-export { initialState };
+export { initialState, initialConfig };
