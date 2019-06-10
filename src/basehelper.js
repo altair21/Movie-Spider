@@ -298,6 +298,41 @@ const optimizePropOrder = (obj) => ({
   ...obj,
 });
 
+const mergeCreator = (oldArr = [], newArr = [], filmName, creatorTitle) => {
+  const circleNumber = ['0', '①', '②', '③', '④', '⑤', '⑥', '⑦', '⑧', '⑨', '⑩', '⑪', '⑫', '⑬', '⑭', '⑮', '⑯', '⑰', '⑱', '⑲', '⑳', '㉑', '㉒', '㉓', '㉔', '㉕', '㉖', '㉗', '㉘', '㉙', '㉚', '㉛', '㉜', '㉝', '㉞', '㉟', '㊱', '㊲', '㊳', '㊴', '㊵', '㊶', '㊷', '㊸', '㊹', '㊺', '㊻', '㊼', '㊽', '㊾', '㊿'];
+  const msg = [];
+  if (!_.isEqual(newArr, oldArr)) {
+    for (let i = 0; i < newArr.length; i++) {
+      let flag = false;
+      for (let j = 0; j < oldArr.length; j++) {
+        if (newArr[i].id === oldArr[j].id) {
+          flag = true;
+          if (!_.isEqual(newArr[i], oldArr[j])) {
+            msg.push(`${filmName} ${creatorTitle}信息更新：${circleNumber[j]}${JSON.stringify(oldArr[j])} ---> ${circleNumber[i]}${JSON.stringify(newArr[i])}`);
+          }
+          break;
+        }
+      }
+      if (!flag) {
+        msg.push(`${filmName} 新增${creatorTitle}：${circleNumber[i]}${JSON.stringify(newArr[i])}`);
+      }
+    }
+    for (let i = 0; i < oldArr.length; i++) {
+      let flag = false;
+      for (let j = 0; j < newArr.length; j++) {
+        if (oldArr[i].id === newArr[j].id) {
+          flag = true;
+          break;
+        }
+      }
+      if (!flag) {
+        msg.push(`${filmName} 减少${creatorTitle}：${circleNumber[i]}${JSON.stringify(oldArr[i])}`);
+      }
+    }
+    // messages.push(`${oldObj.name} 演员信息修改：${JSON.stringify(oldObj.actor)} ---> ${JSON.stringify(newObj.actor)}`);
+  }
+};
+
 const mergeObject = (oldObj, newObj) => {
   const messages = [];
   const res = {
@@ -359,31 +394,18 @@ const mergeObject = (oldObj, newObj) => {
   }
   if (newObj.directorError === false) {
     res.director = (newObj.director && newObj.director.length) ? _.cloneDeep(newObj.director) : _.cloneDeep(oldObj.director);
-    if (!_.isEqual(newObj.director, oldObj.director) && oldObj.director && newObj.director && newObj.director.length) messages.push(`${oldObj.name} 导演信息修改：${JSON.stringify(oldObj.director)} ---> ${JSON.stringify(newObj.director)}`);
+    const msg = mergeCreator(oldObj.director, newObj.director, oldObj.name, '导演');
+    messages.concat(msg);
   }
   if (newObj.writer != null && newObj.writer.length > 0) {
     res.writer = _.cloneDeep(newObj.writer);
-    if (!_.isEqual(newObj.writer, oldObj.writer) && oldObj.writer) messages.push(`${oldObj.name} 编剧信息修改：${JSON.stringify(oldObj.writer)} ---> ${JSON.stringify(newObj.writer)}`);
+    const msg = mergeCreator(oldObj.writer, newObj.writer, oldObj.name, '编剧');
+    messages.concat(msg);
   }
   if (newObj.actor != null && newObj.actor.length > 0) {
-    res.actor = _.cloneDeep(newObj.actor);
-    if (!_.isEqual(newObj.actor, oldObj.actor) && oldObj.actor) {
-      for (let i = 0; i < newObj.actor.length; i++) {
-        const oldActor = _.find(oldObj.actor, (o) => o.id === newObj.actor[i].id);
-        if (oldActor === null) {
-          messages.push(`${oldObj.name} 新增演员：${JSON.stringify(newObj.actor)}`);
-        } else if (!_.isEqual(newObj.actor[i], oldActor)) {
-          messages.push(`${oldObj.name} 演员信息更新：${JSON.stringify(oldActor)} ---> ${JSON.stringify(newObj.actor[i])}`);
-        }
-      }
-      for (let i = 0; i < oldObj.actor.length; i++) {
-        const newActor = _.find(newObj.actor, (o) => o.id === oldObj.actor[i].id);
-        if (newActor === null) {
-          messages.push(`${oldObj.name} 减少演员：${JSON.stringify(oldObj.actor[i])}`);
-        }
-      }
-      // messages.push(`${oldObj.name} 演员信息修改：${JSON.stringify(oldObj.actor)} ---> ${JSON.stringify(newObj.actor)}`);
-    }
+    res.actor = _.cloneDeep(newObj.actor || []);
+    const msg = mergeCreator(oldObj.actor, newObj.actor, oldObj.name, '演员');
+    messages.concat(msg);
   }
   if (newObj.runtime != null && newObj.runtime.length > 0) {
     res.runtime = _.cloneDeep(newObj.runtime);
