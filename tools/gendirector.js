@@ -156,7 +156,7 @@ const getResult = () => {
 const filmToLog = (logs) => (film) => {
   const filmName = film.name;
   const year = `（${film.year}年）`;
-  const collas = film.collaborators.length > 0 ? `（与 ${film.collaborators.join('、')} 联合指导）` : '';
+  const collas = film.collaborators.length > 0 ? `（与 ${film.collaborators.join('、')} 联合执导）` : '';
   logs.push(`[${film.tag}]${filmName}${year}${collas}`);
 };
 

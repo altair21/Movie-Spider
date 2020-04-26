@@ -114,7 +114,7 @@ const getResult = () => {
 const filmToLog = (logs) => (film) => {
   const filmName = film.name;
   const year = `（${film.year}年）`;
-  const collas = film.collaborators.length > 0 ? `（与 ${film.collaborators.join('、')} 联合指导）` : '';
+  const collas = film.collaborators.length > 0 ? `（与 ${film.collaborators.join('、')} 联合执导）` : '';
   const score = film.score > 0 ? (() => {
     let scoreStr = '';
     for (let i = 0, l = film.score; i < l; i++) {

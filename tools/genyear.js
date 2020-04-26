@@ -57,7 +57,7 @@ const getStatisticsText = (res) => {
 
     obj.films.forEach((film) => {
       const filmName = film.name;
-      const director = film.director ? `（${film.director.join('、')} 指导）` : '';
+      const director = film.director ? `（${film.director.join('、')} 执导）` : '';
       text.push(`${filmName}${director}`);
     });
     text.push('');
