@@ -46,11 +46,11 @@ const carveRoughInfo = {
   poster: ($) => hdThumbPoster(removeLF(extractRoughPoster($))),
   multiName: ($) => {
     const multiName = extractRoughName($);
-    return removeLF(multiName).split('/').map(name => removeLF(name).trim()).join(' / ');
+    return removeLF(multiName).split(' / ').map(name => removeLF(name).trim()).join(' / ');
   },
   name: ($) => {
     const multiName = extractRoughName($);
-    return removeLF(multiName.split('/')[0].trim());
+    return removeLF(multiName.split(' / ')[0].trim());
   },
   tags: ($) => extractRoughTags($).map(tag => removeLF(tag)).filter(tag => tag.indexOf('标签') === -1),
   userScore: ($) => extractRoughUserScore($),
