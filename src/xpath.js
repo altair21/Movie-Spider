@@ -260,6 +260,27 @@ const extractDetailReleaseDate = ($) => {
   return res;
 };
 
+const extractDetailIMDb = ($) => {
+  const elements = $('#info span');
+  let res = '';
+  const extractFromElement = (element) => {
+    if (element.name === 'a' && element.attribs && element.attribs.href && element.attribs.href.startsWith('https://www.imdb.com') && element.children && element.children[0]) {
+      return element.children[0].data;
+    }
+    return '';
+  };
+  elements.each((index, element) => {
+    if (element && element.children[0] && typeof element.children[0].data === 'string'
+    && element.children[0].data.startsWith('IMDb') && element.next) {
+      res = extractFromElement(element.next);
+      if (res === '' && element.next.next) {
+        res = extractFromElement(element.next.next);
+      }
+    }
+  });
+  return res;
+};
+
 const extractDetailNumberOfWatched = ($) => {
   const elements = $('.subject-others-interests-ft a');
   let res = 0;
@@ -379,7 +400,7 @@ export {
   extractRoughUserComment, extractRoughCommentLikes, extractRoughMarkDate,
   extractDetailCategory, extractDetailScore, extractDetailNumOfScore,
   extractDetailRefFilms, extractDetailCountry, extractDetailReleaseDate,
-  extractDetailNumberOfWatched, extractDetailNumberOfWanted,
+  extractDetailIMDb, extractDetailNumberOfWatched, extractDetailNumberOfWanted,
   extractDetailFriendsScore, extractDetailFriendsNoS, extractDetailSynopsis,
   extractDetailAwards, hasAwards, extractDetailRuntime, extractDetailActor,
   extractDetailClassify,

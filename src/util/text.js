@@ -169,6 +169,12 @@ const PropertyPreset = [
     type: PropertyType.STRING,
     allowNull: false,
   },
+  // IMDB 编号
+  {
+    name: 'imdb',
+    type: PropertyType.STRING,
+    allowNull: true,
+  },
   // 豆瓣评分
   {
     name: 'score',

@@ -15,7 +15,7 @@ import {
   extractRoughCommentLikes, extractRoughUserScore, extractRoughMarkDate,
   extractDetailCategory, extractDetailCountry, extractDetailNumOfScore,
   extractDetailScore, extractDetailRefFilms, extractDetailReleaseDate,
-  extractDetailNumberOfWatched, extractDetailNumberOfWanted,
+  extractDetailIMDb, extractDetailNumberOfWatched, extractDetailNumberOfWanted,
   extractDetailFriendsNoS, extractDetailFriendsScore, extractDetailAwards,
   hasAwards, extractDetailRuntime, extractDetailActor, extractDetailClassify,
   extractDetailWriter, extractDetailSynopsis,
@@ -76,6 +76,7 @@ const carveDetailInfo = {
   releaseDate: ($) => extractDetailReleaseDate($),
   runtime: ($) => extractDetailRuntime($),
   classify: ($) => extractDetailClassify($),
+  imdb: ($) => extractDetailIMDb($),
   numberOfWatched: ($) => extractDetailNumberOfWatched($),
   numberOfWanted: ($) => extractDetailNumberOfWanted($),
   friendsScore: ($) => extractDetailFriendsScore($),
@@ -151,6 +152,7 @@ const getDetailInfo = async (info, getContent, len) => {
     const releaseDate = carveDetailInfo.releaseDate($);
     const runtime = carveDetailInfo.runtime($);
     const classify = carveDetailInfo.classify($);
+    const imdb = carveDetailInfo.imdb($);
     const numberOfWatched = carveDetailInfo.numberOfWatched($);
     const numberOfWanted = carveDetailInfo.numberOfWanted($);
     const friendsScore = carveDetailInfo.friendsScore($);
@@ -213,6 +215,7 @@ const getDetailInfo = async (info, getContent, len) => {
       releaseDate,
       runtime,
       classify,
+      imdb,
       numberOfWatched,
       numberOfWanted,
       friendsNoS: config.ignoreFriends ? 0 : friendsNoS,
@@ -265,6 +268,7 @@ const optimizePropOrder = (obj) => ({
   country: obj.country,
   releaseDate: obj.releaseDate,
   runtime: obj.runtime,
+  imdb: obj.imdb,
 
   // 用户UGC
   tags: obj.tags,
@@ -348,6 +352,7 @@ const mergeObject = (oldObj, newObj) => {
     country: newObj.country && newObj.country.length > 0 ? newObj.country : oldObj.country,
     releaseDate: newObj.releaseDate && newObj.releaseDate.length > 0 ? newObj.releaseDate : oldObj.releaseDate,
     classify: newObj.classify || oldObj.classify,
+    imdb: newObj.imdb || oldObj.imdb,
     numberOfWatched: !_.isNull(newObj.numberOfWatched) ? newObj.numberOfWatched : oldObj.numberOfWatched,
     numberOfWanted: !_.isNull(newObj.numberOfWanted) ? newObj.numberOfWanted : oldObj.numberOfWanted,
     friendsScore: !_.isNull(newObj.friendsScore) ? newObj.friendsScore : oldObj.friendsScore,
@@ -376,6 +381,7 @@ const mergeObject = (oldObj, newObj) => {
     }
   }
   if (newObj.classify !== oldObj.classify && oldObj.classify != null) messages.push(changesColored(`${oldObj.name} 类型修改：${oldObj.classify} ---> ${newObj.classify}，这个行为非常奇怪！！！`));
+  if (newObj.imdb !== oldObj.imdb && oldObj.imdb != null) messages.push(changesColored(`${oldObj.name} IMDb编号修改：${oldObj.imdb} ---> ${newObj.imdb}，这个行为非常奇怪！！！`));
   if (newObj.synopsis !== oldObj.synopsis && oldObj.synopsis && oldObj.synopsis !== '') {
     messages.push(`${oldObj.name} 内容简介修改：${oldObj.synopsis} ---> ${newObj.synopsis}`);
   }

@@ -53,6 +53,7 @@ const getDetailInfoExceptAward = async (info, content, len) => {
     const releaseDate = carveDetailInfo.releaseDate($);
     const runtime = carveDetailInfo.runtime($);
     const classify = carveDetailInfo.classify($);
+    const imdb = carveDetailInfo.imdb($);
     const numberOfWatched = carveDetailInfo.numberOfWatched($);
     const numberOfWanted = carveDetailInfo.numberOfWanted($);
     const friendsScore = carveDetailInfo.friendsScore($);
@@ -96,6 +97,7 @@ const getDetailInfoExceptAward = async (info, content, len) => {
       releaseDate,
       runtime,
       classify,
+      imdb,
       numberOfWatched,
       numberOfWanted,
       friendsScore,
